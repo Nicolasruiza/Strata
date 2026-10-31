@@ -215,11 +215,16 @@ function todayView(){
       <div style="margin-top:14px"><button class="btn violet" id="resume">Resume workout</button></div></section>`;
   } else main=slotCard(slot,selDate,isToday,slots[sel],st);
   const others=isToday&&!DB.active?otherOptions(slot):'';
+  const lpSel=slots[sel], mainIsNext=slot==='lift'&&lpSel&&lpSel.status==='planned';
+  const nd=nextDay(), nextCardHTML=!DB.active&&!mainIsNext?`<section class="card tight" style="display:flex;align-items:center;gap:12px;padding:12px 14px">
+     <span class="ico v">${I.dumbbell}</span><div class="grow"><div class="label">Next lift in your rotation</div><div class="name" style="margin-top:2px">${PLAN[nd].name}</div>
+     <div class="meta">${requiredItems(nd).length} main lifts · ~${minutesFor(nd)} min${isLegs(nd)?' · jumps first':''}</div></div>
+     <button class="btn sm" data-preview="${nd}" style="width:auto;padding:0 16px">${liftedOn(t)?'Preview':'Open'}</button></section>`:'';
   const hl=st.all?'Full week done. Every layer got its dose.'
     :`${st.mt-st.m>0?`${st.mt-st.m} lift${st.mt-st.m>1?'s':''}`:''}${st.ht-st.h>0?`${st.mt-st.m>0?', ':''}${st.ht-st.h} heart session${st.ht-st.h>1?'s':''}`:''}${st.bt-st.b>0?`${(st.mt-st.m>0||st.ht-st.h>0)?', ':''}${st.bt-st.b} jump day${st.bt-st.b>1?'s':''}`:''} left this week.`;
   const sk=streak();
   return hero({title:`${greet()}, ${esc(hname)}`,eyebrow:fmtD(t,{weekday:'long',month:'long',day:'numeric'}),sub:sk?`${sk}-week streak. Keep the layers stacking.`:'Build it in layers: muscle, heart, bone.'})
-   +`<main class="wrap">${main}${others}${ringsCard(st,hl)}
+   +`<main class="wrap">${main}${nextCardHTML}${others}${ringsCard(st,hl)}
      <section class="card tight"><div class="rowh" style="padding:2px 4px"><span class="label">This week</span><span class="small">Tap a day</span></div><div class="week">${strip}</div></section></main>`;
 }
 function gateFor(d){view=d;return gate()}
@@ -281,7 +286,6 @@ function minutesInput(slot){
 }
 function otherOptions(slot){
   const opts=[];
-  if(slot!=='lift'&&!liftedOn(today()))opts.push(`<button class="btn sm" data-preview="${nextDay()}">Lift: ${PLAN[nextDay()].name}</button>`);
   if(slot!=='vo2')opts.push(`<button class="btn sm" id="openVo2b">4×4</button>`);
   if(slot!=='office'&&slot!=='z2'&&slot!=='walk')opts.push(`<button class="btn sm" data-sheet="walk">Log a walk</button>`);
   return opts.length?`<div style="display:flex;gap:8px">${opts.join('')}</div>`:'';
@@ -295,7 +299,9 @@ function previewView(){
   const req=requiredItems(d), bonus=blocks.filter(b=>/^bonus/i.test(b.t)).flatMap(b=>b.items);
   const row=(ex,i)=>{const w=low?loEnergyW(ex,wOf(ex)):wOf(ex), sets=low?2:(ex.sets||3), s=imgOf(ex.id);
     return `<div class="row">${s?`<img class="thumb" src="${s}" alt="">`:`<div class="thumb"></div>`}<div class="grow"><div class="name">${esc(cleanN(ex.n))}</div>
-      <div class="meta">${sets} × ${repLbl(ex,ex.r)}${perLeg(ex)} · ${wLbl(ex,w)}${ex.injured?' · <span style="color:var(--amber)">on hold</span>':''}</div></div>${i===0?'<span class="chip n">Heavy</span>':''}</div>`};
+      <div class="meta">${sets} × ${repLbl(ex,ex.r)}${perLeg(ex)} · <b style="color:#fff">${wLbl(ex,w)}</b>${i===0?' · heavy':''}${ex.injured?' · <span style="color:var(--amber)">on hold</span>':''}</div>
+      ${(()=>{const l=lastOf(ex.id), pl=ex.bar&&w?plateTxt(ex,w):'';const parts=[];if(l)parts.push(`Last: ${l.w} × ${l.reps.map(r=>r==null?'–':r).join('/')}`);if(pl)parts.push(pl);return parts.length?`<div class="meta" style="font-size:12px">${parts.join(' · ')}</div>`:''})()}</div>
+      <button class="gbtn" data-yt="${ex.id}" aria-label="Watch ${esc(cleanN(ex.n))} form" style="min-width:40px;height:40px;padding:0">${I.play.replace('<svg','<svg width="14" height="14"')}</button></div>`};
   const landings=legs?(3*10+3*5):0;
   const g=gateFor(d);
   return hero({left:backBtn(),title:PLAN[d].name,eyebrow:`${fmtD(today(),{weekday:'short',month:'short',day:'numeric'})}`,cls:'short',
@@ -778,12 +784,12 @@ function detailView(){
   const row=id=>{const ex=exById(id)||{n:id}, e=s.entries[id];
     return `<div class="row" style="flex-wrap:wrap"><span class="ck" style="width:26px;height:26px;border-radius:13px;background:var(--violet);color:#0E1018;display:flex;align-items:center;justify-content:center;flex:none"><span style="width:14px;height:14px;display:block">${I.check}</span></span>
       <div class="grow"><div class="name">${esc(cleanN(ex.n))}</div><div class="meta">${isSec(ex)?'seconds':'reps'}${perLeg(ex)}</div></div>
-      <label style="display:flex;align-items:center;gap:4px" class="small"><input class="ein w" type="number" inputmode="decimal" value="${e.w}" data-dw="${id}" aria-label="Weight">lb</label>
+      ${ex.bw&&!e.w?'<span class="small">bodyweight</span>':`<label style="display:flex;align-items:center;gap:4px" class="small"><input class="ein w" type="number" inputmode="decimal" value="${e.w}" data-dw="${id}" aria-label="Weight">lb</label>`}
       <div style="display:flex;gap:6px;width:100%;padding-left:38px;margin-top:6px">${e.reps.map((r,k)=>`<input class="ein" type="number" inputmode="numeric" value="${r==null?'':r}" data-dr="${id}|${k}" aria-label="Set ${k+1}">`).join('')}<span class="small" style="align-self:center">${isSec(ex)?'s':''}</span></div></div>`};
   return hero({left:backBtn('detBack'),cls:'short',eyebrow:fmtD(s.date,{weekday:'long',month:'short',day:'numeric',year:'numeric'}),title:nm,sub:`${s.min?s.min+' min · ':''}${nf(s.vol||0)} lb moved${s.lowEnergy?' · lighter day':''}`})
    +`<main class="wrap">
-    <section class="card tight"><div class="tg" style="padding:4px"><span class="ico m">${I.bone}</span><div class="grow"><div class="name">Jumps warm-up</div><div class="meta">Pogo hops 3 × 10 · Box jumps 3 × 5</div></div>
-      <button class="sw ${j?'on':''}" id="detJumps" role="switch" aria-checked="${!!j}" aria-label="Jumps done"></button></div></section>
+    ${isLegs(s.day)||j?`<section class="card tight"><div class="tg" style="padding:4px"><span class="ico m">${I.bone}</span><div class="grow"><div class="name">Jumps warm-up</div><div class="meta">Pogo hops 3 × 10 · Box jumps 3 × 5</div></div>
+      <button class="sw ${j?'on':''}" id="detJumps" role="switch" aria-checked="${!!j}" aria-label="Jumps done"></button></div></section>`:''}
     <section class="card"><div class="rowh"><span class="label">Main lifts</span><span class="small">Tap a number to edit</span></div><div style="margin-top:4px">${main.map(row).join('')||'<div class="empty">None</div>'}</div></section>
     ${extra.length?`<section class="card"><span class="label">Bonus & extras</span><div style="margin-top:4px">${extra.map(row).join('')}</div></section>`
       :bonusPlan.length?`<section class="card tight" style="border-style:dashed"><div class="tg" style="padding:4px"><span class="ico g">${I.star}</span><div class="grow"><div class="name">Bonus</div><div class="meta">${bonusPlan.map(b=>esc(cleanN(b.n))).join(' · ')}</div></div><span class="chip n">Skipped</span></div></section>`:''}
