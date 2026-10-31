@@ -96,7 +96,7 @@ const nf=n=>Math.round(n).toLocaleString('en-US');
 /* ---------- week plan ---------- */
 function officeDays(){
   if(Array.isArray(DB.officeDays))return DB.officeDays;
-  const on=DB.rcOffice==null?profile.plan==='nr':!!DB.rcOffice;
+  const on=!!DB.rcOffice;
   return on?[2,4]:[];
 }
 function weekPlan(){
@@ -796,8 +796,10 @@ function settingsView(){
   const hr=rcHR(), off=officeDays(), on=k=>(DB.injuries||[]).some(i=>i.key===k);
   return hero({title:'Settings',sub:'Profile, injuries, schedule and data.'})
    +`<main class="wrap">
-    <section class="card"><span class="label">Profile</span><div class="seg" style="margin-top:10px">${profiles.map(p=>`<button data-prof="${p.id}" class="${p.id===profile.id?'on':''}">${esc(p.name)}</button>`).join('')}</div>
-      <p class="note" style="margin:10px 0 0">Each profile has its own plan, weights, history and settings.</p></section>
+    <section class="card"><span class="label">You</span>
+      <label class="step" style="margin-top:10px;padding:6px 14px"><span class="name">Name</span><input id="nameIn" type="text" value="${esc(profile.name)}" autocomplete="given-name" style="text-align:right;font-size:17px;font-weight:600;width:60%"></label>
+      <div class="seg" style="margin-top:10px">${[['male','Male'],['female','Female']].map(([k,l])=>`<button data-gender="${k}" class="${profile.gender===k?'on':''}">${l}</button>`).join('')}</div>
+      <p class="note" style="margin:10px 0 0">Gender sets the plan template and starting loads. Your history and weights stay when you change it.</p></section>
     <section class="card"><span class="label">Injury flags</span><p class="note" style="margin:6px 0 4px">Flagging one holds every lift that loads it and adds safer substitutes.</p>
       ${INJ_SHOW.map(([k,l])=>`<div class="tg"><div class="grow"><div class="name" style="font-size:15px">${l}</div>${on(k)?`<div class="meta">Since ${fmtD(DB.injuries.find(i=>i.key===k).since,{month:'short',day:'numeric'})} · ${DB.injuries.find(i=>i.key===k).ids.length} lifts on hold</div>`:''}</div>
         <button class="sw ${on(k)?'on':''}" data-inj="${k}" role="switch" aria-checked="${on(k)}" aria-label="${l}"></button></div>`).join('')}</section>
@@ -818,27 +820,41 @@ function settingsView(){
 
 /* ===================== FIRST LAUNCH ===================== */
 function onboardView(){
-  const o=onboard, p=profiles.find(x=>x.id===o.who), ll=liftLogLocal(o.who);
+  const o=onboard, ll=o.gender?liftLogLocal(o.gender==='female'?'sa':'nr'):null, ready=o.name.trim()&&o.gender;
   return `<header class="hero tall"><div class="topbar"><div class="brand">${I.logo}Strata</div></div>
     <div class="htext"><div><h1 style="font-size:36px">Build it in layers:<br><span style="color:var(--violet)">muscle</span>, <span style="color:var(--coral)">heart</span>, <span style="color:var(--mint)">bone</span></h1>
     <div class="sub">4 lifts, 2–3 heart sessions and 2 jump warm-ups a week. Each one closes a ring.</div></div></div></header>
    <main class="wrap">
-    <section class="card"><span class="label">Who's training?</span><div class="seg" style="margin-top:10px">${profiles.map(x=>`<button data-who="${x.id}" class="${x.id===o.who?'on':''}">${esc(x.name)}</button>`).join('')}</div></section>
-    <section class="card"><span class="label">Bring your history</span>
+    <section class="card"><span class="label">About you</span>
+      <label class="step" style="margin-top:10px;padding:6px 14px"><span class="name">Name</span><input id="obName" type="text" value="${esc(o.name)}" placeholder="Your name" autocomplete="given-name" style="text-align:right;font-size:17px;font-weight:600;width:60%"></label>
+      <div class="seg" style="margin-top:10px" role="group" aria-label="Gender">${[['male','Male'],['female','Female']].map(([k,l])=>`<button data-ogender="${k}" class="${o.gender===k?'on':''}" aria-pressed="${o.gender===k}">${l}</button>`).join('')}</div>
+      <p class="note" style="margin:8px 0 0">Sets your plan template and starting loads.</p></section>
+    ${o.gender?`<section class="card"><span class="label">Bring your history</span>
       ${o.imported?`<div class="name" style="margin-top:10px;color:var(--mint)">${o.imported} sessions imported</div>`
       :`${ll?`<button class="btn sm" id="obLocal" style="margin-top:10px">Import ${ll.n} Lift Log sessions from this device</button>`:''}
       <button class="btn sm" id="obFile" style="margin-top:10px">Import a Lift Log export file</button>
-      <p class="note" style="margin:8px 0 0">In Lift Log: More → Export data, then pick that file here. Weights carry over, so nothing restarts.</p>`}</section>
+      <p class="note" style="margin:8px 0 0">Optional. In Lift Log: More → Export data, then pick that file here. Weights carry over, so nothing restarts.</p>`}</section>`:''}
     <section class="card"><div class="tg" style="padding:0"><div class="grow"><div class="name">Age</div><div class="meta">For heart-rate targets</div></div>
-      <div class="step" style="padding:4px;gap:10px"><button data-oage="-1" style="width:40px;height:40px" aria-label="Younger">−</button><div class="v"><b style="font-size:22px">${o.age||'—'}</b></div><button data-oage="1" style="width:40px;height:40px" aria-label="Older">+</button></div></div></section>
-    <section class="card"><span class="label">Office days</span><div class="daychips" style="margin-top:10px">${[1,2,3,4,5].map(d=>`<button data-ooff="${d}" class="${o.off.includes(d)?'on':''}" aria-pressed="${o.off.includes(d)}" aria-label="${WD_L[d]}">${WD_S[d][0]}</button>`).join('')}</div></section></main>
-   <div class="dock"><button class="btn primary" id="obGo">Get started</button></div>`;
+      <label class="step" style="padding:4px 12px"><span class="sr">Age</span><input id="obAge" type="number" inputmode="numeric" min="14" max="99" value="${o.age||''}" placeholder="—" style="width:70px;font-size:22px"></label></div></section>
+    <section class="card"><span class="label">Office days</span><p class="note" style="margin:6px 0 10px">Days you walk to work. Optional.</p><div class="daychips">${[1,2,3,4,5].map(d=>`<button data-ooff="${d}" class="${o.off.includes(d)?'on':''}" aria-pressed="${o.off.includes(d)}" aria-label="${WD_L[d]}">${WD_S[d][0]}</button>`).join('')}</div></section></main>
+   <div class="dock"><button class="btn primary" id="obGo" ${ready?'':'disabled'}>${ready?'Get started':'Add your name and gender'}</button></div>`;
+}
+function newProfile(name,gender){
+  const f=gender==='female';
+  return {id:'me',name:name||'',initials:(name||'?').slice(0,2).toUpperCase(),gender,plan:f?'sa':'nr',bw:f?132:194,exp:f?'new':'trained'};
 }
 async function startOnboard(){
-  onboard={who:'nr',age:null,off:[2,4],imported:0};
-  await loadProfile('nr'); onboard.age=DB.age||42; onboard.off=officeDays();
+  onboard={name:'',gender:null,age:null,off:[],imported:0}; DB=freshDB(); profile=null;
   render();
 }
+async function setGender(g){
+  const keep={...DB};
+  profile=Object.assign(profile||newProfile('',g),{gender:g,plan:g==='female'?'sa':'nr',bw:g==='female'?132:194,exp:g==='female'?'new':'trained'});
+  profiles=[profile];
+  if(!DB||!DB.history)DB=freshDB(); else DB=keep;
+  setActivePlan();
+}
+const freshDB=()=>{const d=defaultDB('x');d.holds={};return d};
 
 /* ===================== LIFT LOG IMPORT ===================== */
 function liftLogLocal(planKey){
@@ -846,7 +862,7 @@ function liftLogLocal(planKey){
     const reg=JSON.parse(localStorage.getItem('liftlog:profiles')||'null'); if(!Array.isArray(reg))return null;
     const p=reg.find(x=>x.plan===(planKey||profile.plan)); if(!p)return null;
     const raw=localStorage.getItem('liftlog:v2:'+p.id); if(!raw)return null;
-    const d=JSON.parse(raw); return d&&d.history&&d.history.length?{n:d.history.length,data:d}:null;
+    const d=JSON.parse(raw); return d&&d.history&&d.history.length?{n:d.history.length,data:d,name:p.name}:null;
   }catch(e){return null}
 }
 function applyImport(p){
@@ -857,31 +873,42 @@ function applyImport(p){
   if(Array.isArray(p.officeDays))DB.officeDays=p.officeDays; if(Array.isArray(p.waist))DB.waist=p.waist;
   setActivePlan(); save();
 }
-function importFile(cb){
+function importFile(cb,quiet){
   const f=$('#file'); f.value='';
   f.onchange=()=>{const file=f.files[0]; if(!file)return; const rd=new FileReader();
     rd.onload=()=>{try{const p=JSON.parse(rd.result); if(!p||typeof p!=='object'||!Array.isArray(p.history))throw 0;
       const plan=p.planKey||(p.profile==='nr'||p.profile==='sa'?p.profile:null);
-      if(plan&&plan!==profile.plan&&!confirm(`This file is from ${p.profileName||plan}. Import it into ${profile.name} anyway? ${profile.name}'s current data will be replaced.`))return;
-      if(!plan&&!confirm(`Replace ${profile.name}'s data with this file?`))return;
-      applyImport(p); toast(`Imported ${DB.history.length} sessions`); cb&&cb(DB.history.length); render();
+      if(!quiet&&plan&&plan!==profile.plan&&!confirm(`This file is from ${p.profileName||plan}. Import it into ${profile.name} anyway? ${profile.name}'s current data will be replaced.`))return;
+      if(!quiet&&!plan&&!confirm(`Replace ${profile.name}'s data with this file?`))return;
+      applyImport(p); toast(`Imported ${DB.history.length} sessions`); cb&&cb(DB.history.length,p); if(!cb)render();
     }catch(e){toast('That file is not a valid export')}};
     rd.readAsText(file)};
   f.click();
 }
 
 /* ===================== PROFILES / STORAGE ===================== */
-const PROFILE_SEED=[{id:'nr',name:'Nicolas',initials:'NR',bw:194,exp:'trained',plan:'nr'},{id:'sa',name:'Sofia',initials:'SA',bw:132,exp:'new',plan:'sa'}];
-async function loadProfile(id){
-  profile=profiles.find(p=>p.id===id)||profiles[0];
-  let raw=null; try{raw=await store.get(keyFor(profile.id))}catch(e){}
-  DB=defaultDB(profile.plan);
-  if(raw){try{Object.assign(DB,JSON.parse(raw))}catch(e){}}
+const ME_KEY='strata:me';
+async function saveMe(){ try{await store.set(ME_KEY,JSON.stringify(profile))}catch(e){} }
+async function loadMe(){
+  let raw=null; try{raw=await store.get(ME_KEY)}catch(e){}
+  if(raw){try{profile=JSON.parse(raw)}catch(e){profile=null}}
+  if(!profile){
+    /* migrate the earlier two-profile build: keep whichever profile was active, with its data key */
+    let reg=null, act=null; try{reg=JSON.parse(await store.get(PROFILES_KEY)||'null'); act=await store.get(ACTIVE_KEY)}catch(e){}
+    if(Array.isArray(reg)&&reg.length){
+      const p=reg.find(x=>x.id===act)||reg[0];
+      if(await store.get(keyFor(p.id))){ profile={...p,gender:p.plan==='sa'?'female':'male'}; await saveMe(); }
+    }
+  }
+  if(!profile)return false;
+  profiles=[profile];
+  let d=null; try{d=await store.get(keyFor(profile.id))}catch(e){}
+  DB=freshDB();
+  if(d){try{Object.assign(DB,JSON.parse(d))}catch(e){}}
   DB.history=DB.history||[]; DB.cardio=DB.cardio||[]; DB.next=DB.next||{}; DB.holds=DB.holds||{};
-  if(DB.age==null&&profile.plan==='nr')DB.age=42;
   setActivePlan();
+  return true;
 }
-async function switchProfile(id){ await save(); await loadProfile(id); try{await store.set(ACTIVE_KEY,id)}catch(e){} selDay=null; render(); toast(`Switched to ${profile.name}`) }
 
 /* ===================== SHEET ===================== */
 function openSheet(html){const S=$('#sheet');S.innerHTML=`<div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div>`;S.hidden=false}
@@ -976,23 +1003,26 @@ document.addEventListener('click',e=>{
   if(ds.range){progRange=+ds.range;render();return}
   if(id==='addWaist'){const v=+$('#waistIn').value; if(!(v>40&&v<200)){toast('Type your waist in cm');return}
     DB.waist=(DB.waist||[]).filter(w=>w.date!==today()); DB.waist.push({date:today(),cm:v}); DB.waist.sort((a,b)=>a.date<b.date?-1:1); save(); render(); toast('Waist saved'); return}
-  if(ds.prof){if(ds.prof!==profile.id)switchProfile(ds.prof);return}
+  if(ds.gender){const g=ds.gender; if(g===profile.gender)return;
+    if(!confirm(`Switch to the ${g} plan template? Your history and weights stay.`))return;
+    setGender(g); saveMe(); save(); render(); toast('Plan template updated'); return}
   if(ds.inj){const k=ds.inj; if((DB.injuries||[]).some(i=>i.key===k)){releaseInjury(k)}
     else{const ids=idsForInjury(k,PLAN), c=costOf(ids);
       const msg=`Flag ${INJURIES[k].label.toLowerCase()}? ${ids.length} lift${ids.length===1?'':'s'} go on hold.${c.drops.length?` ${c.drops.slice(0,3).map(d=>`${d.area} ${fmtSets(d.from)}→${fmtSets(d.to)}`).join(', ')} sets/week.`:''}`;
       if(confirm(msg))applyInjury(k)} return}
   if(ds.off){const d=+ds.off, off=officeDays().slice(); const i=off.indexOf(d); if(i>=0)off.splice(i,1); else off.push(d); DB.officeDays=off.sort(); save(); render(); return}
-  if(ds.age){DB.age=Math.min(99,Math.max(14,(DB.age||(profile.plan==='nr'?42:35))+(+ds.age))); save(); render(); return}
+  if(ds.age){DB.age=Math.min(99,Math.max(14,(DB.age||40)+(+ds.age))); save(); render(); return}
   if(id==='exportBtn'){const payload=Object.assign({app:'strata',profile:profile.id,profileName:profile.name,planKey:profile.plan},DB);
     const b=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}), a=document.createElement('a');
-    a.href=URL.createObjectURL(b); a.download=`strata-${profile.id}-${today()}.json`; document.body.appendChild(a); a.click(); a.remove(); return}
+    a.href=URL.createObjectURL(b); a.download=`strata-${(profile.name||'me').toLowerCase().replace(/[^a-z0-9]+/g,'-')}-${today()}.json`; document.body.appendChild(a); a.click(); a.remove(); return}
   if(id==='importBtn'){importFile();return}
   if(id==='llLocal'){const ll=liftLogLocal(); if(ll&&confirm(`Replace ${profile.name}'s Strata data with ${ll.n} Lift Log sessions?`)){applyImport(ll.data);render();toast(`Imported ${ll.n} sessions`)} return}
-  if(id==='resetBtn'){if(!confirm(`Erase all of ${profile.name}'s history and weights? This can't be undone.`))return; DB=defaultDB(profile.plan); DB.holds={}; setActivePlan(); save(); render(); toast('Reset'); return}
+  if(id==='resetBtn'){if(!confirm(`Erase all of ${profile.name}'s history and weights? This can't be undone.`))return; DB=freshDB(); setActivePlan(); save(); render(); toast('Reset'); return}
 });
 /* history detail edits */
 document.addEventListener('change',e=>{
-  const t=e.target; if(scr!=='detail'||!t.classList.contains('ein'))return;
+  const t=e.target;
+  if(t.id==='nameIn'){const n=t.value.trim(); if(n){profile.name=n;profile.initials=n.slice(0,2).toUpperCase();saveMe();toast('Name saved')} else t.value=profile.name; return} if(scr!=='detail'||!t.classList.contains('ein'))return;
   const s=DB.history[detailIdx]; if(!s)return;
   if(t.dataset.dw){s.entries[t.dataset.dw].w=+t.value||0}
   else if(t.dataset.dr){const [id,k]=t.dataset.dr.split('|'); s.entries[id].reps[+k]=t.value===''?null:+t.value}
@@ -1000,24 +1030,22 @@ document.addEventListener('change',e=>{
   save();
 });
 function wireOnboard(){
-  document.querySelectorAll('[data-who]').forEach(b=>b.onclick=async()=>{await loadProfile(b.dataset.who);onboard.who=b.dataset.who;onboard.imported=0;onboard.age=DB.age||(b.dataset.who==='nr'?42:null);onboard.off=officeDays();render()});
-  document.querySelectorAll('[data-oage]').forEach(b=>b.onclick=()=>{onboard.age=Math.min(99,Math.max(14,(onboard.age||35)+(+b.dataset.oage)));render()});
+  const nm=$('#obName'); nm.oninput=()=>{onboard.name=nm.value; const b=$('#obGo'),ok=onboard.name.trim()&&onboard.gender; b.disabled=!ok; b.textContent=ok?'Get started':'Add your name and gender'};
+  const ag=$('#obAge'); ag.onchange=()=>{const v=+ag.value; onboard.age=(v>=14&&v<=99)?v:null};
+  document.querySelectorAll('[data-ogender]').forEach(b=>b.onclick=async()=>{onboard.gender=b.dataset.ogender; await setGender(onboard.gender); render()});
   document.querySelectorAll('[data-ooff]').forEach(b=>b.onclick=()=>{const d=+b.dataset.ooff,i=onboard.off.indexOf(d);if(i>=0)onboard.off.splice(i,1);else onboard.off.push(d);onboard.off.sort();render()});
-  const l=$('#obLocal'); if(l)l.onclick=()=>{const ll=liftLogLocal(onboard.who); if(ll){applyImport(ll.data);onboard.imported=ll.n;render()}};
-  const f=$('#obFile'); if(f)f.onclick=()=>{const keep=onboard; importFile(n=>{onboard=keep;onboard.imported=n;render()})};
-  $('#obGo').onclick=async()=>{DB.age=onboard.age; DB.officeDays=onboard.off.slice(); await save();
-    try{await store.set(ACTIVE_KEY,profile.id)}catch(e){} onboard=null; scr='today'; render();};
+  const afterImport=n=>{onboard.imported=n; if(DB.age&&!onboard.age)onboard.age=DB.age; if(Array.isArray(DB.officeDays))onboard.off=DB.officeDays.slice(); else if(DB.rcOffice)onboard.off=[2,4]; render()};
+  const l=$('#obLocal'); if(l)l.onclick=()=>{const ll=liftLogLocal(profile.plan); if(ll){applyImport(ll.data,true); if(!onboard.name.trim())onboard.name=ll.name||''; afterImport(ll.n)}};
+  const f=$('#obFile'); if(f)f.onclick=()=>{const keep=onboard; importFile((n,p)=>{onboard=keep; if(!onboard.name.trim()&&p&&p.profileName)onboard.name=p.profileName; afterImport(n)},true)};
+  $('#obGo').onclick=async()=>{const n=onboard.name.trim(); if(!n||!onboard.gender)return;
+    profile.name=n; profile.initials=n.slice(0,2).toUpperCase(); profiles=[profile];
+    if(onboard.age)DB.age=onboard.age; DB.officeDays=onboard.off.slice();
+    await saveMe(); await save(); onboard=null; scr='today'; render();};
 }
 
 /* ===================== BOOT ===================== */
 (async()=>{
-  let raw=null; try{raw=await store.get(PROFILES_KEY)}catch(e){}
-  try{profiles=JSON.parse(raw)||[]}catch(e){profiles=[]}
-  const first=!Array.isArray(profiles)||!profiles.length;
-  if(first){profiles=PROFILE_SEED.map(p=>({...p})); await saveProfiles();}
-  if(first){await startOnboard();return}
-  let act=null; try{act=await store.get(ACTIVE_KEY)}catch(e){}
-  await loadProfile(act||'nr');
-  if(DB.active)scr='today';
+  const ok=await loadMe();
+  if(!ok){await startOnboard();return}
   render();
 })();
