@@ -358,44 +358,80 @@ function liftView(){
   const entry=A.entries[ex.id], prog=A.prog[ex.id]||(entry?{w:entry.w,reps:[...entry.reps]}:null);
   const baseW=A.lowEnergy?loEnergyW(ex,wOf(ex)):wOf(ex);
   const w=prog?prog.w:baseW, reps=prog?prog.reps:[];
-  const cur=editSet!=null?editSet:reps.length;
-  const reqDone=reqL.every(isLogged);
-  const plate=ex.bar?plateTxt(ex,w):'';
-  const dots=L.map((x,i)=>`<button class="${isLogged(x)?'done':''} ${i===idx?'cur':''} ${reqIds.has(x.id)?'':'bonus'}" data-goto="${i}" aria-label="${esc(cleanN(shownEx(x).n))}"></button>`).join('');
-  const setRows=[...Array(setCount).keys()].map(i=>{
-    if(i===cur){const r=editSet!=null?reps[i]:(reps[i-1]!=null?reps[i-1]:orig.r);
-      return `<div class="set cur"><div class="rowh"><span class="name">Set ${i+1}</span><span class="label" style="color:var(--violet)">${editSet!=null?'Editing':'Now'}</span></div>
-      <div class="grid2" style="margin-top:12px">
-        <div class="step"><button data-st="r|-1" aria-label="Fewer">−</button><div class="v"><b id="vR">${r}</b><small>${isSec(ex)?'seconds':'reps'}</small></div><button data-st="r|1" aria-label="More">+</button></div>
-        <div class="step"><button data-st="w|-1" aria-label="Less weight">−</button><div class="v"><b id="vW">${w}</b><small>lb</small></div><button data-st="w|1" aria-label="More weight">+</button></div></div>
-      <button class="btn violet" style="margin-top:12px" id="logSet">${editSet!=null?'Save set '+(i+1):'Log set '+(i+1)}</button></div>`;}
-    if(i<reps.length)return `<button class="set" data-eset="${i}"><span class="ck" style="background:var(--violet);color:#0E1018">${I.check}</span><span class="grow name">Set ${i+1}</span><span class="small" style="color:#fff">${repLbl(ex,reps[i])} · ${w} lb</span></button>`;
-    return `<div class="set todo"><span class="ck" style="border:2px solid rgba(255,255,255,.25)"></span><span class="grow">Set ${i+1}</span><span class="small">${repLbl(ex,orig.r)} · ${w} lb</span></div>`;
-  }).join('');
-  const s=imgOf(ex.id);
-  return hero({cls:'ex tall',img:s,left:backBtn('liftBack','Back to Today'),right:`<button class="gbtn" id="endBtn">${reqDone?'Finish':'End'}</button>`,
-      eyebrow:`${isBonus?`Bonus ${pos}`:`Lift ${pos} of ${reqL.length}`}${idx===0&&!isBonus?' · heavy':''}${A.lowEnergy?' · lighter':''}`,title:esc(cleanN(ex.n)),sub:''})
-   +`<main class="wrap"><div class="dots">${dots}</div>
-    <p class="p" style="margin:0">${cueOf(ex.id)}</p>
-    <div style="display:flex;gap:8px"><button class="btn sm" data-yt="${ex.id}" style="width:auto;padding:0 16px">${I.play.replace('<svg','<svg width="14" height="14"')}Watch form</button>
-      ${(ALT_OF[orig.id]||[]).length?`<button class="btn sm" id="swapBtn" style="width:auto;padding:0 16px">${I.swap.replace('<svg','<svg width="16" height="16"')}Swap</button>`:''}</div>
-    <div class="rowh"><span>Target <b>${setCount} × ${repLbl(ex,orig.r)}${perLeg(ex)} at ${wLbl(ex,baseW)}</b></span>${plate?`<span class="small">${plate}</span>`:''}</div>
-    ${orig.injured?`<div class="warnbox">On hold for your injury flag. Log it light or swap it; the weight won't go up.</div>`:''}
-    ${setRows}
-    ${reqDone&&!isBonus?`<div class="warnbox" style="background:rgba(156,140,255,.1);border-color:rgba(156,140,255,.35);color:#D9D3FF">Main lifts done. Bonus is optional, finish whenever you want.</div>`:''}
-    ${isLogged(orig)||reqDone?`<button class="btn ${reqDone?'violet':''}" id="nextLift">${nextLabel(L,idx,reqDone)}</button>`:''}
-    </main>`;
+  const exDone=reps.length>=setCount;
+  const cur=editSet!=null?editSet:Math.min(reps.length,setCount-1);
+  const rv=editSet!=null?reps[editSet]:(exDone?reps[setCount-1]:(reps[reps.length-1]!=null?reps[reps.length-1]:orig.r));
+  const reqDone=reqL.every(isLogged), allDone=L.every(isLogged);
+  const segs=L.map((x,i)=>`<button class="${isLogged(x)?'done':''} ${i===idx?'cur':''} ${reqIds.has(x.id)?'':'bonus'}" data-goto="${i}" aria-label="${esc(cleanN(shownEx(x).n))}${isLogged(x)?', done':''}"></button>`).join('');
+  /* progression: computed from real history, never invented */
+  const last=lastOf(ex.id), held=(DB.holds&&DB.holds[ex.id])||A.lowEnergy, canUp=ex.inc&&!held;
+  const nextW=canUp?progressedWeight(ex,baseW):baseW;
+  const lastTxt=last?`${last.w} × ${last.reps.map(r=>r==null?'–':r).join('/')}`:'None yet';
+  const progCard=`<section class="card tight" style="display:flex;gap:10px;align-items:stretch;padding:12px 14px">
+    <div class="grow"><div class="label">Last time</div><div class="name" style="margin-top:4px">${lastTxt}</div></div>
+    <div class="grow" style="border-left:1px solid var(--line);padding-left:12px"><div class="label">Today</div><div class="name" style="margin-top:4px">${wLbl(ex,baseW)}</div></div>
+    <div style="flex:1.3;border-radius:14px;padding:8px 10px;background:${canUp?'rgba(156,140,255,.12)':'rgba(245,181,68,.1)'};border:1px solid ${canUp?'rgba(156,140,255,.4)':'rgba(245,181,68,.35)'}">
+      <div class="label" style="color:${canUp?'var(--violet)':'var(--amber)'}">${canUp?'Hit all sets':A.lowEnergy?'Lighter day':'On hold'}</div>
+      <div class="name" style="margin-top:4px">${canUp?`${nextW} lb next`:'Weight stays'}</div></div></section>`;
+  /* media slot: same size in every state */
+  const resting=rest&&(rest.endAt-Date.now())>-1000;
+  const s=imgOf(ex.id), plate=ex.bar?plateTxt(ex,w):(ex.each?`${w} lb in each hand`:ex.plates?'Load evenly on both sides':'');
+  let media;
+  if(resting){
+    const rem=Math.max(0,(rest.endAt-Date.now())/1000), C=2*Math.PI*62;
+    media=`<div style="display:flex;align-items:center;gap:16px;height:100%">
+      <div style="position:relative;width:124px;height:124px;flex:none"><svg width="124" height="124" viewBox="0 0 140 140" aria-hidden="true"><circle cx="70" cy="70" r="62" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="9"/>
+        <circle id="restArc" cx="70" cy="70" r="62" fill="none" stroke="${rem>0?'#9C8CFF':'#4ADE80'}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(C*rem/rest.total).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 70 70)"/></svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span class="label" id="restLbl" style="color:${rem>0?'var(--violet)':'var(--mint)'}">${rem>0?'Rest':'Go'}</span><span id="restClock" style="font-size:36px;font-weight:800;font-variant-numeric:tabular-nums">${mmss(Math.ceil(rem))}</span></div></div>
+      <div class="grow" style="display:flex;flex-direction:column;gap:8px">${rest.next?`<div><div class="label" style="${rest.lbl==='Logged'?'color:var(--mint)':''}">${rest.lbl}</div><div class="name" style="margin-top:3px">${esc(rest.next)}</div></div>`:''}
+        <div style="display:flex;gap:8px"><button class="btn sm" id="rest30">+30 s</button><button class="btn sm" id="restSkip">Skip</button></div></div></div>`;
+  } else {
+    media=`<div style="display:flex;gap:14px;height:100%">${s?`<img src="${s}" alt="${esc(cleanN(ex.n))}" style="width:112px;height:100%;object-fit:cover;border-radius:16px;flex:none;background:#1b1e28">`:''}
+      <div class="grow" style="display:flex;flex-direction:column;gap:6px;min-width:0"><div class="label">Form focus</div><div style="font-size:14px;line-height:1.4;color:#E6E8EE">${cueOf(ex.id)}</div>
+      ${plate?`<div style="margin-top:auto;border-top:1px solid var(--line);padding-top:8px"><div class="label">Plate math</div><div class="name" style="font-size:14px;margin-top:3px">${plate}</div></div>`:''}</div></div>`;
+  }
+  const dots=[...Array(setCount).keys()].map(i=>{const d=i<reps.length, c=i===cur&&!exDone||editSet===i;
+    return `<button data-eset="${i}" ${d?'':'disabled'} style="background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;color:${c?'#fff':'var(--muted)'};opacity:1">
+      <span style="width:30px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;${d&&!c?'background:var(--violet);color:#0E1018':c?'border:2px solid var(--violet)':'border:2px solid rgba(255,255,255,.2)'}">${d&&!c?`<span style="width:15px;height:15px;display:block">${I.check}</span>`:i+1}</span>
+      <span class="small" style="color:inherit">${d?`${w} × ${repLbl(ex,reps[i])}`:`${w} × ${repLbl(ex,orig.r)}`}</span></button>`}).join('');
+  const el=Math.floor((Date.now()-(A.started||Date.now()))/1000);
+  return `<header class="hero short" style="height:calc(118px + var(--safeT))"><div class="topbar">${backBtn('liftBack','Back to Today')}
+      <div style="text-align:center"><div class="name">${PLAN[A.day].name}</div><div class="small" id="elapsed">${mmss(el)} elapsed</div></div>
+      <button class="gbtn" id="liftMenu" aria-label="Workout options"><span style="font-weight:800;letter-spacing:2px">···</span></button></div>
+      <div class="htext" style="flex-direction:column;align-items:stretch;gap:8px"><div class="eyebrow">${isBonus?`Bonus ${pos}`:`Lift ${pos} of ${reqL.length}`}${A.lowEnergy?' · lighter day':''}</div><div class="dots">${segs}</div></div></header>
+   <main class="wrap" style="gap:10px;margin-top:10px">
+    <div><div style="font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.1">${esc(cleanN(ex.n))}</div>
+      <div class="meta" style="font-size:14px">${setCount} sets × ${repLbl(ex,orig.r)}${perLeg(ex)}${idx===0&&!isBonus?' · heavy first':''}${ex!==orig?' · swapped':''}</div></div>
+    ${progCard}
+    ${orig.injured?`<div class="warnbox">On hold for your injury flag. Go light or swap it.</div>`:''}
+    <section class="card tight" style="height:148px">${media}</section>
+    <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:8px"><button class="btn sm" data-yt="${ex.id}">${I.play.replace('<svg','<svg width="14" height="14"')}Form video</button>
+      ${(ALT_OF[orig.id]||[]).length?`<button class="btn sm" id="swapBtn">${I.swap.replace('<svg','<svg width="16" height="16"')}Swap exercise</button>`:'<span></span>'}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px"><span class="label">${exDone&&editSet==null?'All sets logged':`Set ${cur+1} of ${setCount}`}${editSet!=null?' · editing':''}</span>
+      ${reqDone&&!allDone?`<button class="link" id="finishLink" style="padding:0;color:var(--mint)">Main lifts done · Finish</button>`:''}</div>
+    <div style="display:flex;margin-top:-4px">${dots}</div>
+    <div class="grid2">
+      <div class="card tight" style="padding:10px"><div class="label" style="text-align:center">Weight · lb</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+        <button class="stp" data-st="w|-1" aria-label="Less weight">−</button><b id="vW" class="bignum">${w}</b><button class="stp" data-st="w|1" aria-label="More weight">+</button></div></div>
+      <div class="card tight" style="padding:10px"><div class="label" style="text-align:center">${isSec(ex)?'Seconds':'Reps'}</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+        <button class="stp" data-st="r|-1" aria-label="Fewer">−</button><b id="vR" class="bignum">${rv}</b><button class="stp" data-st="r|1" aria-label="More">+</button></div></div></div>
+   </main>
+   <div class="dock">${allDone||(exDone&&editSet==null&&reqDone&&!L.some(x=>!isLogged(x)))
+      ?`<button class="btn violet" id="endBtn">Finish workout</button>`
+      :exDone&&editSet==null?`<button class="btn violet" id="nextLift">${nextLabel(L,idx,reqDone)}</button>`
+      :`<button class="btn violet" id="logSet">${editSet!=null?`Save set ${editSet+1}`:`Log set ${cur+1}`}</button>`}</div>`;
 }
 function nextLabel(L,idx,reqDone){
-  const n=L.findIndex((x,i)=>i>idx&&!isLogged(x));
-  if(n>=0)return `Next: ${esc(cleanN(shownEx(L[n]).n))}`;
+  const n=L.findIndex((x,i)=>i>idx&&!isLogged(x)), any=L.findIndex(x=>!isLogged(x));
+  const t=n>=0?n:any;
+  if(t>=0)return `Next: ${esc(cleanN(shownEx(L[t]).n))}`;
   return 'Finish workout';
 }
 function plateTxt(ex,total){
   if(total<=ex.bar)return `${ex.bar} lb bar only`;
   let side=(total-ex.bar)/2,out=[];
   PLATES.forEach(p=>{while(side>=p-.001){out.push(p);side=+(side-p).toFixed(2)}});
-  return `${ex.bar} bar + ${out.join(' + ')} / side`;
+  return `${ex.bar} lb bar + ${out.join(' + ')} / side`;
 }
 function logSet(){
   const A=DB.active, L=liftList(), idx=curIdx(), orig=L[idx], ex=shownEx(orig);
@@ -404,40 +440,46 @@ function logSet(){
   const entry=A.entries[ex.id];
   const p=A.prog[ex.id]||(entry?{w:entry.w,reps:[...entry.reps]}:{w,reps:[]});
   p.w=w;
-  if(editSet!=null){p.reps[editSet]=r; editSet=null;} else p.reps.push(r);
+  const wasEdit=editSet!=null;
+  if(wasEdit){p.reps[editSet]=r; editSet=null;} else p.reps.push(r);
   A.prog[ex.id]=p;
   if(p.reps.length>=setCount){
     A.entries[ex.id]={w:p.w,reps:p.reps.slice(0,setCount)};
-    const n=L.findIndex((x,i)=>i>idx&&!isLogged(x));
-    const next=n>=0?L[n]:L.find(x=>!isLogged(x));
-    startRest(restFor(orig),next?cleanN(shownEx(next).n):null);
-    if(next)A.idx=L.indexOf(next);
-  } else startRest(restFor(orig),`Set ${p.reps.length+1}`);
+    if(!wasEdit){
+      const n=L.findIndex((x,i)=>i>idx&&!isLogged(x)), next=n>=0?L[n]:L.find(x=>!isLogged(x));
+      const reqDone=requiredItems(A.day).every(isLogged);
+      if(next&&!(reqDone&&!requiredItems(A.day).some(x=>x.id===next.id)&&false)){
+        startRest(restFor(orig),`${cleanN(ex.n)} · ${p.reps.map(r=>repLbl(ex,r)).join('/')}`,'Logged');
+        A.idx=L.indexOf(next);
+      }
+    }
+  } else if(!wasEdit) startRest(restFor(orig),`Set ${p.reps.length+1} of ${setCount}`);
   save(); render();
 }
-const restFor=ex=>ex.key?120:isOptionalBlock(PLAN[DB.active.day].blocks.find(b=>b.items.includes(ex))?.t)?60:90;
-function startRest(sec,next){
-  rest={endAt:Date.now()+sec*1000,total:sec,next,beeped:false};
-  clearInterval(restTick); restTick=setInterval(tickRest,500); renderRest();
+const restFor=ex=>ex.key?120:isOptionalBlock((PLAN[DB.active.day].blocks.find(b=>b.items.includes(ex))||{}).t)?60:90;
+function startRest(sec,next,lbl){
+  rest={endAt:Date.now()+sec*1000,total:sec,next,lbl:lbl||'Up next',beeped:false};
+  ensureLiftTick();
 }
-function renderRest(){
-  const R=$('#restbar');
-  if(!rest||scr!=='lift'){R.hidden=true;return}
-  const rem=Math.max(0,(rest.endAt-Date.now())/1000), f=rest.total?rem/rest.total:0, C=2*Math.PI*21;
-  R.hidden=false;
-  R.innerHTML=`<svg width="50" height="50" viewBox="0 0 50 50" aria-hidden="true"><circle cx="25" cy="25" r="21" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6"/><circle id="restArc" cx="25" cy="25" r="21" fill="none" stroke="${rem>0?'#9C8CFF':'#4ADE80'}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(C*f).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 25 25)"/></svg>
-   <div class="grow"><div class="label">${rem>0?'Rest':'Go'}</div><div class="big" id="restClock">${mmss(Math.ceil(rem))}</div></div>
-   ${rest.next?`<div style="text-align:right"><div class="label">Up next</div><div class="name" style="font-size:14px">${esc(rest.next)}</div></div>`:''}
-   <button class="gbtn" id="restSkip" aria-label="Skip rest">${I.close}</button>`;
-  $('#restSkip').onclick=()=>{rest=null;clearInterval(restTick);renderRest()};
-}
-function tickRest(){
-  if(!rest){clearInterval(restTick);return}
+function renderRest(){ const R=$('#restbar'); if(R)R.hidden=true; if(scr==='lift')ensureLiftTick(); }
+let liftTick=null;
+function ensureLiftTick(){ if(!liftTick)liftTick=setInterval(tickLift,500); }
+function tickLift(){
+  if(scr!=='lift'||!DB.active){clearInterval(liftTick);liftTick=null;return}
+  const e=$('#elapsed'); if(e)e.textContent=mmss(Math.floor((Date.now()-(DB.active.started||Date.now()))/1000))+' elapsed';
+  if(!rest)return;
   const rem=(rest.endAt-Date.now())/1000;
-  if(rem<=0&&!rest.beeped){rest.beeped=true;cue();renderRest();}
-  if(rem<-20){rest=null;clearInterval(restTick);renderRest();return}
+  if(rem<=0&&!rest.beeped){rest.beeped=true;cue();render();return}
+  if(rem<-15){rest=null;render();return}
   const c=$('#restClock'); if(c)c.textContent=mmss(Math.ceil(Math.max(0,rem)));
-  const a=$('#restArc'); if(a&&rem>0){const C=2*Math.PI*21;a.setAttribute('stroke-dasharray',`${(C*rem/rest.total).toFixed(1)} ${C.toFixed(1)}`)}
+  const a=$('#restArc'); if(a&&rem>0){const C=2*Math.PI*62;a.setAttribute('stroke-dasharray',`${(C*rem/rest.total).toFixed(1)} ${C.toFixed(1)}`)}
+}
+function liftMenu(){
+  const A=DB.active;
+  openSheet(`<div class="title2" style="font-size:20px">${PLAN[A.day].name}</div>
+    <button class="opt" data-menu="finish"><span class="grow name">Finish workout</span>${I.chev}</button>
+    <button class="opt" data-menu="low"><span class="grow"><span class="name" style="display:block">Lighter day ${A.lowEnergy?'· on':''}</span><span class="meta">85% weight, 2 sets, weights don't go up</span></span>${I.chev}</button>
+    <button class="opt" data-menu="discard" style="color:#FF8A70"><span class="grow name">Discard workout</span></button>`);
 }
 function swapSheet(){
   const A=DB.active, L=liftList(), idx=curIdx(), orig=L[idx], reqIds=requiredItems(A.day).map(x=>x.id);
@@ -854,6 +896,11 @@ $('#sheet').addEventListener('click',e=>{
     if(c){ if(t==='office')c.steps=v; else if(t==='4x4')c.intervals=v; else c.min=v; save(); } closeSheet(); render(); return}
   if(e.target.id==='cDel'){const [d,t]=e.target.dataset.c.split('|'); if(!confirm('Delete this entry?'))return;
     DB.cardio=DB.cardio.filter(c=>!(c.date===d&&c.type===t)); save(); closeSheet(); render(); return}
+  const mn=e.target.closest('[data-menu]');
+  if(mn){const k=mn.dataset.menu; closeSheet();
+    if(k==='finish'){endSession();return}
+    if(k==='low'){DB.active.lowEnergy=!DB.active.lowEnergy;save();render();toast(DB.active.lowEnergy?'Lighter day on':'Lighter day off');return}
+    if(k==='discard'){if(confirm('Discard this workout? Nothing will be saved.')){DB.active=null;rest=null;save();go('today')}return}}
   const wk=e.target.closest('[data-walk]');
   if(wk){const v=+$('#wMin').value||0; if(!v)return; logCardio(wk.dataset.walk,{min:v}); closeSheet(); render(); toast(`Walk logged · ${v} min`); return}
 });
@@ -891,7 +938,7 @@ document.addEventListener('click',e=>{
     const L=liftList(), ex=shownEx(L[curIdx()]), stp=k==='r'?(isSec(ex)?5:1):(ex.inc||5);
     el.textContent=Math.max(0,+el.textContent+(+dir)*stp); return}
   if(id==='logSet'){logSet();return}
-  if(ds.eset!=null){editSet=+ds.eset;render();return}
+  if(ds.eset!=null){const A=DB.active,ex=shownEx(liftList()[curIdx()]),p=A.prog[ex.id]||A.entries[ex.id]; if(p&&+ds.eset<p.reps.length){editSet=editSet===+ds.eset?null:+ds.eset;render()}return}
   if(ds.goto!=null){DB.active.idx=+ds.goto;editSet=null;save();render();window.scrollTo({top:0});return}
   if(id==='nextLift'){const L=liftList(), idx=curIdx(), n=L.findIndex((x,i)=>i>idx&&!isLogged(x)), any=L.findIndex(x=>!isLogged(x));
     const reqDone=requiredItems(DB.active.day).every(isLogged);
@@ -899,7 +946,10 @@ document.addEventListener('click',e=>{
     if(any>=0&&!reqDone){DB.active.idx=any;save();render();window.scrollTo({top:0});return}
     endSession();return}
   if(id==='swapBtn'){swapSheet();return}
-  if(id==='endBtn'){endSession();return}
+  if(id==='rest30'){if(rest){rest.endAt=Math.max(rest.endAt,Date.now())+30000;rest.total+=30;rest.beeped=false;render()}return}
+  if(id==='restSkip'){rest=null;render();return}
+  if(id==='liftMenu'){liftMenu();return}
+  if(id==='endBtn'||id==='finishLink'){endSession();return}
   if(id==='doneBtn'){celebration=null;vo2Done=null;selDay=null;go('today');return}
   if(id==='openVo2'||id==='openVo2b'){vo2N=null;go('vo2');return}
   if(ds.n&&scr==='vo2'){vo2N=+ds.n;render();return}

@@ -172,3 +172,7 @@ h1{margin:6px 0 4px;font-size:34px;font-weight:800;letter-spacing:-.02em;line-he
 .note{font-size:13px;color:var(--muted);line-height:1.45}
 .warnbox{background:rgba(245,181,68,.1);border:1px solid rgba(245,181,68,.3);color:#F7D08A;border-radius:16px;padding:12px;font-size:13px;line-height:1.45}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.stp{width:60px;height:60px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.08);font-size:28px;font-weight:600;flex:none}
+.stp:active{background:rgba(255,255,255,.18)}
+.bignum{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;min-width:56px;text-align:center}
+.grid2 .stp{width:42px;height:52px;border-radius:14px;font-size:24px}
