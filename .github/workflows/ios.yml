@@ -1,0 +1,74 @@
+name: iOS
+
+on:
+  pull_request:
+    paths: ['ios/**', 'core.js', 'app.js', 'workout.js', '.github/workflows/ios.yml']
+  push:
+    branches: [main]
+    paths: ['ios/**', 'core.js', 'app.js', 'workout.js', '.github/workflows/ios.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The golden fixtures and the generated catalog come from running the web code.
+  # If the JS changed (or a generator did), they must be regenerated and committed.
+  fixtures:
+    name: Fixtures are up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.4'   # pinned: date formatting comes from Node's ICU
+      - run: node ios/tools/make-catalog.mjs
+      - run: node ios/tools/make-fixtures.mjs
+      - name: Fail if regenerating changed anything
+        run: |
+          git status --porcelain ios
+          test -z "$(git status --porcelain ios)" || { git --no-pager diff --stat ios; echo "::error::Regenerate with: node ios/tools/make-catalog.mjs && node ios/tools/make-fixtures.mjs"; exit 1; }
+
+  build-test:
+    name: Build and test (iOS + watchOS)
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: ios
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+          brew install xcodegen
+      - name: StrataCore tests (macOS)
+        run: swift test
+      - name: Pick a simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | startswith("iPhone"))][0].udid')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          echo "iPhone simulator: $UDID"
+      - name: StrataCore smoke tests (iOS simulator)
+        # The full golden suite runs on the Mac above; this proves the package also loads
+        # its resources and runs on an iOS runtime. Run before the project exists so the
+        # package scheme is picked up.
+        timeout-minutes: 20
+        run: |
+          rm -rf Strata.xcodeproj
+          xcodebuild test -scheme StrataCore -destination "id=${{ steps.sim.outputs.udid }}" \
+            -only-testing:StrataCoreTests/DataTests -only-testing:StrataCoreTests/CatalogAndFormatTests \
+            CODE_SIGNING_ALLOWED=NO | tail -25
+          exit ${PIPESTATUS[0]}
+      - name: Generate the Xcode project
+        run: xcodegen generate
+      - name: Build iPhone app
+        run: |
+          xcodebuild build -project Strata.xcodeproj -scheme Strata -destination "id=${{ steps.sim.outputs.udid }}" CODE_SIGNING_ALLOWED=NO | tail -30
+          exit ${PIPESTATUS[0]}
+      - name: Build watch app
+        run: |
+          xcodebuild build -project Strata.xcodeproj -scheme StrataWatch -destination 'generic/platform=watchOS Simulator' CODE_SIGNING_ALLOWED=NO | tail -30
+          exit ${PIPESTATUS[0]}

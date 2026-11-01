@@ -1,0 +1,2845 @@
+{
+ "plans": {
+  "nr": {
+   "1": {
+    "name": "Upper A",
+    "short": "U-A",
+    "blocks": [
+     {
+      "t": "Basics · free weight",
+      "items": [
+       {
+        "id": "bb_press",
+        "n": "Barbell press",
+        "r": 6,
+        "w": 135,
+        "inc": 5,
+        "key": 1,
+        "bar": 45,
+        "frac": 0.696
+       },
+       {
+        "id": "lat_pull",
+        "n": "Lat pulldown",
+        "r": 8,
+        "w": 75,
+        "inc": 5,
+        "key": 1,
+        "mult": 2,
+        "frac": 0.387
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "db_ohp",
+        "n": "Dumbbell shoulder press",
+        "r": 8,
+        "w": 35,
+        "inc": 5,
+        "each": 1,
+        "frac": 0.18
+       },
+       {
+        "id": "cbl_row",
+        "n": "Cable row",
+        "r": 10,
+        "w": 70,
+        "inc": 5,
+        "frac": 0.361
+       }
+      ]
+     },
+     {
+      "t": "Bonus · if time",
+      "items": [
+       {
+        "id": "db_curl",
+        "n": "Dumbbell bicep curl",
+        "r": 12,
+        "w": 30,
+        "inc": 5,
+        "each": 1,
+        "frac": 0.155
+       },
+       {
+        "id": "cbl_tri",
+        "n": "Cable triceps extension",
+        "r": 12,
+        "w": 60,
+        "inc": 5,
+        "frac": 0.309
+       },
+       {
+        "id": "leg_raise",
+        "n": "Hanging leg raise",
+        "r": 10,
+        "w": 0,
+        "inc": 0,
+        "bw": 1,
+        "frac": 0
+       }
+      ]
+     }
+    ]
+   },
+   "2": {
+    "name": "Legs A",
+    "short": "LEG-A",
+    "blocks": [
+     {
+      "t": "Basics · free weight",
+      "items": [
+       {
+        "id": "gob_squat",
+        "n": "Goblet squat",
+        "r": 8,
+        "w": 50,
+        "inc": 5,
+        "key": 1,
+        "frac": 0.258
+       },
+       {
+        "id": "hip_thrust",
+        "n": "Barbell hip thrust",
+        "r": 10,
+        "w": 95,
+        "inc": 10,
+        "key": 1,
+        "bar": 45,
+        "frac": 0.49
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "split_squat",
+        "n": "Dumbbell split squat (per leg)",
+        "r": 10,
+        "w": 25,
+        "inc": 5,
+        "each": 1,
+        "frac": 0.129
+       },
+       {
+        "id": "sb_squat",
+        "n": "Single-leg box squat (per leg)",
+        "r": 8,
+        "w": 0,
+        "inc": 5,
+        "bw": 1,
+        "frac": 0
+       }
+      ]
+     },
+     {
+      "t": "Bonus · if time",
+      "items": [
+       {
+        "id": "hip_abd",
+        "n": "Hip abduction",
+        "r": 15,
+        "w": 70,
+        "inc": 10,
+        "frac": 0.361
+       },
+       {
+        "id": "pallof",
+        "n": "Pallof press (per side)",
+        "r": 12,
+        "w": 30,
+        "inc": 5,
+        "frac": 0.155
+       }
+      ]
+     }
+    ]
+   },
+   "3": {
+    "name": "Upper B",
+    "short": "U-B",
+    "blocks": [
+     {
+      "t": "Basics",
+      "items": [
+       {
+        "id": "db_incl",
+        "n": "Dumbbell incline bench press",
+        "r": 8,
+        "w": 45,
+        "inc": 5,
+        "each": 1,
+        "key": 1,
+        "frac": 0.232
+       },
+       {
+        "id": "pullup",
+        "n": "Pull-ups",
+        "r": 8,
+        "w": 0,
+        "inc": 5,
+        "bw": 1,
+        "key": 1,
+        "frac": 0
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "db_row",
+        "n": "Dumbbell row",
+        "r": 8,
+        "w": 50,
+        "inc": 5,
+        "frac": 0.258
+       },
+       {
+        "id": "lat_raise",
+        "n": "Lateral raise",
+        "r": 15,
+        "w": 15,
+        "inc": 5,
+        "each": 1,
+        "frac": 0.077
+       }
+      ]
+     },
+     {
+      "t": "Bonus · if time",
+      "items": [
+       {
+        "id": "hammer",
+        "n": "Hammer curls",
+        "r": 12,
+        "w": 25,
+        "inc": 5,
+        "each": 1,
+        "frac": 0.129
+       },
+       {
+        "id": "skull",
+        "n": "Skull crusher",
+        "r": 12,
+        "w": 40,
+        "inc": 5,
+        "bar": 25,
+        "frac": 0.206
+       },
+       {
+        "id": "cbl_crunch",
+        "n": "Cable crunch",
+        "r": 15,
+        "w": 50,
+        "inc": 5,
+        "frac": 0.258
+       }
+      ]
+     }
+    ]
+   },
+   "4": {
+    "name": "Legs B",
+    "short": "LEG-B",
+    "blocks": [
+     {
+      "t": "Warm-up · balance",
+      "items": [
+       {
+        "id": "sl_rdl",
+        "n": "Single-leg RDL, bodyweight (per leg)",
+        "r": 10,
+        "w": 0,
+        "inc": 0,
+        "bw": 1,
+        "frac": 0
+       }
+      ]
+     },
+     {
+      "t": "Basics · free weight",
+      "items": [
+       {
+        "id": "rdl",
+        "n": "Romanian deadlift",
+        "r": 6,
+        "w": 95,
+        "inc": 10,
+        "key": 1,
+        "bar": 45,
+        "frac": 0.49
+       },
+       {
+        "id": "step_up",
+        "n": "Dumbbell step-up (per leg)",
+        "r": 10,
+        "w": 25,
+        "inc": 5,
+        "each": 1,
+        "key": 1,
+        "frac": 0.129
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "leg_press",
+        "n": "Leg press",
+        "r": 10,
+        "w": 180,
+        "inc": 10,
+        "plates": 1,
+        "frac": 0.928
+       },
+       {
+        "id": "farmer",
+        "n": "Farmer carry (seconds)",
+        "r": 40,
+        "w": 50,
+        "inc": 5,
+        "each": 1,
+        "frac": 0.258
+       }
+      ]
+     },
+     {
+      "t": "Bonus · if time",
+      "items": [
+       {
+        "id": "ham_curl",
+        "n": "Lying hamstring curl",
+        "r": 12,
+        "w": 80,
+        "inc": 10,
+        "frac": 0.412
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "nr3": {
+   "1": {
+    "name": "Upper A",
+    "short": "U-A",
+    "blocks": [
+     {
+      "t": "Core · do first",
+      "items": [
+       {
+        "id": "leg_raise",
+        "n": "Hanging leg raise",
+        "r": 10,
+        "w": 0,
+        "inc": 0,
+        "bw": 1,
+        "frac": 0
+       },
+       {
+        "id": "pallof",
+        "n": "Pallof press (per side)",
+        "r": 12,
+        "w": 30,
+        "inc": 5,
+        "frac": 0.155
+       }
+      ]
+     },
+     {
+      "t": "Basics · free weight",
+      "items": [
+       {
+        "id": "bb_press",
+        "n": "Barbell press",
+        "r": 6,
+        "w": 135,
+        "inc": 5,
+        "key": 1,
+        "bar": 45,
+        "frac": 0.696
+       },
+       {
+        "id": "lat_pull",
+        "n": "Lat pulldown",
+        "r": 8,
+        "w": 75,
+        "inc": 5,
+        "key": 1,
+        "mult": 2,
+        "frac": 0.387
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "db_ohp",
+        "n": "Dumbbell shoulder press",
+        "r": 8,
+        "w": 35,
+        "inc": 5,
+        "each": 1,
+        "frac": 0.18
+       },
+       {
+        "id": "db_row",
+        "n": "Dumbbell row",
+        "r": 8,
+        "w": 50,
+        "inc": 5,
+        "frac": 0.258
+       }
+      ]
+     },
+     {
+      "t": "Isolation",
+      "items": [
+       {
+        "id": "m_fly",
+        "n": "Machine fly",
+        "r": 12,
+        "w": 145,
+        "inc": 5,
+        "frac": 0.747
+       },
+       {
+        "id": "cbl_tri",
+        "n": "Cable triceps extension",
+        "r": 12,
+        "w": 60,
+        "inc": 5,
+        "frac": 0.309
+       },
+       {
+        "id": "db_curl",
+        "n": "Dumbbell bicep curl",
+        "r": 12,
+        "w": 30,
+        "inc": 5,
+        "each": 1,
+        "frac": 0.155
+       },
+       {
+        "id": "face_pull",
+        "n": "Face pull",
+        "r": 15,
+        "w": 30,
+        "inc": 5,
+        "frac": 0.155
+       }
+      ]
+     }
+    ]
+   },
+   "2": {
+    "name": "Legs",
+    "short": "LEG",
+    "blocks": [
+     {
+      "t": "Core · do first",
+      "items": [
+       {
+        "id": "plank",
+        "n": "Plank (seconds)",
+        "r": 45,
+        "w": 0,
+        "inc": 0,
+        "bw": 1,
+        "frac": 0
+       }
+      ]
+     },
+     {
+      "t": "Basics · free weight",
+      "items": [
+       {
+        "id": "gob_squat",
+        "n": "Goblet squat",
+        "r": 8,
+        "w": 50,
+        "inc": 5,
+        "key": 1,
+        "frac": 0.258
+       },
+       {
+        "id": "rdl",
+        "n": "Romanian deadlift",
+        "r": 6,
+        "w": 95,
+        "inc": 10,
+        "key": 1,
+        "bar": 45,
+        "frac": 0.49
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "leg_press",
+        "n": "Leg press",
+        "r": 10,
+        "w": 180,
+        "inc": 10,
+        "plates": 1,
+        "frac": 0.928
+       }
+      ]
+     },
+     {
+      "t": "Isolation",
+      "items": [
+       {
+        "id": "ham_curl",
+        "n": "Lying hamstring curl",
+        "r": 12,
+        "w": 80,
+        "inc": 10,
+        "frac": 0.412
+       },
+       {
+        "id": "leg_ext",
+        "n": "Leg extension",
+        "r": 12,
+        "w": 100,
+        "inc": 10,
+        "frac": 0.515
+       },
+       {
+        "id": "calf",
+        "n": "Calf raise",
+        "r": 15,
+        "w": 90,
+        "inc": 10,
+        "frac": 0.464
+       }
+      ]
+     }
+    ]
+   },
+   "3": {
+    "name": "Upper B",
+    "short": "U-B",
+    "blocks": [
+     {
+      "t": "Core · do first",
+      "items": [
+       {
+        "id": "cbl_crunch",
+        "n": "Cable crunch",
+        "r": 15,
+        "w": 50,
+        "inc": 5,
+        "frac": 0.258
+       }
+      ]
+     },
+     {
+      "t": "Basics",
+      "items": [
+       {
+        "id": "db_incl",
+        "n": "Dumbbell incline bench press",
+        "r": 8,
+        "w": 45,
+        "inc": 5,
+        "each": 1,
+        "key": 1,
+        "frac": 0.232
+       },
+       {
+        "id": "pullup",
+        "n": "Pull-ups",
+        "r": 8,
+        "w": 0,
+        "inc": 5,
+        "bw": 1,
+        "key": 1,
+        "frac": 0
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "cbl_row",
+        "n": "Cable row",
+        "r": 10,
+        "w": 70,
+        "inc": 5,
+        "frac": 0.361
+       },
+       {
+        "id": "bb_curl",
+        "n": "Barbell curl",
+        "r": 8,
+        "w": 70,
+        "inc": 5,
+        "bar": 25,
+        "frac": 0.361
+       }
+      ]
+     },
+     {
+      "t": "Isolation",
+      "items": [
+       {
+        "id": "lat_raise",
+        "n": "Lateral raise",
+        "r": 15,
+        "w": 15,
+        "inc": 5,
+        "each": 1,
+        "frac": 0.077
+       },
+       {
+        "id": "skull",
+        "n": "Skull crusher",
+        "r": 12,
+        "w": 40,
+        "inc": 5,
+        "bar": 25,
+        "frac": 0.206
+       },
+       {
+        "id": "hammer",
+        "n": "Hammer curls",
+        "r": 12,
+        "w": 25,
+        "inc": 5,
+        "each": 1,
+        "frac": 0.129
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "sa": {
+   "1": {
+    "name": "Upper A",
+    "short": "U-A",
+    "blocks": [
+     {
+      "t": "Basics · free weight",
+      "items": [
+       {
+        "id": "sa_db_bench",
+        "n": "Dumbbell bench press",
+        "r": 8,
+        "w": 15,
+        "inc": 5,
+        "key": 1,
+        "each": 1
+       },
+       {
+        "id": "sa_lat_pull",
+        "n": "Lat pulldown",
+        "r": 10,
+        "w": 30,
+        "inc": 5,
+        "key": 1,
+        "mult": 2
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "sa_db_ohp",
+        "n": "Dumbbell shoulder press",
+        "r": 10,
+        "w": 10,
+        "inc": 5,
+        "each": 1
+       },
+       {
+        "id": "sa_cbl_row",
+        "n": "Seated cable row",
+        "r": 10,
+        "w": 40,
+        "inc": 5
+       }
+      ]
+     },
+     {
+      "t": "Bonus · if time",
+      "items": [
+       {
+        "id": "sa_db_curl",
+        "n": "Dumbbell bicep curl",
+        "r": 12,
+        "w": 10,
+        "inc": 5,
+        "each": 1
+       },
+       {
+        "id": "sa_cbl_tri",
+        "n": "Cable triceps extension",
+        "r": 12,
+        "w": 20,
+        "inc": 5
+       },
+       {
+        "id": "sa_dead_bug",
+        "n": "Dead bug",
+        "r": 10,
+        "w": 0,
+        "inc": 0,
+        "bw": 1
+       }
+      ]
+     }
+    ]
+   },
+   "2": {
+    "name": "Legs A",
+    "short": "LEG-A",
+    "blocks": [
+     {
+      "t": "Basics · free weight",
+      "items": [
+       {
+        "id": "sa_gob_squat",
+        "n": "Goblet squat",
+        "r": 10,
+        "w": 20,
+        "inc": 5,
+        "key": 1
+       },
+       {
+        "id": "sa_hip_thrust",
+        "n": "Hip thrust",
+        "r": 12,
+        "w": 65,
+        "inc": 5,
+        "key": 1
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "sa_split_squat",
+        "n": "Dumbbell split squat (per leg)",
+        "r": 10,
+        "w": 10,
+        "inc": 5,
+        "each": 1
+       },
+       {
+        "id": "sa_sb_squat",
+        "n": "Single-leg box squat (per leg)",
+        "r": 8,
+        "w": 0,
+        "inc": 5,
+        "bw": 1
+       }
+      ]
+     },
+     {
+      "t": "Bonus · if time",
+      "items": [
+       {
+        "id": "sa_hip_abd",
+        "n": "Hip abduction",
+        "r": 15,
+        "w": 40,
+        "inc": 5
+       },
+       {
+        "id": "sa_pallof",
+        "n": "Pallof press (per side)",
+        "r": 12,
+        "w": 15,
+        "inc": 5
+       }
+      ]
+     }
+    ]
+   },
+   "3": {
+    "name": "Upper B",
+    "short": "U-B",
+    "blocks": [
+     {
+      "t": "Basics",
+      "items": [
+       {
+        "id": "sa_db_incl",
+        "n": "Dumbbell incline press",
+        "r": 10,
+        "w": 12,
+        "inc": 5,
+        "key": 1,
+        "each": 1
+       },
+       {
+        "id": "sa_pulldown2",
+        "n": "Assisted pull-up / lat pulldown",
+        "r": 10,
+        "w": 35,
+        "inc": 5,
+        "key": 1,
+        "mult": 2
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "sa_cs_row",
+        "n": "Chest-supported row",
+        "r": 10,
+        "w": 30,
+        "inc": 5
+       },
+       {
+        "id": "sa_lat_raise",
+        "n": "Lateral raise",
+        "r": 15,
+        "w": 5,
+        "inc": 5,
+        "each": 1
+       }
+      ]
+     },
+     {
+      "t": "Bonus · if time",
+      "items": [
+       {
+        "id": "sa_hammer",
+        "n": "Hammer curls",
+        "r": 12,
+        "w": 10,
+        "inc": 5,
+        "each": 1
+       },
+       {
+        "id": "sa_rope_tri",
+        "n": "Rope triceps pushdown",
+        "r": 15,
+        "w": 20,
+        "inc": 5
+       },
+       {
+        "id": "sa_side_plank",
+        "n": "Side plank (seconds per side)",
+        "r": 20,
+        "w": 0,
+        "inc": 0,
+        "bw": 1
+       }
+      ]
+     }
+    ]
+   },
+   "4": {
+    "name": "Legs B",
+    "short": "LEG-B",
+    "blocks": [
+     {
+      "t": "Warm-up · balance",
+      "items": [
+       {
+        "id": "sa_sl_rdl",
+        "n": "Single-leg RDL, bodyweight (per leg)",
+        "r": 10,
+        "w": 0,
+        "inc": 0,
+        "bw": 1
+       }
+      ]
+     },
+     {
+      "t": "Basics · free weight",
+      "items": [
+       {
+        "id": "sa_rdl",
+        "n": "Dumbbell Romanian deadlift",
+        "r": 10,
+        "w": 30,
+        "inc": 5,
+        "key": 1
+       },
+       {
+        "id": "sa_step_up",
+        "n": "Dumbbell step-up (per leg)",
+        "r": 10,
+        "w": 10,
+        "inc": 5,
+        "each": 1,
+        "key": 1
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "sa_leg_press",
+        "n": "Leg press",
+        "r": 12,
+        "w": 90,
+        "inc": 5,
+        "plates": 1
+       },
+       {
+        "id": "sa_farmer",
+        "n": "Farmer carry (seconds)",
+        "r": 30,
+        "w": 20,
+        "inc": 5,
+        "each": 1
+       }
+      ]
+     },
+     {
+      "t": "Bonus · if time",
+      "items": [
+       {
+        "id": "sa_ham_curl",
+        "n": "Lying hamstring curl",
+        "r": 12,
+        "w": 30,
+        "inc": 5
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "sa3": {
+   "1": {
+    "name": "Upper A",
+    "short": "U-A",
+    "blocks": [
+     {
+      "t": "Core · do first",
+      "items": [
+       {
+        "id": "sa_dead_bug",
+        "n": "Dead bug",
+        "r": 10,
+        "w": 0,
+        "inc": 0,
+        "bw": 1
+       },
+       {
+        "id": "sa_pallof",
+        "n": "Pallof press (per side)",
+        "r": 12,
+        "w": 15,
+        "inc": 5
+       }
+      ]
+     },
+     {
+      "t": "Basics · free weight",
+      "items": [
+       {
+        "id": "sa_db_bench",
+        "n": "Dumbbell bench press",
+        "r": 8,
+        "w": 15,
+        "inc": 5,
+        "key": 1,
+        "each": 1
+       },
+       {
+        "id": "sa_lat_pull",
+        "n": "Lat pulldown",
+        "r": 10,
+        "w": 30,
+        "inc": 5,
+        "key": 1,
+        "mult": 2
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "sa_db_ohp",
+        "n": "Dumbbell shoulder press",
+        "r": 10,
+        "w": 10,
+        "inc": 5,
+        "each": 1
+       },
+       {
+        "id": "sa_cbl_row",
+        "n": "Seated cable row",
+        "r": 10,
+        "w": 40,
+        "inc": 5
+       }
+      ]
+     },
+     {
+      "t": "Isolation",
+      "items": [
+       {
+        "id": "sa_m_fly",
+        "n": "Machine fly",
+        "r": 12,
+        "w": 40,
+        "inc": 5
+       },
+       {
+        "id": "sa_cbl_tri",
+        "n": "Cable triceps extension",
+        "r": 12,
+        "w": 20,
+        "inc": 5
+       },
+       {
+        "id": "sa_db_curl",
+        "n": "Dumbbell bicep curl",
+        "r": 12,
+        "w": 10,
+        "inc": 5,
+        "each": 1
+       },
+       {
+        "id": "sa_face_pull",
+        "n": "Face pull",
+        "r": 15,
+        "w": 15,
+        "inc": 5
+       }
+      ]
+     }
+    ]
+   },
+   "2": {
+    "name": "Legs",
+    "short": "LEG",
+    "blocks": [
+     {
+      "t": "Core · do first",
+      "items": [
+       {
+        "id": "sa_glute_bridge",
+        "n": "Glute bridge",
+        "r": 15,
+        "w": 0,
+        "inc": 0,
+        "bw": 1
+       }
+      ]
+     },
+     {
+      "t": "Basics · free weight",
+      "items": [
+       {
+        "id": "sa_gob_squat",
+        "n": "Goblet squat",
+        "r": 10,
+        "w": 20,
+        "inc": 5,
+        "key": 1
+       },
+       {
+        "id": "sa_rdl",
+        "n": "Dumbbell Romanian deadlift",
+        "r": 10,
+        "w": 30,
+        "inc": 5,
+        "key": 1
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "sa_leg_press",
+        "n": "Leg press",
+        "r": 12,
+        "w": 90,
+        "inc": 5,
+        "plates": 1
+       }
+      ]
+     },
+     {
+      "t": "Isolation",
+      "items": [
+       {
+        "id": "sa_hip_thrust",
+        "n": "Hip thrust",
+        "r": 12,
+        "w": 65,
+        "inc": 5
+       },
+       {
+        "id": "sa_ham_curl",
+        "n": "Lying hamstring curl",
+        "r": 12,
+        "w": 30,
+        "inc": 5
+       },
+       {
+        "id": "sa_leg_ext",
+        "n": "Leg extension",
+        "r": 12,
+        "w": 40,
+        "inc": 5
+       },
+       {
+        "id": "sa_calf",
+        "n": "Calf raise",
+        "r": 15,
+        "w": 50,
+        "inc": 5
+       }
+      ]
+     }
+    ]
+   },
+   "3": {
+    "name": "Upper B",
+    "short": "U-B",
+    "blocks": [
+     {
+      "t": "Core · do first",
+      "items": [
+       {
+        "id": "sa_side_plank",
+        "n": "Side plank (seconds per side)",
+        "r": 20,
+        "w": 0,
+        "inc": 0,
+        "bw": 1
+       }
+      ]
+     },
+     {
+      "t": "Basics",
+      "items": [
+       {
+        "id": "sa_db_incl",
+        "n": "Dumbbell incline press",
+        "r": 10,
+        "w": 12,
+        "inc": 5,
+        "key": 1,
+        "each": 1
+       },
+       {
+        "id": "sa_pulldown2",
+        "n": "Assisted pull-up / lat pulldown",
+        "r": 10,
+        "w": 35,
+        "inc": 5,
+        "key": 1,
+        "mult": 2
+       }
+      ]
+     },
+     {
+      "t": "Compound",
+      "items": [
+       {
+        "id": "sa_cs_row",
+        "n": "Chest-supported row",
+        "r": 10,
+        "w": 30,
+        "inc": 5
+       },
+       {
+        "id": "sa_landmine",
+        "n": "Landmine press",
+        "r": 10,
+        "w": 20,
+        "inc": 5
+       }
+      ]
+     },
+     {
+      "t": "Isolation",
+      "items": [
+       {
+        "id": "sa_lat_raise",
+        "n": "Lateral raise",
+        "r": 15,
+        "w": 5,
+        "inc": 5,
+        "each": 1
+       },
+       {
+        "id": "sa_rope_tri",
+        "n": "Rope triceps pushdown",
+        "r": 15,
+        "w": 20,
+        "inc": 5
+       },
+       {
+        "id": "sa_hammer",
+        "n": "Hammer curls",
+        "r": 12,
+        "w": 10,
+        "inc": 5,
+        "each": 1
+       }
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "stdFrac": {
+  "nr": {
+   "bb_press": 0.9,
+   "lat_pull": 0.75,
+   "db_ohp": 0.25,
+   "db_row": 0.3,
+   "db_curl": 0.18,
+   "rdl": 1.25,
+   "leg_press": 2,
+   "db_incl": 0.33,
+   "bb_curl": 0.38
+  },
+  "sa": {
+   "sa_db_bench": 0.55,
+   "sa_lat_pull": 0.55,
+   "sa_db_ohp": 0.2,
+   "sa_db_incl": 0.25,
+   "sa_pulldown2": 0.5,
+   "sa_rdl": 0.85,
+   "sa_gob_squat": 0.85,
+   "sa_db_curl": 0.15
+  }
+ },
+ "qmap": {
+  "nr": {
+   "bb_press": "barbell bench press proper form",
+   "lat_pull": "lat pulldown proper form",
+   "db_ohp": "seated dumbbell shoulder press form",
+   "db_row": "one arm dumbbell row proper form",
+   "m_fly": "pec deck machine fly form",
+   "cbl_tri": "cable triceps pushdown form",
+   "db_curl": "dumbbell bicep curl proper form",
+   "face_pull": "cable face pull proper form",
+   "leg_raise": "hanging leg raise proper form",
+   "gob_squat": "goblet squat proper form",
+   "rdl": "romanian deadlift proper form",
+   "leg_press": "leg press proper form",
+   "ham_curl": "lying leg curl machine form",
+   "leg_ext": "leg extension machine form",
+   "calf": "standing calf raise form",
+   "plank": "plank proper form common mistakes",
+   "db_incl": "incline dumbbell bench press form",
+   "pullup": "assisted pull up proper form",
+   "cbl_row": "seated cable row proper form",
+   "bb_curl": "barbell curl proper form",
+   "lat_raise": "dumbbell lateral raise proper form",
+   "skull": "skull crusher ez bar proper form",
+   "hammer": "hammer curl proper form",
+   "cbl_crunch": "kneeling cable crunch proper form",
+   "pallof": "pallof press anti rotation proper form",
+   "hip_thrust": "barbell hip thrust proper form",
+   "split_squat": "dumbbell split squat proper form",
+   "hip_abd": "hip abduction machine glutes form",
+   "step_up": "dumbbell step up proper form",
+   "farmer": "farmer carry proper form",
+   "sb_squat": "single leg box squat proper form",
+   "sl_rdl": "bodyweight single leg romanian deadlift form"
+  },
+  "sa": {
+   "sa_dead_bug": "dead bug exercise proper form",
+   "sa_db_bench": "dumbbell bench press proper form",
+   "sa_lat_pull": "lat pulldown proper form",
+   "sa_db_ohp": "seated dumbbell shoulder press form",
+   "sa_cbl_row": "seated cable row proper form",
+   "sa_m_fly": "pec deck machine fly form",
+   "sa_cbl_tri": "cable triceps pushdown form",
+   "sa_db_curl": "dumbbell bicep curl proper form",
+   "sa_face_pull": "cable face pull proper form",
+   "sa_glute_bridge": "glute bridge proper form",
+   "sa_gob_squat": "goblet squat proper form",
+   "sa_rdl": "dumbbell romanian deadlift proper form",
+   "sa_leg_press": "leg press proper form",
+   "sa_hip_thrust": "barbell hip thrust proper form",
+   "sa_ham_curl": "lying leg curl machine form",
+   "sa_leg_ext": "leg extension machine form",
+   "sa_calf": "standing calf raise form",
+   "sa_side_plank": "side plank proper form",
+   "sa_db_incl": "incline dumbbell bench press form",
+   "sa_pulldown2": "assisted pull up machine form",
+   "sa_cs_row": "chest supported row machine form",
+   "sa_landmine": "landmine press proper form",
+   "sa_lat_raise": "dumbbell lateral raise proper form",
+   "sa_rope_tri": "rope triceps pushdown form",
+   "sa_hammer": "hammer curl proper form",
+   "sa_pallof": "pallof press anti rotation proper form",
+   "sa_split_squat": "dumbbell split squat proper form",
+   "sa_hip_abd": "hip abduction machine glutes form",
+   "sa_step_up": "dumbbell step up proper form",
+   "sa_farmer": "farmer carry proper form",
+   "sa_sb_squat": "single leg box squat proper form",
+   "sa_sl_rdl": "bodyweight single leg romanian deadlift form"
+  }
+ },
+ "rcQ": {
+  "rc_pogo": "pogo hops exercise how to",
+  "rc_box": "box jump step down beginner form",
+  "rc_4x4": "norwegian 4x4 interval training treadmill",
+  "rc_z2": "zone 2 incline treadmill walk"
+ },
+ "areas": [
+  "chest",
+  "back",
+  "shoulders",
+  "arms",
+  "glutes",
+  "hamstrings",
+  "quads",
+  "calves",
+  "core"
+ ],
+ "patLabel": {
+  "hinge": "hip hinge",
+  "squat": "squat pattern",
+  "push-h": "horizontal press",
+  "push-v": "overhead press",
+  "pull-v": "vertical pull",
+  "pull-h": "horizontal row",
+  "core": "trunk flexion",
+  "anti-ext": "anti-extension",
+  "anti-rot": "anti-rotation",
+  "anti-lat": "anti-lateral-flexion",
+  "iso": "isolation work",
+  "single": "single-leg",
+  "carry": "loaded carry"
+ },
+ "concept": {
+  "core_flex": {
+   "p": [
+    "core"
+   ],
+   "pat": "core",
+   "load": [
+    "spine"
+   ],
+   "alts": [
+    {
+     "id": "alt_hang_knee",
+     "n": "Hanging knee raise",
+     "frac": 0,
+     "bw": 1,
+     "inc": 0
+    },
+    {
+     "id": "alt_lying_raise",
+     "n": "Lying leg raise",
+     "frac": 0,
+     "bw": 1,
+     "inc": 0
+    }
+   ]
+  },
+  "core_antiext": {
+   "p": [
+    "core"
+   ],
+   "pat": "anti-ext",
+   "load": [],
+   "alts": [
+    {
+     "id": "alt_dead_bug",
+     "n": "Dead bug",
+     "frac": 0,
+     "bw": 1,
+     "inc": 0
+    },
+    {
+     "id": "alt_ab_wheel",
+     "n": "Ab wheel rollout",
+     "frac": 0,
+     "bw": 1,
+     "inc": 0
+    }
+   ]
+  },
+  "core_antirot": {
+   "p": [
+    "core"
+   ],
+   "pat": "anti-rot",
+   "load": [],
+   "alts": [
+    {
+     "id": "alt_band_pallof",
+     "n": "Band Pallof press",
+     "frac": 0,
+     "bw": 1,
+     "inc": 0
+    },
+    {
+     "id": "alt_cable_chop",
+     "n": "Cable chop",
+     "frac": 0.15,
+     "inc": 5
+    }
+   ]
+  },
+  "core_antilat": {
+   "p": [
+    "core"
+   ],
+   "pat": "anti-lat",
+   "load": [],
+   "alts": [
+    {
+     "id": "alt_suitcase",
+     "n": "Suitcase carry",
+     "frac": 0.25,
+     "inc": 5
+    }
+   ]
+  },
+  "bench": {
+   "p": [
+    "chest"
+   ],
+   "s": [
+    "arms",
+    "shoulders"
+   ],
+   "pat": "push-h",
+   "load": [
+    "shoulder"
+   ],
+   "alts": [
+    {
+     "id": "alt_db_bench",
+     "n": "Dumbbell bench press",
+     "frac": 0.13,
+     "inc": 5,
+     "each": 1
+    },
+    {
+     "id": "alt_machine_press",
+     "n": "Chest press machine",
+     "frac": 0.6,
+     "inc": 5
+    }
+   ]
+  },
+  "incline": {
+   "p": [
+    "chest"
+   ],
+   "s": [
+    "arms",
+    "shoulders"
+   ],
+   "pat": "push-h",
+   "load": [
+    "shoulder"
+   ],
+   "alts": [
+    {
+     "id": "alt_incline_machine",
+     "n": "Incline press machine",
+     "frac": 0.5,
+     "inc": 5
+    },
+    {
+     "id": "alt_incline_bb",
+     "n": "Incline barbell press",
+     "frac": 0.5,
+     "inc": 5,
+     "bar": 45
+    }
+   ]
+  },
+  "fly": {
+   "p": [
+    "chest"
+   ],
+   "pat": "iso",
+   "load": [
+    "shoulder"
+   ],
+   "alts": [
+    {
+     "id": "alt_cable_fly",
+     "n": "Cable fly",
+     "frac": 0.2,
+     "inc": 5
+    },
+    {
+     "id": "alt_db_fly",
+     "n": "Dumbbell fly",
+     "frac": 0.1,
+     "inc": 5,
+     "each": 1
+    }
+   ]
+  },
+  "ohp": {
+   "p": [
+    "shoulders"
+   ],
+   "s": [
+    "arms"
+   ],
+   "pat": "push-v",
+   "load": [
+    "shoulder"
+   ],
+   "alts": [
+    {
+     "id": "alt_machine_ohp",
+     "n": "Shoulder press machine",
+     "frac": 0.35,
+     "inc": 5
+    },
+    {
+     "id": "alt_landmine",
+     "n": "Landmine press",
+     "frac": 0.2,
+     "inc": 5
+    }
+   ]
+  },
+  "side_delt": {
+   "p": [
+    "shoulders"
+   ],
+   "pat": "iso",
+   "load": [
+    "shoulder"
+   ],
+   "alts": [
+    {
+     "id": "alt_cable_lat_raise",
+     "n": "Cable lateral raise",
+     "frac": 0.06,
+     "inc": 5
+    },
+    {
+     "id": "alt_machine_lat_raise",
+     "n": "Lateral raise machine",
+     "frac": 0.2,
+     "inc": 5
+    }
+   ]
+  },
+  "pulldown": {
+   "p": [
+    "back"
+   ],
+   "s": [
+    "arms"
+   ],
+   "pat": "pull-v",
+   "load": [
+    "shoulder",
+    "elbow"
+   ],
+   "alts": [
+    {
+     "id": "alt_neutral_pulldown",
+     "n": "Neutral-grip pulldown",
+     "frac": 0.39,
+     "inc": 5,
+     "mult": 2
+    },
+    {
+     "id": "alt_assist_pullup",
+     "n": "Assisted pull-up machine",
+     "frac": 0.3,
+     "inc": 5
+    }
+   ]
+  },
+  "pullup": {
+   "p": [
+    "back"
+   ],
+   "s": [
+    "arms"
+   ],
+   "pat": "pull-v",
+   "load": [
+    "shoulder",
+    "elbow"
+   ],
+   "alts": [
+    {
+     "id": "alt_inverted_row",
+     "n": "Inverted row",
+     "frac": 0,
+     "bw": 1,
+     "inc": 5
+    },
+    {
+     "id": "alt_assist_pullup2",
+     "n": "Assisted pull-up machine",
+     "frac": 0.3,
+     "inc": 5
+    }
+   ]
+  },
+  "row": {
+   "p": [
+    "back"
+   ],
+   "s": [
+    "arms"
+   ],
+   "pat": "pull-h",
+   "load": [
+    "lowback"
+   ],
+   "alts": [
+    {
+     "id": "alt_cs_row",
+     "n": "Chest-supported row",
+     "frac": 0.25,
+     "inc": 5
+    },
+    {
+     "id": "alt_row_1arm",
+     "n": "Single-arm cable row",
+     "frac": 0.2,
+     "inc": 5
+    }
+   ]
+  },
+  "rear_delt": {
+   "p": [
+    "shoulders"
+   ],
+   "s": [
+    "back"
+   ],
+   "pat": "iso",
+   "load": [
+    "shoulder"
+   ],
+   "alts": [
+    {
+     "id": "alt_rear_delt_fly",
+     "n": "Rear delt fly",
+     "frac": 0.1,
+     "inc": 5,
+     "each": 1
+    },
+    {
+     "id": "alt_pull_apart",
+     "n": "Band pull-apart",
+     "frac": 0,
+     "bw": 1,
+     "inc": 0
+    }
+   ]
+  },
+  "tri": {
+   "p": [
+    "arms"
+   ],
+   "pat": "iso",
+   "load": [
+    "elbow"
+   ],
+   "alts": [
+    {
+     "id": "alt_rope_tri",
+     "n": "Rope pushdown",
+     "frac": 0.28,
+     "inc": 5
+    },
+    {
+     "id": "alt_oh_tri",
+     "n": "Overhead cable extension",
+     "frac": 0.2,
+     "inc": 5
+    }
+   ]
+  },
+  "curl": {
+   "p": [
+    "arms"
+   ],
+   "pat": "iso",
+   "load": [
+    "elbow"
+   ],
+   "alts": [
+    {
+     "id": "alt_cable_curl",
+     "n": "Cable curl",
+     "frac": 0.2,
+     "inc": 5
+    },
+    {
+     "id": "alt_ez_curl",
+     "n": "EZ-bar curl",
+     "frac": 0.25,
+     "inc": 5,
+     "bar": 25
+    }
+   ]
+  },
+  "squat": {
+   "p": [
+    "quads",
+    "glutes"
+   ],
+   "s": [
+    "core"
+   ],
+   "pat": "squat",
+   "load": [
+    "knee",
+    "spine",
+    "lowback"
+   ],
+   "alts": [
+    {
+     "id": "alt_hack_squat",
+     "n": "Hack squat",
+     "frac": 0.5,
+     "inc": 10
+    },
+    {
+     "id": "alt_split_squat",
+     "n": "Bulgarian split squat",
+     "frac": 0.13,
+     "inc": 5,
+     "each": 1
+    }
+   ]
+  },
+  "legpress": {
+   "p": [
+    "quads",
+    "glutes"
+   ],
+   "pat": "squat",
+   "load": [
+    "knee"
+   ],
+   "alts": [
+    {
+     "id": "alt_hack_squat2",
+     "n": "Hack squat",
+     "frac": 0.5,
+     "inc": 10
+    },
+    {
+     "id": "alt_single_leg_press",
+     "n": "Single-leg press",
+     "frac": 0.35,
+     "inc": 10
+    }
+   ]
+  },
+  "hinge": {
+   "p": [
+    "hamstrings",
+    "glutes"
+   ],
+   "s": [
+    "back"
+   ],
+   "pat": "hinge",
+   "load": [
+    "spine",
+    "lowback"
+   ],
+   "alts": [
+    {
+     "id": "alt_db_rdl",
+     "n": "Dumbbell RDL",
+     "frac": 0.26,
+     "inc": 5,
+     "each": 1
+    },
+    {
+     "id": "alt_back_ext",
+     "n": "45° back extension",
+     "frac": 0,
+     "bw": 1,
+     "inc": 5
+    }
+   ]
+  },
+  "hipthrust": {
+   "p": [
+    "glutes"
+   ],
+   "s": [
+    "hamstrings"
+   ],
+   "pat": "hinge",
+   "load": [],
+   "alts": [
+    {
+     "id": "alt_single_thrust",
+     "n": "Single-leg hip thrust",
+     "frac": 0.15,
+     "inc": 5
+    },
+    {
+     "id": "alt_glute_bridge",
+     "n": "Glute bridge",
+     "frac": 0,
+     "bw": 1,
+     "inc": 5
+    }
+   ]
+  },
+  "hamcurl": {
+   "p": [
+    "hamstrings"
+   ],
+   "pat": "iso",
+   "load": [
+    "knee"
+   ],
+   "alts": [
+    {
+     "id": "alt_seated_ham",
+     "n": "Seated hamstring curl",
+     "frac": 0.4,
+     "inc": 5
+    },
+    {
+     "id": "alt_nordic",
+     "n": "Nordic curl (assisted)",
+     "frac": 0,
+     "bw": 1,
+     "inc": 0
+    }
+   ]
+  },
+  "legext": {
+   "p": [
+    "quads"
+   ],
+   "pat": "iso",
+   "load": [
+    "knee"
+   ],
+   "alts": [
+    {
+     "id": "alt_sissy",
+     "n": "Sissy squat",
+     "frac": 0,
+     "bw": 1,
+     "inc": 0
+    }
+   ]
+  },
+  "calf": {
+   "p": [
+    "calves"
+   ],
+   "pat": "iso",
+   "load": [],
+   "alts": [
+    {
+     "id": "alt_seated_calf",
+     "n": "Seated calf raise",
+     "frac": 0.25,
+     "inc": 10
+    }
+   ]
+  },
+  "glute_iso": {
+   "p": [
+    "glutes"
+   ],
+   "pat": "iso",
+   "load": [],
+   "alts": [
+    {
+     "id": "alt_abductor",
+     "n": "Hip abductor machine",
+     "frac": 0.3,
+     "inc": 5
+    }
+   ]
+  },
+  "single_leg": {
+   "p": [
+    "quads",
+    "glutes"
+   ],
+   "s": [
+    "hamstrings"
+   ],
+   "pat": "single",
+   "load": [
+    "knee"
+   ],
+   "alts": [
+    {
+     "id": "alt_reverse_lunge",
+     "n": "Reverse lunge (per leg)",
+     "frac": 0.13,
+     "inc": 5,
+     "each": 1
+    },
+    {
+     "id": "alt_bss",
+     "n": "Bulgarian split squat (per leg)",
+     "frac": 0.13,
+     "inc": 5,
+     "each": 1
+    }
+   ]
+  },
+  "abduction": {
+   "p": [
+    "glutes"
+   ],
+   "pat": "iso",
+   "load": [],
+   "alts": [
+    {
+     "id": "alt_cable_abd",
+     "n": "Cable hip abduction (per side)",
+     "frac": 0.05,
+     "inc": 5
+    },
+    {
+     "id": "alt_band_walk",
+     "n": "Banded lateral walk (steps per side)",
+     "frac": 0,
+     "bw": 1,
+     "inc": 0
+    }
+   ]
+  },
+  "sl_hinge": {
+   "p": [
+    "hamstrings",
+    "glutes"
+   ],
+   "s": [
+    "core"
+   ],
+   "pat": "single",
+   "load": [],
+   "alts": [
+    {
+     "id": "alt_sl_rdl_db",
+     "n": "Single-leg RDL with dumbbell (per leg)",
+     "frac": 0.1,
+     "inc": 5
+    },
+    {
+     "id": "alt_sl_stand",
+     "n": "Single-leg stand, eyes closed (seconds per leg)",
+     "frac": 0,
+     "bw": 1,
+     "inc": 0
+    }
+   ]
+  },
+  "carry": {
+   "p": [
+    "core"
+   ],
+   "s": [
+    "back"
+   ],
+   "pat": "carry",
+   "load": [
+    "lowback"
+   ],
+   "alts": [
+    {
+     "id": "alt_suitcase_carry",
+     "n": "Suitcase carry (seconds per side)",
+     "frac": 0.26,
+     "inc": 5
+    },
+    {
+     "id": "alt_dead_hang",
+     "n": "Dead hang (seconds)",
+     "frac": 0,
+     "bw": 1,
+     "inc": 0
+    }
+   ]
+  }
+ },
+ "conceptOf": {
+  "leg_raise": "core_flex",
+  "cbl_crunch": "core_flex",
+  "plank": "core_antiext",
+  "pallof": "core_antirot",
+  "bb_press": "bench",
+  "db_incl": "incline",
+  "m_fly": "fly",
+  "db_ohp": "ohp",
+  "lat_raise": "side_delt",
+  "lat_pull": "pulldown",
+  "pullup": "pullup",
+  "db_row": "row",
+  "cbl_row": "row",
+  "face_pull": "rear_delt",
+  "cbl_tri": "tri",
+  "skull": "tri",
+  "db_curl": "curl",
+  "bb_curl": "curl",
+  "hammer": "curl",
+  "gob_squat": "squat",
+  "leg_press": "legpress",
+  "rdl": "hinge",
+  "ham_curl": "hamcurl",
+  "leg_ext": "legext",
+  "calf": "calf",
+  "hip_thrust": "hipthrust",
+  "split_squat": "single_leg",
+  "step_up": "single_leg",
+  "hip_abd": "abduction",
+  "farmer": "carry",
+  "sb_squat": "single_leg",
+  "sl_rdl": "sl_hinge",
+  "sa_dead_bug": "core_antiext",
+  "sa_side_plank": "core_antilat",
+  "sa_glute_bridge": "glute_iso",
+  "sa_pallof": "core_antirot",
+  "sa_db_bench": "bench",
+  "sa_db_incl": "incline",
+  "sa_m_fly": "fly",
+  "sa_db_ohp": "ohp",
+  "sa_landmine": "ohp",
+  "sa_lat_raise": "side_delt",
+  "sa_lat_pull": "pulldown",
+  "sa_pulldown2": "pulldown",
+  "sa_cbl_row": "row",
+  "sa_cs_row": "row",
+  "sa_face_pull": "rear_delt",
+  "sa_cbl_tri": "tri",
+  "sa_rope_tri": "tri",
+  "sa_db_curl": "curl",
+  "sa_hammer": "curl",
+  "sa_gob_squat": "squat",
+  "sa_leg_press": "legpress",
+  "sa_rdl": "hinge",
+  "sa_hip_thrust": "hipthrust",
+  "sa_ham_curl": "hamcurl",
+  "sa_leg_ext": "legext",
+  "sa_calf": "calf",
+  "sa_split_squat": "single_leg",
+  "sa_step_up": "single_leg",
+  "sa_hip_abd": "abduction",
+  "sa_farmer": "carry",
+  "sa_sb_squat": "single_leg",
+  "sa_sl_rdl": "sl_hinge",
+  "fx_hip_thrust": "hipthrust",
+  "fx_kickback": "glute_iso",
+  "fx_seated_ham": "hamcurl",
+  "fx_incline_curl": "curl",
+  "fx_cable_lat": "side_delt",
+  "fx_pullover": "row",
+  "fx_cable_fly": "fly",
+  "fx_cs_row": "row",
+  "fx_pull_apart": "rear_delt",
+  "fx_back_ext": "hinge",
+  "fx_m_fly2": "fly"
+ },
+ "focus": {
+  "glutes": {
+   "label": "GLUTES",
+   "target": 12,
+   "bump": "hipthrust",
+   "note": "Volume is rarely the real limiter. The usual pattern is a tucked pelvis under load, where the glutes never fully shorten — so extra sets just add fatigue. Test it first: a hip thrust should be felt in the glutes, not the lower back or the hamstrings.",
+   "add": [
+    {
+     "day": 2,
+     "block": "Basics · free weight",
+     "match": "hip thrust",
+     "primary": 1,
+     "ex": {
+      "id": "fx_hip_thrust",
+      "n": "Hip thrust",
+      "r": 10,
+      "frac": 0.55,
+      "inc": 5,
+      "key": 1
+     }
+    },
+    {
+     "day": 2,
+     "block": "Isolation",
+     "match": "kickback",
+     "ex": {
+      "id": "fx_kickback",
+      "n": "Cable kickback",
+      "r": 15,
+      "frac": 0.1,
+      "inc": 5
+     }
+    }
+   ]
+  },
+  "hamstrings": {
+   "label": "HAMSTRINGS",
+   "target": 10,
+   "bump": "hamcurl",
+   "note": "You cannot reduce fat over a muscle by training that muscle. Spot reduction does not work — leanness comes from the deficit, and this only builds what sits underneath it.",
+   "add": [
+    {
+     "day": 2,
+     "block": "Isolation",
+     "match": "seated hamstring",
+     "ex": {
+      "id": "fx_seated_ham",
+      "n": "Seated hamstring curl",
+      "r": 12,
+      "frac": 0.4,
+      "inc": 5
+     }
+    }
+   ]
+  },
+  "arms": {
+   "label": "ARMS",
+   "target": 12,
+   "bump": "curl",
+   "note": "Biceps already work on every row and pulldown in the plan. The usual gap is total pulling volume, not curls — check how much back work is actually in the week before adding more direct arm work.",
+   "add": [
+    {
+     "day": 3,
+     "block": "Isolation",
+     "match": "incline curl",
+     "ex": {
+      "id": "fx_incline_curl",
+      "n": "Incline dumbbell curl",
+      "r": 12,
+      "frac": 0.12,
+      "inc": 5,
+      "each": 1
+     }
+    }
+   ]
+  },
+  "shoulders": {
+   "label": "SHOULDERS",
+   "target": 12,
+   "bump": "side_delt",
+   "note": "Front delts are already covered by every press you do. Side delts are what is missing, and they respond to frequency and lighter high-rep work far more than to heavy pressing.",
+   "add": [
+    {
+     "day": 1,
+     "block": "Isolation",
+     "match": "cable lateral",
+     "ex": {
+      "id": "fx_cable_lat",
+      "n": "Cable lateral raise",
+      "r": 15,
+      "frac": 0.06,
+      "inc": 5
+     }
+    }
+   ]
+  },
+  "core": {
+   "label": "CORE",
+   "target": 10,
+   "note": "Abs are visible at low body fat and are trained like any other muscle — crunches do not burn belly fat. A longer plank mostly builds tolerance for being bored, so this adds sets, not minutes, and they stay at the front of the session.",
+   "add": []
+  },
+  "back": {
+   "label": "BACK",
+   "target": 12,
+   "bump": "pulldown",
+   "note": "Vertical pulling and horizontal rowing are not interchangeable and most people are short on one of them. Check the split before adding volume — three rows and no pulldown is a gap, not a preference.",
+   "add": [
+    {
+     "day": 1,
+     "block": "Compound",
+     "match": "pullover",
+     "ex": {
+      "id": "fx_pullover",
+      "n": "Cable pullover",
+      "r": 12,
+      "frac": 0.25,
+      "inc": 5
+     }
+    }
+   ]
+  },
+  "chest": {
+   "label": "CHEST",
+   "target": 12,
+   "bump": "fly",
+   "note": "Flat versus incline matters less than most people think. What usually limits chest growth is load in the stretched position at the bottom — pressing through a short, comfortable range skips exactly the part that drives it.",
+   "add": [
+    {
+     "day": 3,
+     "block": "Isolation",
+     "match": "cable fly",
+     "ex": {
+      "id": "fx_cable_fly",
+      "n": "Cable fly",
+      "r": 12,
+      "frac": 0.2,
+      "inc": 5
+     }
+    }
+   ]
+  }
+ },
+ "injuries": {
+  "spine": {
+   "label": "RIB / SPINE",
+   "loads": [
+    "spine"
+   ],
+   "why": "Neither a leg curl nor a hip thrust loads the spine the way a bar on your back or a loaded hinge does.",
+   "subs": [
+    {
+     "day": 2,
+     "block": "Isolation",
+     "match": "seated hamstring",
+     "ex": {
+      "id": "fx_seated_ham",
+      "n": "Seated hamstring curl",
+      "r": 12,
+      "frac": 0.4,
+      "inc": 5
+     }
+    },
+    {
+     "day": 2,
+     "block": "Isolation",
+     "match": "hip thrust",
+     "ex": {
+      "id": "fx_hip_thrust",
+      "n": "Hip thrust",
+      "r": 12,
+      "frac": 0.55,
+      "inc": 5
+     }
+    }
+   ]
+  },
+  "lowback": {
+   "label": "LOWER BACK",
+   "loads": [
+    "lowback",
+    "spine"
+   ],
+   "why": "Supported and machine-based work keeps the hamstrings and glutes loaded without asking the lower back to brace a free weight.",
+   "subs": [
+    {
+     "day": 2,
+     "block": "Isolation",
+     "match": "seated hamstring",
+     "ex": {
+      "id": "fx_seated_ham",
+      "n": "Seated hamstring curl",
+      "r": 12,
+      "frac": 0.4,
+      "inc": 5
+     }
+    },
+    {
+     "day": 2,
+     "block": "Isolation",
+     "match": "hip thrust",
+     "ex": {
+      "id": "fx_hip_thrust",
+      "n": "Hip thrust",
+      "r": 12,
+      "frac": 0.55,
+      "inc": 5
+     }
+    }
+   ]
+  },
+  "shoulder": {
+   "label": "SHOULDER",
+   "loads": [
+    "shoulder"
+   ],
+   "why": "Chest-supported rowing and light band work keep the upper back moving without overhead or bench loading.",
+   "subs": [
+    {
+     "day": 1,
+     "block": "Compound",
+     "match": "chest-supported",
+     "ex": {
+      "id": "fx_cs_row",
+      "n": "Chest-supported row",
+      "r": 12,
+      "frac": 0.25,
+      "inc": 5
+     }
+    },
+    {
+     "day": 1,
+     "block": "Isolation",
+     "match": "pull-apart",
+     "ex": {
+      "id": "fx_pull_apart",
+      "n": "Band pull-apart",
+      "r": 20,
+      "frac": 0,
+      "inc": 0,
+      "bw": 1
+     }
+    }
+   ]
+  },
+  "knee": {
+   "label": "KNEE",
+   "loads": [
+    "knee"
+   ],
+   "why": "Hip-dominant work loads the glutes and hamstrings without bending the knee under load.",
+   "subs": [
+    {
+     "day": 2,
+     "block": "Basics · free weight",
+     "match": "hip thrust",
+     "ex": {
+      "id": "fx_hip_thrust",
+      "n": "Hip thrust",
+      "r": 12,
+      "frac": 0.55,
+      "inc": 5,
+      "key": 1
+     }
+    },
+    {
+     "day": 2,
+     "block": "Isolation",
+     "match": "back extension",
+     "ex": {
+      "id": "fx_back_ext",
+      "n": "45° back extension",
+      "r": 15,
+      "frac": 0,
+      "inc": 0,
+      "bw": 1
+     }
+    }
+   ]
+  },
+  "elbow": {
+   "label": "ELBOW / WRIST",
+   "loads": [
+    "elbow"
+   ],
+   "why": "Machine pressing and fly work keeps chest and shoulder volume up while the elbow settles.",
+   "subs": [
+    {
+     "day": 1,
+     "block": "Isolation",
+     "match": "machine fly",
+     "ex": {
+      "id": "fx_m_fly2",
+      "n": "Machine fly",
+      "r": 15,
+      "frac": 0.6,
+      "inc": 5
+     }
+    }
+   ]
+  }
+ },
+ "exp": {
+  "new": {
+   "f": 0.5,
+   "inc": 5,
+   "label": "New to lifting"
+  },
+  "returning": {
+   "f": 0.75,
+   "inc": 5,
+   "label": "Returning"
+  },
+  "trained": {
+   "f": 1,
+   "inc": null,
+   "label": "Trained"
+  }
+ },
+ "nagDays": 14,
+ "plates": [
+  45,
+  35,
+  25,
+  10,
+  5,
+  2.5
+ ],
+ "img": {
+  "bb_press": "bench_press",
+  "lat_pull": "lat_pulldown",
+  "db_ohp": "db_shoulder_press",
+  "cbl_row": "cable_row",
+  "db_curl": "db_curl",
+  "cbl_tri": "cable_tri",
+  "leg_raise": "leg_raise",
+  "gob_squat": "goblet_squat",
+  "hip_thrust": "hip_thrust",
+  "split_squat": "split_squat",
+  "sb_squat": "box_squat",
+  "hip_abd": "hip_abduction",
+  "pallof": "pallof",
+  "db_incl": "incline_db",
+  "pullup": "pullup",
+  "db_row": "db_row",
+  "lat_raise": "lat_raise",
+  "hammer": "hammer",
+  "skull": "skull",
+  "cbl_crunch": "cable_crunch",
+  "rdl": "rdl",
+  "sl_rdl": "sl_rdl",
+  "step_up": "step_up",
+  "leg_press": "leg_press",
+  "farmer": "farmer",
+  "ham_curl": "lying_ham",
+  "sa_db_bench": "db_bench",
+  "sa_lat_pull": "lat_pulldown",
+  "sa_db_ohp": "db_shoulder_press",
+  "sa_cbl_row": "cable_row",
+  "sa_db_curl": "db_curl",
+  "sa_cbl_tri": "cable_tri",
+  "sa_gob_squat": "goblet_squat",
+  "sa_hip_thrust": "hip_thrust",
+  "sa_split_squat": "split_squat",
+  "sa_sb_squat": "box_squat",
+  "sa_hip_abd": "hip_abduction",
+  "sa_pallof": "pallof",
+  "sa_db_incl": "incline_db",
+  "sa_pulldown2": "assisted_pullup",
+  "sa_cs_row": "cs_row",
+  "sa_lat_raise": "lat_raise",
+  "sa_hammer": "hammer",
+  "sa_rope_tri": "rope_tri",
+  "sa_sl_rdl": "sl_rdl",
+  "sa_rdl": "db_rdl",
+  "sa_step_up": "step_up",
+  "sa_leg_press": "leg_press",
+  "sa_farmer": "farmer",
+  "sa_ham_curl": "lying_ham",
+  "sa_glute_bridge": "glute_bridge",
+  "alt_db_bench": "db_bench",
+  "alt_neutral_pulldown": "neutral_pulldown",
+  "alt_assist_pullup": "assisted_pullup",
+  "alt_assist_pullup2": "assisted_pullup",
+  "alt_cs_row": "cs_row",
+  "alt_rope_tri": "rope_tri",
+  "alt_cable_curl": "cable_curl",
+  "alt_hack_squat": "hack_squat",
+  "alt_hack_squat2": "hack_squat",
+  "alt_split_squat": "bss",
+  "alt_bss": "bss",
+  "alt_single_leg_press": "sl_leg_press",
+  "alt_db_rdl": "db_rdl",
+  "alt_glute_bridge": "glute_bridge",
+  "alt_seated_ham": "seated_ham",
+  "alt_abductor": "hip_abduction",
+  "fx_seated_ham": "seated_ham",
+  "fx_hip_thrust": "hip_thrust",
+  "fx_cs_row": "cs_row",
+  "rc_pogo": "pogo",
+  "rc_box": "box_jump",
+  "rc_4x4": "treadmill"
+ },
+ "cimg": {
+  "bench": "bench_press",
+  "incline": "incline_db",
+  "ohp": "db_shoulder_press",
+  "side_delt": "lat_raise",
+  "pulldown": "lat_pulldown",
+  "pullup": "pullup",
+  "row": "db_row",
+  "tri": "cable_tri",
+  "curl": "db_curl",
+  "squat": "goblet_squat",
+  "legpress": "leg_press",
+  "hinge": "rdl",
+  "hipthrust": "hip_thrust",
+  "hamcurl": "lying_ham",
+  "single_leg": "split_squat",
+  "abduction": "hip_abduction",
+  "sl_hinge": "sl_rdl",
+  "carry": "farmer",
+  "core_flex": "leg_raise",
+  "core_antirot": "pallof",
+  "glute_iso": "glute_bridge"
+ },
+ "cue": {
+  "bench": "Shoulder blades pinned, feet planted. Lower to mid-chest, press up and slightly back.",
+  "incline": "Bench at 30°. Elbows about 45° from your body, lower until the dumbbells reach your chest line.",
+  "ohp": "Ribs down, glutes tight. Press straight up and finish with biceps by your ears.",
+  "side_delt": "Lead with the elbows, stop at shoulder height. Light weight, no swinging.",
+  "pulldown": "Chest up, pull the bar to your upper chest, elbows down and back.",
+  "pullup": "Start from a dead hang, pull your chest toward the bar, lower under control.",
+  "row": "Flat back, pull the elbow toward your hip and squeeze the shoulder blade back.",
+  "tri": "Elbows pinned to your sides, only the forearms move. Full lockout.",
+  "curl": "Elbows still, no swinging. Lower slowly, about 3 seconds down.",
+  "squat": "Weight on mid-foot, chest up, knees track over toes. Hips just below the knees.",
+  "legpress": "Feet shoulder-width, lower until knees reach about 90°. Never lock the knees hard.",
+  "hinge": "Hips back, soft knees, bar close. Stop when your back wants to round.",
+  "hipthrust": "Chin tucked, ribs down. Drive through the heels and squeeze the glutes at the top.",
+  "hamcurl": "Hips stay down on the pad. Curl fast, lower slowly.",
+  "single_leg": "Front foot does the work. Torso tall, push through the whole foot.",
+  "abduction": "Sit tall, push the knees out against the pads, pause one second at the widest point.",
+  "sl_hinge": "Hinge on one leg, the free leg reaches back. Hips square. Touch something if you wobble.",
+  "carry": "Stand tall, shoulders down, short quick steps. Breathe and keep walking.",
+  "core_flex": "Curl the pelvis up, not just the legs. No swinging.",
+  "core_antiext": "Lower back pressed into the floor the whole time.",
+  "core_antirot": "Arms straight out, resist the cable pulling you sideways. Hips square.",
+  "core_antilat": "Straight line from head to feet, hips high.",
+  "glute_iso": "Squeeze the glutes, not the lower back.",
+  "fly": "Slight bend in the elbows, open wide, squeeze together.",
+  "rear_delt": "Pull toward your face, elbows high, squeeze between the shoulder blades.",
+  "legext": "Pause one second at the top.",
+  "calf": "Full stretch at the bottom, pause at the top."
+ },
+ "home": {
+  "legs": {
+   "name": "Home legs + bone",
+   "min": 18,
+   "ring": "b",
+   "moves": [
+    [
+     "Pogo hops",
+     "3 × 10",
+     "Bone. Quick, light bounces on the balls of your feet."
+    ],
+    [
+     "Glute bridges",
+     "3 × 15",
+     "Squeeze at the top for 2 s. Glutes, not lower back."
+    ],
+    [
+     "Split squats",
+     "3 × 10 / leg",
+     "Hold a loaded backpack to make it harder."
+    ],
+    [
+     "Wall sit",
+     "3 × 30 s",
+     "Thighs parallel, back flat on the wall."
+    ],
+    [
+     "Side plank",
+     "2 × 30 s / side",
+     "Hips high, straight line head to heel."
+    ]
+   ]
+  },
+  "upper": {
+   "name": "Home upper",
+   "min": 15,
+   "ring": "m",
+   "moves": [
+    [
+     "Push-ups",
+     "3 × 2 short of failure",
+     "Knees down once form breaks."
+    ],
+    [
+     "Pike push-ups",
+     "3 × 8",
+     "Hips high, head toward the floor between your hands."
+    ],
+    [
+     "Backpack rows",
+     "3 × 12",
+     "Hinge forward, pull the bag to your hip."
+    ],
+    [
+     "Backpack curls",
+     "2 × 12",
+     "Slow on the way down."
+    ],
+    [
+     "Plank",
+     "3 × 30 s",
+     "Ribs down, squeeze glutes."
+    ]
+   ]
+  },
+  "vo2": {
+   "name": "Stairs or hill 4×4",
+   "min": 28,
+   "ring": "h",
+   "moves": [
+    [
+     "Warm-up walk",
+     "5 min",
+     "Easy pace."
+    ],
+    [
+     "Stairs or hill, hard",
+     "4 × 4 min",
+     "Breathing hard, can only say a few words."
+    ],
+    [
+     "Easy walk between",
+     "3 × 3 min",
+     "Let your breathing settle."
+    ]
+   ]
+  },
+  "walk": {
+   "name": "Brisk walk",
+   "min": 30,
+   "ring": "h",
+   "moves": [
+    [
+     "Brisk walk outside",
+     "30 min",
+     "Pace where you can talk but not sing. Split into 3 × 10 min if the day is packed."
+    ]
+   ]
+  }
+ },
+ "skipWhy": [
+  [
+   "time",
+   "Short on time",
+   "Busy day, but I have 15–20 minutes"
+  ],
+  [
+   "away",
+   "Can't get to the gym",
+   "Travel, family, gym closed"
+  ],
+  [
+   "sick",
+   "Sick or run down",
+   "Rest is the right call"
+  ]
+ ],
+ "cardioActs": {
+  "treadmill": {
+   "n": "Treadmill",
+   "out": false
+  },
+  "bike_out": {
+   "n": "Outdoor bike",
+   "out": true
+  },
+  "bike_in": {
+   "n": "Indoor bike",
+   "out": false
+  },
+  "walk": {
+   "n": "Walk",
+   "out": true
+  },
+  "elliptical": {
+   "n": "Elliptical",
+   "out": false
+  },
+  "row": {
+   "n": "Rower",
+   "out": false
+  },
+  "swim": {
+   "n": "Swim",
+   "out": false
+  }
+ },
+ "gridActs": [
+  "bike_out",
+  "bike_in",
+  "walk",
+  "elliptical",
+  "row",
+  "swim"
+ ],
+ "zname": [
+  "",
+  "Warm-up",
+  "Easy",
+  "Endurance",
+  "Threshold",
+  "Max"
+ ],
+ "zcol": [
+  "",
+  "#6E7385",
+  "#8A8FA0",
+  "#FF6B4A",
+  "#C9553B",
+  "#8E3B2A"
+ ],
+ "wcfg": {
+  "countdownSec": 3,
+  "sampleEverySec": 5,
+  "maxSampleGapSec": 15,
+  "zoneTops": [
+   0.6,
+   0.7,
+   0.8,
+   0.9
+  ],
+  "elevNoiseM": 1,
+  "elevMaxAccuracyM": 20,
+  "intervalCreditFrac": 0.75,
+  "shortCardioMin": 20,
+  "busyMin": 3,
+  "warmupSteps": [
+   [
+    0.5,
+    6
+   ],
+   [
+    0.7,
+    3
+   ]
+  ],
+  "emptyBarReps": 8,
+  "fallbackAct": {
+   "4x4": "treadmill",
+   "z2": "treadmill",
+   "walk": "walk",
+   "office": "walk",
+   "other": "elliptical"
+  },
+  "guide": {
+   "z2": "45–60 min at a conversational pace",
+   "walk": "45–90 min, easy pace",
+   "office": "Counts toward your steps goal",
+   "other": "Easy cardio block before or after your lift"
+  }
+ },
+ "slotName": {
+  "lift": "Lift",
+  "office": "Office day",
+  "z2": "Zone 2 walk",
+  "vo2": "4×4 intervals",
+  "walk": "Long walk",
+  "rest": "Rest"
+ },
+ "ctype": {
+  "office": "office",
+  "z2": "z2",
+  "vo2": "4x4",
+  "walk": "walk"
+ },
+ "heart": [
+  "office",
+  "z2",
+  "vo2",
+  "walk"
+ ],
+ "injShow": [
+  [
+   "shoulder",
+   "Shoulder"
+  ],
+  [
+   "knee",
+   "Knee"
+  ],
+  [
+   "lowback",
+   "Lower back"
+  ],
+  [
+   "elbow",
+   "Elbow / wrist"
+  ]
+ ],
+ "wdShort": {
+  "0": "Sun",
+  "1": "Mon",
+  "2": "Tue",
+  "3": "Wed",
+  "4": "Thu",
+  "5": "Fri",
+  "6": "Sat"
+ },
+ "wdLong": {
+  "0": "Sunday",
+  "1": "Monday",
+  "2": "Tuesday",
+  "3": "Wednesday",
+  "4": "Thursday",
+  "5": "Friday",
+  "6": "Saturday"
+ },
+ "wdOrder": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  0
+ ],
+ "conceptOrder": [
+  "core_flex",
+  "core_antiext",
+  "core_antirot",
+  "core_antilat",
+  "bench",
+  "incline",
+  "fly",
+  "ohp",
+  "side_delt",
+  "pulldown",
+  "pullup",
+  "row",
+  "rear_delt",
+  "tri",
+  "curl",
+  "squat",
+  "legpress",
+  "hinge",
+  "hipthrust",
+  "hamcurl",
+  "legext",
+  "calf",
+  "glute_iso",
+  "single_leg",
+  "abduction",
+  "sl_hinge",
+  "carry"
+ ],
+ "focusOrder": [
+  "glutes",
+  "hamstrings",
+  "arms",
+  "shoulders",
+  "core",
+  "back",
+  "chest"
+ ],
+ "injuryOrder": [
+  "spine",
+  "lowback",
+  "shoulder",
+  "knee",
+  "elbow"
+ ],
+ "imgNone": [
+  "fx_m_fly2"
+ ]
+}
