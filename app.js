@@ -116,13 +116,42 @@ const cardioOn=(date,type)=>(DB.cardio||[]).find(c=>c.date===date&&c.type===type
 const liftedOn=date=>DB.history.find(h=>h.date===date);
 const isLegs=d=>/^legs/i.test((PLAN[d]&&PLAN[d].name)||'');
 
+/* ---------- can't train: skip a day, keep momentum at home ---------- */
+const skipOn=date=>(DB.skips||{})[date];
+const SKIP_WHY=[['time','Short on time','Busy day, but I have 15–20 minutes'],['away','Can\'t get to the gym','Travel, family, gym closed'],['sick','Sick or run down','Rest is the right call']];
+/* home plans: no equipment beyond a backpack; ~15–20 min */
+const HOME={
+  legs:{name:'Home legs + bone',min:18,ring:'b',moves:[
+    ['Pogo hops','3 × 10','Bone. Quick, light bounces on the balls of your feet.'],
+    ['Glute bridges','3 × 15','Squeeze at the top for 2 s. Glutes, not lower back.'],
+    ['Split squats','3 × 10 / leg','Hold a loaded backpack to make it harder.'],
+    ['Wall sit','3 × 30 s','Thighs parallel, back flat on the wall.'],
+    ['Side plank','2 × 30 s / side','Hips high, straight line head to heel.']]},
+  upper:{name:'Home upper',min:15,ring:'m',moves:[
+    ['Push-ups','3 × 2 short of failure','Knees down once form breaks.'],
+    ['Pike push-ups','3 × 8','Hips high, head toward the floor between your hands.'],
+    ['Backpack rows','3 × 12','Hinge forward, pull the bag to your hip.'],
+    ['Backpack curls','2 × 12','Slow on the way down.'],
+    ['Plank','3 × 30 s','Ribs down, squeeze glutes.']]},
+  vo2:{name:'Stairs or hill 4×4',min:28,ring:'h',moves:[
+    ['Warm-up walk','5 min','Easy pace.'],
+    ['Stairs or hill, hard','4 × 4 min','Breathing hard, can only say a few words.'],
+    ['Easy walk between','3 × 3 min','Let your breathing settle.']]},
+  walk:{name:'Brisk walk',min:30,ring:'h',moves:[
+    ['Brisk walk outside','30 min','Pace where you can talk but not sing. Split into 3 × 10 min if the day is packed.']]}
+};
+const homeKey=(slot,date)=>{
+  if(slot==='lift'){const sk=skipOn(date); const d=sk&&sk.day||nextDay(); return isLegs(d)?'legs':'upper'}
+  return slot==='vo2'?'vo2':'walk';
+};
+
 function weekStats(mon){
   const ds=weekDates(mon), wp=weekPlan();
   const mt=WD_ORDER.filter(w=>wp[w]==='lift').length;
   const ht=WD_ORDER.filter(w=>HEART.has(wp[w])).length;
   const bt=2;
   const m=Math.min(mt,new Set(DB.history.filter(h=>ds.includes(h.date)).map(h=>h.date)).size);
-  const hk=new Set((DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type!=='jumps').map(c=>c.date+c.type));
+  const hk=new Set((DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type!=='jumps'&&c.type!=='home').map(c=>c.date+c.type));
   const h=Math.min(ht,hk.size);
   const b=Math.min(bt,new Set((DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type==='jumps').map(c=>c.date)).size);
   return {m,mt,h,ht,b,bt,closed:[m>=mt,h>=ht,b>=bt],all:m>=mt&&h>=ht&&b>=bt};
@@ -140,6 +169,7 @@ function liftSlots(mon){
     if(wp[w]!=='lift')return;
     const d=ds[i], h=liftedOn(d);
     if(h&&PLAN[h.day]){out[w]={day:h.day,status:'done'};return}
+    if(skipOn(d)){out[w]={day:null,status:'skipped'};return}  /* rotation waits: the skipped workout moves to the next lift day */
     if(d<t){out[w]={day:null,status:'missed'};return}
     if(d===t&&DB.active){out[w]={day:DB.active.day,status:'live'};next=(DB.active.day%n)+1;return}
     out[w]={day:next,status:'planned'}; next=(next%n)+1;
@@ -199,8 +229,14 @@ function todayView(){
   const t=today(), mon=mondayOf(t), wp=weekPlan(), slots=liftSlots(mon), ds=weekDates(mon), st=weekStats(mon);
   const sel=selDay==null?wdOf(t):selDay, selDate=ds[WD_ORDER.indexOf(sel)], slot=wp[sel], isToday=selDate===t;
   const strip=WD_ORDER.map((w,i)=>{
-    const s=wp[w], d=ds[i];
-    const realDone=s==='lift'?!!liftedOn(d):s==='office'?!!cardioOn(d,'office'):!!cardioOn(d,CTYPE[s]);
+    const s=wp[w], d=ds[i], sk=skipOn(d);
+    const gymDone=s==='lift'?!!liftedOn(d):s==='office'?!!cardioOn(d,'office'):!!cardioOn(d,CTYPE[s]);
+    if(sk&&!gymDone){
+      const hc=sk.why==='sick'?'#6E7385':KC[HOME[sk.key].ring];
+      return `<button class="wd skip ${d===t?'today':''} ${w===sel?'sel':''} ${sk.done?'done':''}" data-wd="${w}" aria-label="${WD_L[w]}: couldn't train${sk.done?', home session done':''}">
+        ${WD_S[w].slice(0,1)}<i style="color:${hc};${sk.done?`background:${hc};color:#0E1018`:''}">${sk.done?I.check:''}</i><b>${sk.why==='sick'?'Rest':'Home'}</b></button>`;
+    }
+    const realDone=gymDone;
     const col=s==='lift'?KC.m:HEART.has(s)?KC.h:'#6E7385';
     const lp=slots[w], lab=s==='lift'?(lp&&lp.day?PLAN[lp.day].name.replace('Upper','Up').replace('Legs','Leg'):'—'):({office:'Office',z2:'Z2',vo2:'4×4',walk:'Walk',rest:'Rest'}[s]);
     return `<button class="wd ${d===t?'today':''} ${w===sel?'sel':''} ${realDone?'done':''}" data-wd="${w}" aria-label="${WD_L[w]}: ${s==='lift'&&lp&&lp.day?PLAN[lp.day].name:SLOT_NAME[s]}${realDone?', done':''}">
@@ -213,7 +249,7 @@ function todayView(){
     main=`<section class="card" style="border-color:rgba(156,140,255,.45)"><div class="label" style="color:var(--violet)">In progress</div>
       <div class="title2">${PLAN[A.day].name}</div><div class="meta">${n} of ${req.length} main lifts logged</div>
       <div style="margin-top:14px"><button class="btn violet" id="resume">Resume workout</button></div></section>`;
-  } else main=slotCard(slot,selDate,isToday,slots[sel],st);
+  } else main=skipOn(selDate)&&!slotDone(slot,selDate,mon)?homeCard(selDate,isToday):slotCard(slot,selDate,isToday,slots[sel],st)+(isToday&&slot!=='rest'&&!slotDone(slot,selDate,mon)?`<button class="link" id="cantTrain" style="display:block;margin:-6px auto 0">Can't train today?</button>`:'');
   const others=isToday&&!DB.active?otherOptions(slot):'';
   const lpSel=slots[sel], mainIsNext=slot==='lift'&&lpSel&&lpSel.status==='planned';
   const nd=nextDay(), nextCardHTML=!DB.active&&!mainIsNext?`<section class="card tight" style="display:flex;align-items:center;gap:12px;padding:12px 14px">
@@ -283,6 +319,25 @@ function minutesInput(slot){
   return `<div style="display:flex;gap:10px;margin-top:14px;align-items:stretch">
     <label class="step" style="flex:1"><span class="sr">Minutes</span><input id="minIn" type="number" inputmode="numeric" value="${slot==='z2'?50:60}" aria-label="Minutes" style="width:100%"></label>
     <button class="btn coral" style="width:auto;padding:0 22px;height:auto" data-logmin="${slot}">Log ${slot==='z2'?'Zone 2':'walk'}</button></div>`;
+}
+function homeCard(date,isToday){
+  const sk=skipOn(date), when=isToday?'Today':fmtD(date,{weekday:'long'});
+  const undo=`<button class="link" id="undoSkip" data-d="${date}" style="display:block;margin:4px auto 0">Undo · I can train after all</button>`;
+  if(sk.why==='sick')return `<section class="card"><div class="label">${when} · Rest</div><div class="title2">Recover first</div>
+    <p class="p">No workout today. Sleep, fluids, an easy walk only if you feel like it. Your rotation waits: <b>${PLAN[nextDay()].name}</b> is still next.</p></section>${isToday?undo:''}`;
+  const H=HOME[sk.key], col=KC[H.ring], lbl={m:'Muscle',h:'Heart',b:'Bone + Muscle'}[H.ring];
+  const lift=sk.slot==='lift', nd=PLAN[nextDay()].name;
+  return `<section class="card" style="border-color:${col}55"><div class="label" style="color:${col}">${when} · At home · ${lbl}</div>
+    <div class="title2">${H.name}</div><div class="meta">~${H.min} min · no gym needed${lift?` · ${nd} moves to your next lift day`:''}</div>
+    <div style="margin-top:8px">${H.moves.map(([n,dose,how])=>`<div class="row"><div class="grow"><div class="name">${n}</div><div class="meta">${dose} · ${how}</div></div></div>`).join('')}</div>
+    ${sk.done?`<div class="name" style="margin-top:12px;color:${col}">Done · momentum kept</div>`
+      :isToday?`<div style="margin-top:14px"><button class="btn" id="homeDone" data-d="${date}" style="background:${col};color:#0E1018;border:0">Mark done</button></div>`:''}</section>
+    ${isToday&&!sk.done?undo:''}`;
+}
+function cantTrainSheet(){
+  openSheet(`<div class="label">Today</div><div class="title2" style="font-size:20px">Can't train today?</div>
+    <p class="p" style="margin-top:4px">No problem. Nothing is lost: the rotation just waits.</p>
+    ${SKIP_WHY.map(([k,n,m])=>`<button class="opt" data-why="${k}"><div class="grow"><div class="name">${n}</div><div class="meta">${m}</div></div>${I.chev}</button>`).join('')}`);
 }
 function otherOptions(slot){
   const opts=[];
@@ -768,10 +823,10 @@ function histRow(it,big){
       <span class="meta">${exCount(h)} exercises${j?' · <span style="color:var(--mint)">jumps</span>':''}${h.lowEnergy?' · lighter':''}</span></span>
       <span class="name" style="font-size:15px">${h.min?h.min+' min':nf(h.vol||0)+' lb'}</span>${I.chev}</button>`;
   }
-  const c=it.c, nm={office:'Office day','4x4':'4×4 intervals',z2:'Zone 2 walk',walk:'Walk'}[c.type]||c.type;
+  const c=it.c, nm={office:'Office day','4x4':'4×4 intervals',z2:'Zone 2 walk',walk:'Walk',home:c.focus==='legs'?'Home legs + bone':'Home upper'}[c.type]||c.type;
   const right=c.type==='office'?`${nf(c.steps||0)} steps`:c.type==='4x4'?`${c.intervals||4} × 4 min`:`${c.min||0} min`;
-  const sub=c.type==='office'?'Walk to and from work':c.type==='4x4'?(c.min?`${c.min} min total`:'Intervals'):'Easy pace';
-  return `<button class="hrow" data-editc="${c.date}|${c.type}">${d}<span class="ico c">${c.type==='4x4'?I.heart:I.walk}</span><span class="grow"><span class="name" style="display:block">${nm}</span><span class="meta">${sub}</span></span>
+  const sub=c.home?'At home':c.type==='home'?'At home · bodyweight':c.type==='office'?'Walk to and from work':c.type==='4x4'?(c.min?`${c.min} min total`:'Intervals'):'Easy pace';
+  return `<button class="hrow" data-editc="${c.date}|${c.type}">${d}<span class="ico ${c.type==='home'?'v':'c'}">${c.type==='home'?I.home:c.type==='4x4'?I.heart:I.walk}</span><span class="grow"><span class="name" style="display:block">${nm}</span><span class="meta">${sub}</span></span>
     <span class="name" style="font-size:15px">${right}</span>${I.chev}</button>`;
 }
 function detailView(){
@@ -934,12 +989,18 @@ $('#sheet').addEventListener('click',e=>{
     if(k==='finish'){endSession();return}
     if(k==='low'){DB.active.lowEnergy=!DB.active.lowEnergy;save();render();toast(DB.active.lowEnergy?'Lighter day on':'Lighter day off');return}
     if(k==='discard'){if(confirm('Discard this workout? Nothing will be saved.')){DB.active=null;rest=null;save();go('today')}return}}
+  const wy=e.target.closest('[data-why]');
+  if(wy){const t=today(), slot=weekPlan()[wdOf(t)];
+    DB.skips=DB.skips||{};
+    DB.skips[t]={why:wy.dataset.why,slot,key:homeKey(slot,t),day:slot==='lift'?nextDay():null};
+    save(); closeSheet(); selDay=null; render();
+    toast(wy.dataset.why==='sick'?'Rest day. The rotation waits.':'Here\'s a home version'); return}
   const wk=e.target.closest('[data-walk]');
   if(wk){const v=+$('#wMin').value||0; if(!v)return; logCardio(wk.dataset.walk,{min:v}); closeSheet(); render(); toast(`Walk logged · ${v} min`); return}
 });
 function cardioSheet(d,t){
   const c=cardioOn(d,t); if(!c)return;
-  const nm={office:'Office day','4x4':'4×4 intervals',z2:'Zone 2 walk',walk:'Walk'}[t], f=t==='office'?['steps',c.steps||0]:t==='4x4'?['intervals',c.intervals||4]:['minutes',c.min||0];
+  const nm={office:'Office day','4x4':'4×4 intervals',z2:'Zone 2 walk',walk:'Walk',home:'Home session'}[t], f=t==='office'?['steps',c.steps||0]:t==='4x4'?['intervals',c.intervals||4]:['minutes',c.min||0];
   openSheet(`<div class="label">${fmtD(d,{weekday:'long',month:'short',day:'numeric'})}</div><div class="title2" style="font-size:20px">${nm}</div>
     <label class="step" style="margin-top:12px;padding:8px 14px"><span class="name">${f[0]}</span><input id="cVal" type="number" inputmode="numeric" value="${f[1]}" style="text-align:right"></label>
     <div style="display:flex;gap:10px;margin-top:14px"><button class="btn" id="cDel" data-c="${d}|${t}" style="color:#FF8A70">Delete</button><button class="btn primary" id="cSave" data-c="${d}|${t}">Save</button></div>`);
@@ -995,6 +1056,14 @@ document.addEventListener('click',e=>{
   if(id==='tmrStop'){const hd=timer.phases.slice(0,timer.idx+1).filter(q=>q.k==='hard').length;
     if(hd>=2&&confirm(`Stop here and log ${hd} intervals?`)){timer.n=hd;finishTimer(true);return}
     if(hd<2&&!confirm('Stop the timer? Nothing will be logged.'))return; finishTimer(false); return}
+  if(id==='cantTrain'){cantTrainSheet();return}
+  if(id==='undoSkip'){if(DB.skips)delete DB.skips[ds.d]; save(); render(); toast('Back on the plan'); return}
+  if(id==='homeDone'){const sk=skipOn(ds.d); if(!sk)return; const H=HOME[sk.key];
+    if(sk.key==='legs'){logCardio('home',{min:H.min,focus:'legs'},ds.d); logCardio('jumps',{landings:30,home:1},ds.d)}
+    else if(sk.key==='upper')logCardio('home',{min:H.min,focus:'upper'},ds.d);
+    else if(sk.key==='vo2')logCardio('4x4',{intervals:4,min:H.min,home:1},ds.d);
+    else logCardio(sk.slot==='office'?'walk':(CTYPE[sk.slot]||'walk'),{min:H.min,home:1},ds.d);
+    sk.done=1; save(); render(); toast('Home session logged · momentum kept'); return}
   if(ds.logsteps){const v=+String($('#stepsIn').value).replace(/\D/g,''); if(!v){toast('Type your steps first');return}
     logCardio('office',{steps:v},ds.logsteps); render(); toast(`${nf(v)} steps logged`); return}
   if(ds.logmin){const v=+$('#minIn').value||0; if(!v)return; logCardio(CTYPE[ds.logmin],{min:v}); render(); toast(`Logged · ${v} min`); return}
