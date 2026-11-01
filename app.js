@@ -151,7 +151,7 @@ function weekStats(mon){
   const ht=WD_ORDER.filter(w=>HEART.has(wp[w])).length;
   const bt=2;
   const m=Math.min(mt,new Set(DB.history.filter(h=>ds.includes(h.date)).map(h=>h.date)).size);
-  const hk=new Set((DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type!=='jumps'&&c.type!=='home').map(c=>c.date+c.type));
+  const hk=new Set((DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type!=='jumps'&&c.type!=='home'&&!(c.type==='cardio'&&(c.min||0)<20)).map(c=>c.date+c.type));
   const h=Math.min(ht,hk.size);
   const b=Math.min(bt,new Set((DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type==='jumps').map(c=>c.date)).size);
   return {m,mt,h,ht,b,bt,closed:[m>=mt,h>=ht,b>=bt],all:m>=mt&&h>=ht&&b>=bt};
@@ -299,14 +299,14 @@ function slotCard(slot,date,isToday,lp,st){
     return `<section class="card"><div class="label" style="color:var(--coral)">${when} · Heart</div><div class="title2">4×4 intervals</div>
       ${c?`<p class="p">Done this week: <b>${c.intervals||4} intervals</b>${c.min?` in ${c.min} min`:''} on ${fmtD(c.date,{weekday:'long'})}.</p>`
       :`<p class="p">Treadmill. 4 minutes hard, 3 minutes easy, repeated. ${hr?`Hard target <b>${hr.hard[0]}–${hr.hard[1]} bpm</b>.`:'Set your age in Settings for heart-rate targets.'}</p>
-      <div style="margin-top:14px"><button class="btn coral" id="openVo2">${isToday?'Set up 4×4':'Preview'}</button></div>`}</section>`;
+      <div style="margin-top:14px">${isToday?`<button class="btn coral" data-wo="pick">Start 4×4</button><button class="link" id="openVo2" style="display:block;margin:6px auto 0">How the 4×4 works</button>`:`<button class="btn" id="openVo2">Preview</button>`}</div>`}</section>`;
   }
   if(slot==='z2'||slot==='walk'){
     const t=CTYPE[slot], c=weekDates(mondayOf(date)).map(d=>cardioOn(d,t)).find(Boolean), hr=rcHR();
     return `<section class="card"><div class="label" style="color:var(--coral)">${when} · Heart</div><div class="title2">${SLOT_NAME[slot]}</div>
       <p class="p">${slot==='z2'?`<b>45–60 min</b> at a pace where you can talk in full sentences. Treadmill 5.5 km/h at 8% incline.${hr?` Target <b>${hr.z2[0]}–${hr.z2[1]} bpm</b>.`:''}`:'Easy pace outside, <b>45–90 min</b>. Or full rest if you feel beaten up.'}</p>
       ${c?`<div class="name" style="margin-top:12px;color:var(--coral)">Done · ${c.min} min on ${fmtD(c.date,{weekday:'long'})}</div>`
-        :(isToday?minutesInput(slot):'')}</section>`;
+        :(isToday?`<button class="btn coral" data-wo="pick" style="margin-top:14px">Start</button><div class="small" style="margin-top:10px">Already did it? Log the minutes:</div>${minutesInput(slot)}`:'')}</section>`;
   }
   return `<section class="card"><div class="label">${when}</div><div class="title2">Rest</div><p class="p">Recovery is where the adaptation happens.</p></section>`;
 }
@@ -341,7 +341,7 @@ function cantTrainSheet(){
 }
 function otherOptions(slot){
   const opts=[];
-  if(slot!=='vo2')opts.push(`<button class="btn sm" id="openVo2b">4×4</button>`);
+  if(slot!=='vo2'&&slot!=='z2'&&slot!=='walk')opts.push(`<button class="btn sm" data-wo="pick">${slot==='lift'?'Cardio first':'Start cardio'}</button>`);
   if(slot!=='office'&&slot!=='z2'&&slot!=='walk')opts.push(`<button class="btn sm" data-sheet="walk">Log a walk</button>`);
   return opts.length?`<div style="display:flex;gap:8px">${opts.join('')}</div>`:'';
 }
@@ -617,7 +617,7 @@ function doneView(){
     ${ringsCard(st,ringsLine(st))}
     ${rows?`<section class="card"><span class="label">Next time</span><div style="margin-top:6px">${rows}</div></section>`:''}
     ${cmp}${bone}${nextCard(s.date)}</main>
-    <div class="dock"><button class="btn primary" id="doneBtn">Done</button></div>`;
+    <div class="dock"><button class="btn" data-wo="pick">Add cardio</button><button class="btn primary w2" id="doneBtn">Done</button></div>`;
 }
 function ringsLine(st){
   if(st.all)return 'All three layers done for the week.';
@@ -823,9 +823,9 @@ function histRow(it,big){
       <span class="meta">${exCount(h)} exercises${j?' · <span style="color:var(--mint)">jumps</span>':''}${h.lowEnergy?' · lighter':''}</span></span>
       <span class="name" style="font-size:15px">${h.min?h.min+' min':nf(h.vol||0)+' lb'}</span>${I.chev}</button>`;
   }
-  const c=it.c, nm={office:'Office day','4x4':'4×4 intervals',z2:'Zone 2 walk',walk:'Walk',home:c.focus==='legs'?'Home legs + bone':'Home upper'}[c.type]||c.type;
+  const c=it.c, nm=(c.act&&typeof CARDIO_ACTS!=='undefined'&&CARDIO_ACTS[c.act]?CARDIO_ACTS[c.act].n+(c.type==='4x4'?' · 4×4':c.type==='z2'?' · Zone 2':''):null)||{office:'Office day','4x4':'4×4 intervals',z2:'Zone 2 walk',walk:'Walk',cardio:'Cardio',home:c.focus==='legs'?'Home legs + bone':'Home upper'}[c.type]||c.type;
   const right=c.type==='office'?`${nf(c.steps||0)} steps`:c.type==='4x4'?`${c.intervals||4} × 4 min`:`${c.min||0} min`;
-  const sub=c.home?'At home':c.type==='home'?'At home · bodyweight':c.type==='office'?'Walk to and from work':c.type==='4x4'?(c.min?`${c.min} min total`:'Intervals'):'Easy pace';
+  const sub=c.avgHR?`Avg ${c.avgHR} bpm${c.elev?` · +${c.elev} m`:''}`:c.home?'At home':c.type==='home'?'At home · bodyweight':c.type==='office'?'Walk to and from work':c.type==='4x4'?(c.min?`${c.min} min total`:'Intervals'):'Easy pace';
   return `<button class="hrow" data-editc="${c.date}|${c.type}">${d}<span class="ico ${c.type==='home'?'v':'c'}">${c.type==='home'?I.home:c.type==='4x4'?I.heart:I.walk}</span><span class="grow"><span class="name" style="display:block">${nm}</span><span class="meta">${sub}</span></span>
     <span class="name" style="font-size:15px">${right}</span>${I.chev}</button>`;
 }
@@ -1000,7 +1000,7 @@ $('#sheet').addEventListener('click',e=>{
 });
 function cardioSheet(d,t){
   const c=cardioOn(d,t); if(!c)return;
-  const nm={office:'Office day','4x4':'4×4 intervals',z2:'Zone 2 walk',walk:'Walk',home:'Home session'}[t], f=t==='office'?['steps',c.steps||0]:t==='4x4'?['intervals',c.intervals||4]:['minutes',c.min||0];
+  const nm={office:'Office day','4x4':'4×4 intervals',z2:'Zone 2 walk',walk:'Walk',cardio:'Cardio',home:'Home session'}[t], f=t==='office'?['steps',c.steps||0]:t==='4x4'?['intervals',c.intervals||4]:['minutes',c.min||0];
   openSheet(`<div class="label">${fmtD(d,{weekday:'long',month:'short',day:'numeric'})}</div><div class="title2" style="font-size:20px">${nm}</div>
     <label class="step" style="margin-top:12px;padding:8px 14px"><span class="name">${f[0]}</span><input id="cVal" type="number" inputmode="numeric" value="${f[1]}" style="text-align:right"></label>
     <div style="display:flex;gap:10px;margin-top:14px"><button class="btn" id="cDel" data-c="${d}|${t}" style="color:#FF8A70">Delete</button><button class="btn primary" id="cSave" data-c="${d}|${t}">Save</button></div>`);
