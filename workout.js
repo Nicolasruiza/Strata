@@ -42,57 +42,110 @@ const GRID_ACTS=['bike_out','bike_in','walk','elliptical','row','swim'];
 const ZNAME=['','Warm-up','Easy','Endurance','Threshold','Max'];
 const ZCOL=['','#6E7385','#8A8FA0','#FF6B4A','#C9553B','#8E3B2A'];
 
+/* ---------- tunables: every number the workout logic uses lives here ---------- */
+const WCFG={
+  countdownSec:3,
+  sampleEverySec:5,        // a heart-rate / altitude reading is stored every 5 s
+  maxSampleGapSec:15,      // a longer gap between readings (app asleep) is not credited to any zone
+  zoneTops:[.6,.7,.8,.9],  // upper bound of Z1..Z4 as a fraction of HRmax; Z5 is above
+  elevNoiseM:1,            // altitude changes smaller than this are GPS noise
+  elevMaxAccuracyM:20,     // discard altitude readings less accurate than this
+  intervalCreditFrac:.75,  // a hard 4x4 interval counts once 75% of it is done
+  shortCardioMin:20,       // cardio blocks shorter than this on a non-heart day don't count as a Heart session
+  busyMin:3,               // how long a "machine busy" lift is skipped by "next up"
+  warmupSteps:[[.5,6],[.7,3]], // warm-up options: fraction of today's weight, reps
+  emptyBarReps:8,
+  fallbackAct:{'4x4':'treadmill',z2:'treadmill',walk:'walk',office:'walk',other:'elliptical'},
+  guide:{z2:'45–60 min at a conversational pace',walk:'45–90 min, easy pace',office:'Counts toward your steps goal',other:'Easy cardio block before or after your lift'}
+};
+
 /* What today's plan asks for decides the menu: a heart day only offers cardio,
-   a strength day goes straight into the lift. Mode follows the plan, the activity
-   is just the equipment (a 4x4 can be done on a bike). */
+   a strength day goes straight into the lift. Mode follows the plan; the activity
+   is just the equipment (a 4x4 can be done on a bike). The recommended activity is
+   the one you last used for the same kind of session, falling back to WCFG.fallbackAct. */
+function lastActFor(match){const c=[...(DB.cardio||[])].reverse().find(x=>x.act&&CARDIO_ACTS[x.act]&&match(x));return c?c.act:null}
 function cardioPlan(){
   const slot=weekPlan()[wdOf(today())], n=rcDefaultIntervals();
-  if(slot==='vo2')return {slot,mode:'4x4',n,act:'treadmill',title:'Treadmill · 4×4',sub:`${n} hard intervals with recovery · ~${rcMinutes(n)} min`};
-  if(slot==='z2')return {slot,mode:'z2',act:'treadmill',title:'Treadmill · Zone 2',sub:'45–60 min at a conversational pace'};
-  if(slot==='walk')return {slot,mode:'free',act:'walk',title:'Walk · outside',sub:'45–90 min, easy pace'};
-  if(slot==='office')return {slot,mode:'free',act:'walk',title:'Walk',sub:'Counts toward your 10,000 steps'};
-  return {slot,mode:'free',act:'elliptical',title:'Elliptical · warm-up',sub:'10–15 min easy, then your lift'};
+  const kind=slot==='vo2'?'4x4':slot==='z2'?'z2':slot==='walk'?'walk':slot==='office'?'office':'other';
+  const mode=kind==='4x4'?'4x4':kind==='z2'?'z2':'free';
+  const type=kind==='4x4'?'4x4':kind==='z2'?'z2':kind==='walk'?'walk':'cardio';
+  const act=lastActFor(x=>x.type===type)||WCFG.fallbackAct[kind];
+  const sub=kind==='4x4'?`${n} hard intervals with recovery · ~${rcMinutes(n)} min`:WCFG.guide[kind];
+  return {slot,kind,mode,n,act,title:`${CARDIO_ACTS[act].n}${mode!=='free'?' · '+modeLbl(mode):''}`,sub};
 }
 const modeLbl=m=>m==='4x4'?'4×4':m==='z2'?'Zone 2':'';
 
-/* ---------- simulated sensors ----------
-   IOS: all of this is replaced by HKLiveWorkoutBuilder statistics(for: .heartRate)
-   streamed from the Strata watch app (HKWorkoutSession), and elevation from
-   HKWorkoutRouteBuilder / CMAltimeter. Keep the function names; swap the bodies. */
-const hrMax=()=>{const h=rcHR();return h?h.max:180};
+/* ---------- heart-rate zones (real logic) ---------- */
+const hrMax=()=>{const h=rcHR();return h?h.max:null};            // Tanaka, from the age in Settings. No age = no zones.
+const zoneOf=(h,M)=>{const f=h/M, t=WCFG.zoneTops;return f<t[0]?1:f<t[1]?2:f<t[2]?3:f<t[3]?4:5};
+const zoneRange=(z,M)=>{const t=[0,...WCFG.zoneTops,1.1];return [Math.round(M*t[z-1]),Math.round(M*t[z])]};
+
+/* ---------- sensors: one adapter, real sources only ----------
+   Web: altitude comes from the phone's GPS (real, outdoor activities only).
+   Heart rate has no web source on iPhone, so it shows "—" unless demo data is
+   switched on (sensors.demo.js, testing only, always labelled DEMO on screen).
+   IOS: hr = HKLiveWorkoutBuilder heart-rate stream from the Strata watch app;
+        alt = HKWorkoutRouteBuilder (CoreLocation) or CMAltimeter. Keep read()'s shape. */
+const Sensors={
+  geoId:null, alt:null, altAcc:null, demo:null,
+  start(L){
+    this.stop();
+    if(DB.demoSensors&&window.StrataDemo)this.demo=window.StrataDemo.create(L);
+    if(CARDIO_ACTS[L.act].out&&navigator.geolocation){
+      this.geoId=navigator.geolocation.watchPosition(p=>{const c=p.coords;
+        if(c.altitude!=null&&(c.altitudeAccuracy==null||c.altitudeAccuracy<=WCFG.elevMaxAccuracyM)){this.alt=c.altitude;this.altAcc=c.altitudeAccuracy}},
+        ()=>{},{enableHighAccuracy:true,maximumAge:5000});
+    }
+  },
+  stop(){ if(this.geoId!=null&&navigator.geolocation)navigator.geolocation.clearWatch(this.geoId); this.geoId=null; this.alt=null; this.demo=null; },
+  read(t){ const d=this.demo?this.demo.read(t):{}; return {hr:d.hr!=null?d.hr:null, alt:this.alt!=null?this.alt:(d.alt!=null?d.alt:null)}; },
+  hrSource(){ return this.demo?'demo':null; }   // IOS: 'watch' when the watch session is streaming
+};
+/* ---------- Apple Health adapter ----------
+   Web has no HealthKit, so both calls say so and the UI tells the truth.
+   IOS: startWatch = HKHealthStore.startWatchApp(with: HKWorkoutConfiguration);
+        saveWorkout = builder.endCollection + finishWorkout() on the watch. */
+const Health={
+  available:false,
+  async startWatch(cfg){ return {started:false}; },
+  async saveWorkout(entry){ return {saved:false}; }
+};
+
+/* readings are stored on the live session, so stats survive reloads and are computed, never invented */
+function takeSample(){
+  const L=DB.live; if(!L)return;
+  const el=liveEl(L), S=L.samples=L.samples||[], last=S[S.length-1];
+  if(last&&el-last.t<WCFG.sampleEverySec)return;
+  const r=Sensors.read(el); S.push({t:el,hr:r.hr,alt:r.alt}); save();
+}
+function cardioStats(L,el){
+  const S=L.samples||[], M=hrMax(), z=[0,0,0,0,0,0];
+  let wsum=0,wt=0,mx=0,gain=0,ref=null;
+  S.forEach((s,i)=>{
+    const nx=S[i+1], dt=Math.max(0,Math.min((nx?nx.t:el)-s.t,WCFG.maxSampleGapSec));
+    if(s.hr!=null){ if(M)z[zoneOf(s.hr,M)]+=dt; wsum+=s.hr*dt; wt+=dt; mx=Math.max(mx,s.hr); }
+    if(s.alt!=null){ if(ref==null)ref=s.alt; else{const d=s.alt-ref; if(Math.abs(d)>=WCFG.elevNoiseM){ if(d>0)gain+=d; ref=s.alt; }} }
+  });
+  const cur=[...S].reverse().find(s=>s.hr!=null);
+  return {z,avg:wt?Math.round(wsum/wt):null,max:mx||null,hr:cur&&el-cur.t<=WCFG.maxSampleGapSec?cur.hr:null,
+          elev:S.some(s=>s.alt!=null)?Math.round(gain):null,zonesOK:!!M&&wt>0};
+}
+const liveEl=L=>Math.max(0,Math.floor((Date.now()-L.started)/1000));   /* timestamp based: keeps counting in the background */
 function phaseAt(t,L){
   const ph=rcPhases(L.n||4); let s=0;
   for(let i=0;i<ph.length;i++){ if(t<s+ph[i].sec)return {i,p:ph[i],into:t-s,left:s+ph[i].sec-t,ph}; s+=ph[i].sec; }
   return {i:ph.length-1,p:ph[ph.length-1],into:0,left:0,ph,over:1};
 }
-function simHR(t,L){
-  const M=hrMax(), nz=Math.sin(t/7)*2+Math.sin(t/23)*3;
-  if(L.mode==='4x4'){
-    const a=phaseAt(t,L);
-    if(a.p.k==='hard')return Math.round(M*(.74+.17*Math.min(1,a.into/120))+nz);
-    if(/Warm/.test(a.p.label))return Math.round(M*(.5+.18*Math.min(1,a.into/300))+nz);
-    return Math.round(M*(.88-.17*Math.min(1,a.into/90))+nz);
-  }
-  const tgt=L.mode==='z2'?.66:({walk:.6,swim:.73,row:.75,bike_out:.74}[L.act]||.7);
-  return Math.round(M*(.5+(tgt-.5)*Math.min(1,t/240))+nz);
-}
-const zoneOf=h=>{const f=h/hrMax();return f<.6?1:f<.7?2:f<.8?3:f<.9?4:5};
-function liveStats(L,el){
-  const z=[0,0,0,0,0,0]; let sum=0,n=0,mx=0;
-  for(let t=0;t<el;t+=5){const h=simHR(t,L); z[zoneOf(h)]+=Math.min(5,el-t); sum+=h; n++; mx=Math.max(mx,h);}
-  return {z,avg:n?Math.round(sum/n):0,max:mx,hr:simHR(el,L),elev:CARDIO_ACTS[L.act].out?Math.max(0,Math.round(el/60*4.2+6*Math.sin(el/300))):null};
-}
-const liveEl=L=>Math.max(0,Math.floor((Date.now()-L.started)/1000));   /* timestamp based: keeps counting in the background */
+function hardDone(L,el){ let s=0,n=0; rcPhases(L.n).forEach(p=>{ if(p.k==='hard'&&el-s>=p.sec*WCFG.intervalCreditFrac)n++; s+=p.sec; }); return n; }
 
 /* ---------- countdown + watch start ---------- */
-function countdown(label,done){
+function countdown(label,done,cfg){
   const o=document.createElement('div'); o.className='cd'; document.body.appendChild(o);
-  let n=3;
-  const step=()=>{
-    if(n===0){o.remove(); cue();
-      /* IOS: HKHealthStore().startWatchApp(with: HKWorkoutConfiguration) launches the Strata
-         watch app, which starts an HKWorkoutSession. Needs a watchOS target. */
-      toast(`Apple Watch · ${label} started`); done&&done(); return}
+  let n=WCFG.countdownSec;
+  const step=async()=>{
+    if(n===0){o.remove(); cue(); done&&done();
+      const r=await Health.startWatch(cfg||{}); if(r.started)toast(`Apple Watch · ${label} started`);
+      return}
     o.innerHTML=`<div class="cdl">${esc(label)}</div><div class="cdn">${n}</div><div class="cdl" style="opacity:.6">Get ready</div>`;
     n--; setTimeout(step,1000);
   };
@@ -121,56 +174,68 @@ function pickView(){
 function startCardio(){
   const P=cardioPlan(), act=pickAct||P.act;
   countdown(`${CARDIO_ACTS[act].n}${P.mode!=='free'?' · '+modeLbl(P.mode):''}`,()=>{
-    DB.live={act,mode:P.mode,n:P.n||4,slot:P.slot,started:Date.now(),date:today()};
-    pickAct=null; save(); lockScreen(true); go('cardio');
-  });
+    DB.live={act,mode:P.mode,n:P.n,slot:P.slot,started:Date.now(),date:today(),samples:[]};
+    pickAct=null; Sensors.start(DB.live); takeSample(); save(); lockScreen(true); go('cardio');
+  },{activity:CARDIO_ACTS[act].hk});
 }
 
 /* ===================== 2 · CARDIO IN PROGRESS (full screen) ===================== */
 let lastPhase=-1;
 function cardioView(){
   const L=DB.live; if(!L){scr='today';return todayView()}
-  const el=liveEl(L), s=liveStats(L,el), zc=zoneOf(s.hr), A=CARDIO_ACTS[L.act];
-  const tot=Math.max(1,s.z.slice(1).reduce((a,b)=>a+b,0));
+  const el=liveEl(L), s=cardioStats(L,el), M=hrMax(), A=CARDIO_ACTS[L.act], src=Sensors.hrSource();
+  const zc=s.hr!=null&&M?zoneOf(s.hr,M):null;
+  const tot=s.z.slice(1).reduce((a,b)=>a+b,0);
   let phase='';
   if(L.mode==='4x4'){
     const a=phaseAt(el,L), hard=a.p.k==='hard';
     if(lastPhase!==-1&&a.i!==lastPhase)cue(); lastPhase=a.i;
     const lbl=a.over?'Done · cool down as long as you like':hard?a.p.label.replace(/Interval (\d+) of (\d+) · hard/,'Hard · $1 of $2'):a.p.label.replace(/ · easy/,'');
     phase=`<div class="wcard" style="${hard?'border-color:rgba(255,107,74,.55);background:rgba(255,107,74,.1)':''}"><div class="rowh"><span class="label" style="color:${hard?'var(--coral)':'var(--muted)'}">${lbl}</span><b style="font-size:24px;font-variant-numeric:tabular-nums">${a.over?'':mmss(Math.ceil(a.left))}</b></div>
+      ${rcHR()&&(hard||/^Recover/.test(a.p.label))?`<div class="small" style="margin-top:4px">${hard?`Target ${rcHR().hard[0]}–${rcHR().hard[1]} bpm`:`Recover under ${rcHR().z2[1]} bpm`}</div>`:''}
       <div class="segs" style="margin-top:10px">${a.ph.map((p,i)=>`<i class="${p.k} ${i<a.i?'done':''}" style="flex:${p.sec}">${i===a.i?`<em style="width:${Math.min(100,a.into/p.sec*100)}%"></em>`:''}</i>`).join('')}</div></div>`;
   }
-  const z2=L.mode==='z2'?`<div class="small" style="margin-top:6px">Target: stay in Z2 · ${Math.round(hrMax()*.6)}–${Math.round(hrMax()*.7)} bpm</div>`:'';
+  const z2=L.mode==='z2'&&M?`<div class="small" style="margin-top:6px">Target: stay in Z2 · ${zoneRange(2,M).join('–')} bpm</div>`:'';
+  const hrBlock=s.hr!=null
+    ?`<div><b class="whrn">${s.hr}</b><span class="whru">bpm</span></div>
+      ${zc?`<div style="display:flex;align-items:center;gap:10px"><span class="wz">Z${zc}</span><span class="meta" style="border-left:1px solid var(--line);padding-left:10px">${ZNAME[zc]} zone</span></div>`:`<div class="meta">Add your age in Settings to see zones</div>`}${z2}`
+    :`<div><b class="whrn" style="color:var(--dim)">—</b><span class="whru">bpm</span></div>
+      <div class="meta">No heart-rate source on the web. The Apple Watch connects in the iOS app.</div>`;
+  const zones=s.zonesOK&&tot>0
+    ?`<div class="rowh" style="margin-top:4px"><span class="name" style="font-size:18px">Time in zones</span><span class="meta">Total ${mmss(el)}</span></div>
+      <div class="zbar">${[1,2,3,4,5].map(z=>`<i style="flex:${Math.max(.0001,s.z[z]/tot)};background:${z===zc?'var(--coral)':ZCOL[z]}"></i>`).join('')}</div>
+      <div class="zlbl">${[1,2,3,4,5].map(z=>`<span style="${z===zc?'color:var(--coral)':''}">Z${z}<b>${mmss(s.z[z])}</b></span>`).join('')}</div>`:'';
+  const second=A.out
+    ?`<div class="wcard wstat"><span class="wic c">${WIC.mount}</span><div><div class="meta">Elevation</div><b>${s.elev!=null?`+${s.elev} m`:'—'}</b>${s.elev==null?`<div class="small">${navigator.geolocation?'Waiting for GPS':'No GPS'}</div>`:''}</div></div>`
+    :`<div class="wcard wstat"><span class="wic c">${I.heart}</span><div><div class="meta">Avg heart rate</div><b>${s.avg!=null?s.avg:'—'}</b></div></div>`;
+  const srcChip=src==='demo'
+    ?`<span class="wwatch" style="border-color:rgba(245,181,68,.6);color:var(--amber)">${WIC.watch}DEMO heart-rate data · <button class="link" data-wo="demo" style="padding:0;color:inherit">turn off</button></span>`
+    :`<span class="wwatch">${WIC.watch}Apple Watch: iOS app only${window.StrataDemo?` · <button class="link" data-wo="demo" style="padding:0">use demo data</button>`:''}</span>`;
   return `<div class="wo">
     <div class="wtop"><div class="brand">${I.logo}Strata</div></div>
     <div class="weye" style="color:var(--coral)">Cardio${L.mode!=='free'?' · '+modeLbl(L.mode):''}</div><h1 class="wh1">${A.n}</h1>
     <span class="wlive"><i></i>Workout in progress</span>
-    <div class="whr"><span class="wic c lg">${WIC[L.act]}</span><div class="grow"><div class="meta" style="font-size:15px">Heart rate</div>
-      <div><b class="whrn">${s.hr}</b><span class="whru">bpm</span></div>
-      <div style="display:flex;align-items:center;gap:10px"><span class="wz">Z${zc}</span><span class="meta" style="border-left:1px solid var(--line);padding-left:10px">${ZNAME[zc]} zone</span></div>${z2}</div></div>
-    ${phase}
-    <div class="rowh" style="margin-top:4px"><span class="name" style="font-size:18px">Time in zones</span><span class="meta">Total ${mmss(el)}</span></div>
-    <div class="zbar">${[1,2,3,4,5].map(z=>`<i style="flex:${Math.max(.0001,s.z[z]/tot)};background:${z===zc?'var(--coral)':ZCOL[z]}"></i>`).join('')}</div>
-    <div class="zlbl">${[1,2,3,4,5].map(z=>`<span style="${z===zc?'color:var(--coral)':''}">Z${z}<b>${mmss(s.z[z])}</b></span>`).join('')}</div>
-    <div class="grid2"><div class="wcard wstat"><span class="wic c">${WIC.stop}</span><div><div class="meta">Elapsed</div><b>${mmss(el)}</b></div></div>
-      ${s.elev!=null?`<div class="wcard wstat"><span class="wic c">${WIC.mount}</span><div><div class="meta">Elevation</div><b>+${s.elev} m</b></div></div>`
-        :`<div class="wcard wstat"><span class="wic c">${I.heart}</span><div><div class="meta">Avg heart rate</div><b>${s.avg}</b></div></div>`}</div>
-    <div style="text-align:center"><span class="wwatch">${WIC.watch}Apple Watch connected <span style="color:var(--mint);width:16px;display:inline-block">${I.check}</span></span></div>
+    <div class="whr"><span class="wic c lg">${WIC[L.act]}</span><div class="grow"><div class="meta" style="font-size:15px">Heart rate</div>${hrBlock}</div></div>
+    ${phase}${zones}
+    <div class="grid2"><div class="wcard wstat"><span class="wic c">${WIC.stop}</span><div><div class="meta">Elapsed</div><b>${mmss(el)}</b></div></div>${second}</div>
+    <div style="text-align:center">${srcChip}</div>
   </div>
   <div class="dock"><button class="btn" data-wo="cdiscard">Discard</button><button class="btn coral w2" data-wo="cdone">Complete</button></div>`;
 }
-function completeCardio(){
-  const L=DB.live, el=liveEl(L), s=liveStats(L,el), min=Math.max(1,Math.round(el/60));
-  /* The session counts as the day's planned heart work when it was a heart day; otherwise generic cardio. */
-  let type=L.mode==='4x4'?'4x4':L.mode==='z2'?'z2':L.slot==='walk'?'walk':'cardio';
-  const extra={min,act:L.act,avgHR:s.avg,maxHR:s.max,zones:s.z.slice(1)};
-  if(type==='4x4'){const a=phaseAt(el,L); extra.intervals=Math.min(L.n,a.ph.slice(0,a.i+1).filter(p=>p.k==='hard'&&(a.ph.indexOf(p)<a.i||a.left<=0||a.over)).length)||1}
+async function completeCardio(){
+  takeSample();
+  const L=DB.live, el=liveEl(L), s=cardioStats(L,el), min=Math.max(1,Math.round(el/60));
+  /* Counts as the day's planned heart work on a heart day; otherwise it's a generic cardio block. */
+  const type=L.mode==='4x4'?'4x4':L.mode==='z2'?'z2':L.slot==='walk'?'walk':'cardio';
+  const extra={min,act:L.act};
+  if(s.avg!=null){extra.avgHR=s.avg; extra.maxHR=s.max;}
+  if(s.zonesOK)extra.zones=s.z.slice(1);
   if(s.elev!=null)extra.elev=s.elev;
+  if(type==='4x4')extra.intervals=hardDone(L,el);
   logCardio(type,extra,L.date);
-  /* IOS: HKLiveWorkoutBuilder.endCollection + finishWorkout() on the watch saves an HKWorkout with
-     the activity type above, heart-rate samples, route and energy. No manual HKWorkout creation. */
-  W_last={...extra,type,date:L.date};
-  DB.live=null; lastPhase=-1; save(); lockScreen(false); go('cdone'); blockSheet();
+  const h=await Health.saveWorkout({...extra,type,start:L.started,end:Date.now(),samples:L.samples});
+  W_last={...extra,type,date:L.date,health:!!h.saved};
+  DB.live=null; lastPhase=-1; Sensors.stop(); save(); lockScreen(false); go('cdone'); blockSheet();
 }
 let W_last=null;
 
@@ -184,14 +249,14 @@ function blockSheet(){
 }
 function cDoneView(){
   const v=W_last; if(!v){scr='today';return todayView()}
-  const tot=Math.max(1,v.zones.reduce((a,b)=>a+b,0)), st=weekStats(mondayOf(v.date));
+  const tot=v.zones?Math.max(1,v.zones.reduce((a,b)=>a+b,0)):0, st=weekStats(mondayOf(v.date));
   return hero({cls:'tall',left:'',eyebrow:`${CARDIO_ACTS[v.act].n}${v.type==='4x4'?' · 4×4':v.type==='z2'?' · Zone 2':''} · ${fmtD(v.date)}`,title:'Session complete',
     sub:st.closed[1]?'Heart ring closed for the week.':'Heart work logged.',
     badge:`<div style="width:64px;height:64px;border-radius:32px;flex:none;background:linear-gradient(160deg,#FF9A80,#F0583A);display:flex;align-items:center;justify-content:center;color:#fff"><span style="width:30px;height:30px;display:block">${I.check}</span></div>`})
-   +`<main class="wrap"><section class="card stats"><div><span class="big">${v.min}</span><span class="small">Minutes</span></div><div><span class="big">${v.avgHR}</span><span class="small">Avg bpm</span></div><div><span class="big">${v.maxHR}</span><span class="small">Max bpm</span></div></section>
-    <section class="card"><span class="label">Time in zones</span><div class="zbar" style="margin-top:10px">${v.zones.map((s,i)=>`<i style="flex:${Math.max(.0001,s/tot)};background:${ZCOL[i+1]}"></i>`).join('')}</div>
-      <div class="zlbl">${v.zones.map((s,i)=>`<span>Z${i+1}<b>${mmss(s)}</b></span>`).join('')}</div></section>
-    <div style="text-align:center"><span class="wwatch">${I.heart}Saved to Apple Health</span></div>
+   +`<main class="wrap"><section class="card stats"><div><span class="big">${v.min}</span><span class="small">Minutes</span></div><div><span class="big">${v.avgHR!=null?v.avgHR:'—'}</span><span class="small">Avg bpm</span></div><div><span class="big">${v.type==='4x4'?v.intervals:v.elev!=null?'+'+v.elev:(v.maxHR!=null?v.maxHR:'—')}</span><span class="small">${v.type==='4x4'?'Hard intervals':v.elev!=null?'m climbed':'Max bpm'}</span></div></section>
+    ${v.zones?`<section class="card"><span class="label">Time in zones</span><div class="zbar" style="margin-top:10px">${v.zones.map((s,i)=>`<i style="flex:${Math.max(.0001,s/tot)};background:${ZCOL[i+1]}"></i>`).join('')}</div>
+      <div class="zlbl">${v.zones.map((s,i)=>`<span>Z${i+1}<b>${mmss(s)}</b></span>`).join('')}</div></section>`:''}
+    <div style="text-align:center"><span class="wwatch">${I.heart}${v.health?'Saved to Apple Health':'Saved in Strata · Apple Health sync comes with the iOS app'}</span></div>
     ${ringsCard(st,ringsLine(st))}</main>
     <div class="dock"><button class="btn" data-wo="more">Add block</button><button class="btn primary w2" id="doneBtn">Done</button></div>`;
 }
@@ -207,7 +272,7 @@ function progOf(ex){const A=DB.active, s=shownEx(ex), e=A.entries[s.id]; return 
 function exState(ex){const p=progOf(ex), n=p?p.reps.length:0, need=setsOf(ex); return isLogged(ex)&&n>=need?'done':n>0?'live':'todo'}
 function nextUp(){ /* first unfinished lift in order, skipping ones marked busy for 3 min */
   const A=DB.active, L=liftList(), busy=A.busy||{}, now=Date.now();
-  return L.find(x=>exState(x)!=='done'&&!(busy[x.id]&&now-busy[x.id]<180000))||L.find(x=>exState(x)!=='done');
+  return L.find(x=>exState(x)!=='done'&&!(busy[x.id]&&now-busy[x.id]<WCFG.busyMin*60000))||L.find(x=>exState(x)!=='done');
 }
 function restBanner(){
   if(!(rest&&(rest.endAt-Date.now())>-1000))return '';
@@ -219,7 +284,7 @@ function restBanner(){
 function overviewView(){
   const A=DB.active, L=liftList(), req=requiredItems(A.day), done=req.filter(x=>exState(x)==='done').length, nx=nextUp();
   const el=Math.floor((Date.now()-(A.started||Date.now()))/1000), legs=isLegs(A.day), jumps=cardioOn(A.date,'jumps');
-  const row=ex=>{const s=shownEx(ex), st=exState(ex), p=progOf(ex), n=setsOf(ex), w=p?p.w:(A.lowEnergy?loEnergyW(s,wOf(s)):wOf(s)), im=imgOf(s.id), busy=(A.busy||{})[ex.id]&&Date.now()-A.busy[ex.id]<180000&&st!=='done';
+  const row=ex=>{const s=shownEx(ex), st=exState(ex), p=progOf(ex), n=setsOf(ex), w=p?p.w:(A.lowEnergy?loEnergyW(s,wOf(s)):wOf(s)), im=imgOf(s.id), busy=(A.busy||{})[ex.id]&&Date.now()-A.busy[ex.id]<WCFG.busyMin*60000&&st!=='done';
     return `<button class="wrow ${st} ${nx===ex&&st!=='done'?'next':''}" data-wo="open" data-i="${L.indexOf(ex)}">${im?`<img class="thumb" src="${im}" alt="">`:'<div class="thumb"></div>'}
       <span class="grow"><span class="name" style="display:block">${esc(cleanN(s.n))}</span><span class="meta">${n} × ${repLbl(s,ex.r)}${perLeg(s)} · ${wLbl(s,w)}${s!==ex?' · swapped':''}</span></span>
       ${st==='done'?`<span class="wck">${I.check}</span>`:st==='live'?`<span class="chip n" style="margin:0">${p.reps.length}/${n}</span>`:busy?`<span class="chip hold" style="margin:0">Busy</span>`:nx===ex?`<span class="chip" style="margin:0;background:rgba(156,140,255,.18);color:var(--violet)">Next</span>`:I.chev}</button>`};
@@ -313,8 +378,8 @@ function logWoSet(){
 }
 function warmSheet(){
   const A=DB.active, L=liftList(), orig=L[curIdx()], ex=shownEx(orig), p=progOf(orig), w=p?p.w:(A.lowEnergy?loEnergyW(ex,wOf(ex)):wOf(ex));
-  const opts=[]; if(ex.bar)opts.push([ex.bar,8,'Empty bar']);
-  [[.5,6],[.7,3]].forEach(([f,r])=>{const v=round5(w*f); if(v>0&&v<w&&!opts.some(o=>o[0]===v))opts.push([v,r,`${Math.round(f*100)}% of today`])});
+  const opts=[]; if(ex.bar)opts.push([ex.bar,WCFG.emptyBarReps,'Empty bar']);
+  WCFG.warmupSteps.forEach(([f,r])=>{const v=round5(w*f); if(v>0&&v<w&&!opts.some(o=>o[0]===v))opts.push([v,r,`${Math.round(f*100)}% of today`])});
   openSheet(`<div class="label">${esc(cleanN(ex.n))}</div><div class="title2" style="font-size:20px">Add a warm-up set</div>
     <p class="note">Warm-up sets don't count toward progression.</p>
     ${opts.length?opts.map(([v,r,t])=>`<button class="opt" data-wwu="${v}|${r}"><div class="grow"><div class="name">${v} lb × ${r}</div><div class="meta">${t}${ex.bar?' · '+plateTxt(ex,v):''}</div></div>${I.plus||''}</button>`).join(''):'<p class="p">Bodyweight lift: do a slow first set of 5 instead.</p>'}`);
@@ -338,10 +403,12 @@ render=function(){
   }
   _render();
   if(DB.active&&['lift','jumps'].includes(scr)&&!DB.active.cd){
-    DB.active.cd=1; save(); countdown(`Strength · ${PLAN[DB.active.day].name}`);
+    DB.active.cd=1; save(); countdown(`Strength · ${PLAN[DB.active.day].name}`,null,{activity:'.traditionalStrengthTraining'});
   }
 };
+if(DB.live)Sensors.start(DB.live);   /* reopened mid-workout: sensors restart, readings continue */
 setInterval(()=>{
+  if(DB.live)takeSample();
   if(scr==='cardio'&&DB.live&&!$('#sheet').innerHTML&&!document.querySelector('.cd'))render();
   if(scr==='lift'&&DB.active){const e=$('#woExT'), A=DB.active, ex=shownEx(liftList()[curIdx()]); if(e&&A.exT&&A.exT[ex.id])e.textContent=mmss(Math.floor((Date.now()-A.exT[ex.id])/1000))}
 },1000);
@@ -360,8 +427,9 @@ document.addEventListener('click',e=>{
   if(k==='pick'){pickAct=null;go('pick');return}
   if(k==='act'){pickAct=i;render();return}
   if(k==='go'){startCardio();return}
-  if(k==='cdiscard'){if(confirm('Discard this cardio session? Nothing will be saved.')){DB.live=null;lastPhase=-1;save();lockScreen(false);go('today')}return}
+  if(k==='cdiscard'){if(confirm('Discard this cardio session? Nothing will be saved.')){DB.live=null;Sensors.stop();lastPhase=-1;save();lockScreen(false);go('today')}return}
   if(k==='cdone'){completeCardio();return}
+  if(k==='demo'){DB.demoSensors=!DB.demoSensors; save(); if(DB.live)Sensors.start(DB.live); render(); return}
   if(k==='more'){blockSheet();return}
   if(k==='open'){openEx(+i);return}
   if(k==='sdiscard'){if(confirm('Discard this workout? Nothing will be saved.')){DB.active=null;rest=null;save();go('today')}return}
@@ -377,7 +445,7 @@ document.addEventListener('click',e=>{
   if(k==='busy'){const L=liftList(),orig=L[curIdx()],blk=woBlocks().find(b=>b.items.includes(orig));
     A.busy=A.busy||{};A.busy[orig.id]=Date.now();
     const alt=blk&&blk.items.find(x=>x!==orig&&exState(x)!=='done');
-    if(alt){toast(`Switched to ${cleanN(shownEx(alt).n)}. Come back to ${cleanN(shownEx(orig).n)} after.`);openEx(L.indexOf(alt));return}
+    if(alt){toast(`Switched to ${cleanN(shownEx(alt).n)}. ${cleanN(shownEx(orig).n)} comes back up in ${WCFG.busyMin} min.`);openEx(L.indexOf(alt));return}
     save(); if((ALT_OF[orig.id]||[]).length){toast('Nothing else left in this block. Swap to free equipment?');swapSheet();}else toast('Nothing else left in this block. Wait a minute, it frees up.');return}
   if(k==='exdone'){const L=liftList(),orig=L[curIdx()],ex=shownEx(orig),p=progOf(orig),n=setsOf(orig);
     if(p&&p.reps.length&&p.reps.length<n){if(!confirm(`${n-p.reps.length} set${n-p.reps.length>1?'s':''} not logged. Mark this exercise done anyway?`))return;A.entries[ex.id]={w:p.w,reps:p.reps.slice()}}

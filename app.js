@@ -151,7 +151,7 @@ function weekStats(mon){
   const ht=WD_ORDER.filter(w=>HEART.has(wp[w])).length;
   const bt=2;
   const m=Math.min(mt,new Set(DB.history.filter(h=>ds.includes(h.date)).map(h=>h.date)).size);
-  const hk=new Set((DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type!=='jumps'&&c.type!=='home'&&!(c.type==='cardio'&&(c.min||0)<20)).map(c=>c.date+c.type));
+  const hk=new Set((DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type!=='jumps'&&c.type!=='home'&&!(c.type==='cardio'&&(c.min||0)<WCFG.shortCardioMin)).map(c=>c.date+c.type));
   const h=Math.min(ht,hk.size);
   const b=Math.min(bt,new Set((DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type==='jumps').map(c=>c.date)).size);
   return {m,mt,h,ht,b,bt,closed:[m>=mt,h>=ht,b>=bt],all:m>=mt&&h>=ht&&b>=bt};

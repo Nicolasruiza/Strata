@@ -18,6 +18,15 @@ The HTML/JS in this repo is the **source of truth**. Port every screen 1:1 to Sw
 7. **Exercise in focus** (`focusView`): photo, block tag ("Compound 1 of 2"), last time + trend chip, rest timer, today's weight with −/+ and plate math, warm-up rows, set rows (log the current set with a reps stepper, undo the last), `+ Set`, `+ Warm-up`, form video, swap, **Machine busy**. The back button returns to the overview, never out of the workout.
 8. After strength `Complete` → existing summary, with `Add cardio` to chain a cardio block.
 
+## Nothing is hard-coded
+
+- **Every number** the logic uses lives in `WCFG` at the top of `workout.js`: sample rate, zone bands, GPS noise, busy minutes, warm-up steps, interval credit, short-cardio threshold. Port it as one config struct.
+- **Stats are computed from stored readings** (`DB.live.samples` = `{t, hr, alt}` every 5 s) by `cardioStats()`: time-weighted average, max, time per zone, elevation gain with a noise filter, and gaps longer than 15 s not credited. Port this function as is and feed it the watch's samples.
+- **The recommended activity** is the one you last used for the same kind of session, falling back to `WCFG.fallbackAct`.
+- **Honest states:** no heart-rate source shows "—", no age means no zones, no GPS shows "Waiting for GPS", and nothing says "Saved to Apple Health" unless `Health.saveWorkout()` returned `saved:true`.
+- **`sensors.demo.js` is testing only.** Don't port it. It runs only when the user taps "use demo data", and the screen shows DEMO while it runs.
+- **Adapters to implement natively:** `Sensors` (`start`, `stop`, `read(t)` → `{hr, alt}`, `hrSource()`) and `Health` (`startWatch(cfg)` → `{started}`, `saveWorkout(entry)` → `{saved}`). Keep the same shapes.
+
 ## Rules to keep
 
 - **Lock:** while `DB.active` (strength) or `DB.live` (cardio) exists, the tab bar is hidden and any other screen redirects back to the workout (`render` wrapper).
@@ -33,11 +42,11 @@ The HTML/JS in this repo is the **source of truth**. Port every screen 1:1 to Sw
 
 | Prototype | iOS / watchOS |
 |---|---|
-| `countdown()` toast "Apple Watch · … started" | `HKHealthStore.startWatchApp(with: HKWorkoutConfiguration)` launches the **Strata watch app** (watchOS target required). The watch runs `HKWorkoutSession` + `HKLiveWorkoutBuilder`. You can't start Apple's own Workout app from a third-party app. |
-| `simHR()`, `liveStats()` heart rate + zones | Live `HKQuantityType(.heartRate)` from the builder, relayed watch → phone with `WCSession` (or mirrored sessions, iOS 17+ `startMirroringToCompanionDevice`). Zones: keep the %HRmax bands in code (Z1 < 60, Z2 60–70, Z3 70–80, Z4 80–90, Z5 > 90), with HRmax = 208 − 0.7 × age. |
-| Elevation `+m` | `HKWorkoutRouteBuilder` (CoreLocation altitude) on outdoor workouts, or `CMAltimeter` relative altitude. |
+| `Health.startWatch()` after `countdown()` (web returns `started:false`, so no toast) | `HKHealthStore.startWatchApp(with: HKWorkoutConfiguration)` launches the **Strata watch app** (watchOS target required). The watch runs `HKWorkoutSession` + `HKLiveWorkoutBuilder`. You can't start Apple's own Workout app from a third-party app. |
+| `Sensors.read()` heart rate | Live `HKQuantityType(.heartRate)` from the builder, relayed watch → phone with `WCSession` (or mirrored sessions, iOS 17+ `startMirroringToCompanionDevice`). Zone bands come from `WCFG.zoneTops` × HRmax (208 − 0.7 × age). |
+| `Sensors.read()` altitude (web: real GPS via `navigator.geolocation`) | `HKWorkoutRouteBuilder` (CoreLocation altitude) on outdoor workouts, or `CMAltimeter` relative altitude. Same gain filter. |
 | `CARDIO_ACTS[*].hk` | `HKWorkoutActivityType` + `locationType` to set in `HKWorkoutConfiguration`. |
-| `completeCardio()` → `logCardio` | `builder.endCollection` + `finishWorkout()` on the watch saves the `HKWorkout` to Apple Health with HR samples, energy and route. Keep the Strata log entry too (type, act, min, avgHR, maxHR, zones). |
+| `Health.saveWorkout()` in `completeCardio()` (web returns `saved:false`) | `builder.endCollection` + `finishWorkout()` on the watch saves the `HKWorkout` to Apple Health with HR samples, energy and route. Keep the Strata log entry too (type, act, min, avgHR, maxHR, zones). |
 | Strength workout | `HKWorkoutConfiguration(activityType: .traditionalStrengthTraining)` started the same way. Sets and reps stay in Strata. |
 | Lock (`render` wrapper, hidden tabs) | Present the workout as `.fullScreenCover` with `interactiveDismissDisabled(true)`. No tab bar. |
 | `lockScreen(true)` wake lock | `UIApplication.shared.isIdleTimerDisabled = true` during the workout + Live Activity (ActivityKit) for the lock screen. |
@@ -46,6 +55,7 @@ The HTML/JS in this repo is the **source of truth**. Port every screen 1:1 to Sw
 
 ## Data added by this feature
 
-- `DB.live` = running cardio `{act, mode:'4x4'|'z2'|'free', n, slot, started, date}`
-- `DB.cardio[]` entries gain `act, avgHR, maxHR, zones[5], elev?`; new type `cardio` for cardio outside a heart day.
+- `DB.live` = running cardio `{act, mode:'4x4'|'z2'|'free', n, slot, started, date, samples:[{t,hr,alt}]}`
+- `DB.demoSensors` = demo data switch (testing only)
+- `DB.cardio[]` entries gain `act` and, only when measured, `avgHR, maxHR, zones[5], elev, intervals`; new type `cardio` for cardio outside a heart day.
 - `DB.active` gains `view:'list'|'focus'`, `exT{id:ts}` (exercise timer), `extra{id:n}` (extra sets), `warm{id:[{w,r,done}]}`, `busy{id:ts}`, `cd` (countdown shown).
