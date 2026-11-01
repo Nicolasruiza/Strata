@@ -657,7 +657,7 @@ function vo2View(){
       :`<div class="note" style="padding:4px">Set your age in Settings to see heart-rate targets.</div>`}</section>
     <div class="seg" role="group" aria-label="Intervals"><button data-n="3" class="${n===3?'on':''}">3 intervals · ${rcMinutes(3)} min</button><button data-n="4" class="${n===4?'on':''}">4 intervals · ${rcMinutes(4)} min</button></div>
     <button class="link" id="logVo2">Already did it? Log without the timer</button></main>
-    <div class="dock"><button class="btn coral" id="startTimer">Start timer</button></div>`;
+    <div class="dock"><button class="btn coral" data-wo="pick">Start 4×4</button></div>`;
 }
 function timerView(){
   if(!timer)return vo2View();
