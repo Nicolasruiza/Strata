@@ -1,0 +1,72 @@
+name: Strata
+options:
+  bundleIdPrefix: net.nicolasruiz
+  deploymentTarget:
+    iOS: "17.0"
+    watchOS: "10.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: false
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+packages:
+  StrataCore:
+    path: .
+targets:
+  Strata:
+    type: application
+    platform: iOS
+    sources:
+      - path: Strata
+    dependencies:
+      - package: StrataCore
+      - target: StrataWatch
+    info:
+      path: Strata/Info.plist
+      properties:
+        CFBundleDisplayName: Strata
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: net.nicolasruiz.strata
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: NO
+  StrataWatch:
+    type: application
+    platform: watchOS
+    sources:
+      - path: StrataWatch
+    dependencies:
+      - package: StrataCore
+    info:
+      path: StrataWatch/Info.plist
+      properties:
+        CFBundleDisplayName: Strata
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: net.nicolasruiz.strata
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: net.nicolasruiz.strata.watchkitapp
+        GENERATE_INFOPLIST_FILE: NO
+schemes:
+  Strata:
+    build:
+      targets:
+        Strata: all
+        StrataWatch: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+  StrataWatch:
+    build:
+      targets:
+        StrataWatch: all
