@@ -340,7 +340,7 @@ function focusView(){
     <div class="wcard" style="display:flex;align-items:center;gap:10px"><div class="grow"><div class="meta">Last time</div><b style="font-size:20px">${last?`${last.w} × ${last.reps.map(r=>r==null?'–':r).join('/')}`:'No history yet'}</b></div>
       <span class="wtrend ${tr.c}">${tr.i}${tr.t}</span></div>
     ${restBanner()}
-    <div class="wcard" style="display:flex;align-items:center;gap:10px"><div class="grow"><div class="meta">Today's weight</div><div><b class="wbig">${w}</b><span class="whru" style="font-size:20px">lb</span></div>${plate?`<div class="meta">${plate}</div>`:''}</div>
+    <div class="wcard" style="display:flex;align-items:center;gap:10px"><div class="grow"><div class="meta">Today's weight</div><div><input class="wbig wedit" id="wIn" type="text" inputmode="decimal" autocomplete="off" aria-label="Today's weight, tap to type" value="${w}" style="width:${Math.max(2,String(w).length)+.05}ch"><span class="whru" style="font-size:20px">lb</span></div>${plate?`<div class="meta">${plate}</div>`:''}</div>
       <button class="wpm" data-wo="w" data-i="-1" aria-label="Less weight">${WIC.minus}</button><button class="wpm v" data-wo="w" data-i="1" aria-label="More weight">${WIC.plus}</button></div>
     ${warm.map((s,i)=>`<div class="wset ${s.done?'done':'todo'}" style="border-style:dashed"><button class="wck ${s.done?'':'off'}" data-wo="wu" data-i="${i}" aria-label="Warm-up set done">${s.done?I.check:''}</button><div class="grow"><div class="name">Warm-up ${i+1}</div><div class="meta">${s.w} lb × ${s.r}${ex.bar?' · '+plateTxt(ex,s.w):''}</div></div><button class="link" data-wo="wudel" data-i="${i}" style="padding:4px">Remove</button></div>`).join('')}
     ${[...Array(n).keys()].map(setRow).join('')}
@@ -414,6 +414,15 @@ setInterval(()=>{
 },1000);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&DB.live){lockScreen(true);render()} });
 
+/* Type today's weight (any value, e.g. 87.5); the − / + buttons keep stepping by the lift's increment. */
+document.addEventListener('input',e=>{ if(e.target.id==='wIn')e.target.style.width=Math.max(2,e.target.value.length)+.05+'ch' });
+document.addEventListener('change',e=>{
+  if(e.target.id!=='wIn'||!DB.active)return;
+  const A=DB.active,v=parseFloat(String(e.target.value).replace(',','.'));
+  if(!(v>=0)||v>2000){render();toast('Type a weight in lb');return}
+  const L=liftList(),orig=L[curIdx()],ex=shownEx(orig);const p=progOf(orig)||{w:A.lowEnergy?loEnergyW(ex,wOf(ex)):wOf(ex),reps:[]};
+  p.w=Math.round(v*100)/100;A.prog[ex.id]=p;if(A.entries[ex.id])A.entries[ex.id].w=p.w;save();render();
+});
 document.addEventListener('click',e=>{
   if(e.target.closest('#sheet')||e.target.closest('#tabs'))return;
   const b=e.target.closest('button'); if(!b)return;
