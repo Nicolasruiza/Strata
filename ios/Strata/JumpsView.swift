@@ -9,8 +9,10 @@ struct JumpsView: View {
     struct Item { var k: String, name: String, img: String?, sets: Int, reps: String, how: String, yt: String }
 
     var body: some View {
-        let e = model.engine!, A = e.db.active!
-        let warm = (e.plan[A.day]?.blocks ?? []).filter { $0.t.range(of: "^warm-up", options: [.regularExpression, .caseInsensitive]) != nil }.flatMap(\.items)
+        if let e = model.engine, let A = e.db.active { main(e, A) } else { Color.clear }
+    }
+
+    @ViewBuilder private func main(_ e: Engine, _ A: ActiveWorkout) -> some View {        let warm = (e.plan[A.day]?.blocks ?? []).filter { $0.t.range(of: "^warm-up", options: [.regularExpression, .caseInsensitive]) != nil }.flatMap(\.items)
         let items: [Item] = [
             Item(k: "pogo", name: "Pogo hops", img: "img/pogo.jpg", sets: 3, reps: "10", how: "Bounce on the balls of your feet, knees almost straight, quick and light. 30 s rest between sets.", yt: "rc_pogo"),
             Item(k: "box", name: "Box jumps", img: "img/box_jump.jpg", sets: 3, reps: "5", how: "Low box, 30–40 cm. Jump up, land soft, stand tall, then step down. 60 s rest.", yt: "rc_box"),

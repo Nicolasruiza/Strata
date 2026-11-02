@@ -34,7 +34,10 @@ struct WorkoutMenuSheet: View {
 struct SwapSheet: View {
     @EnvironmentObject var model: AppModel
     var body: some View {
-        let e = model.engine!, A = e.db.active!
+        if let e = model.engine, let A = e.db.active, !e.liftList().isEmpty { main(e, A) } else { Color.clear }
+    }
+
+    @ViewBuilder private func main(_ e: Engine, _ A: ActiveWorkout) -> some View {
         let L = e.liftList(), orig = L[e.curIdx()]
         let reqIds = e.requiredItems(A.day).map(\.id)
         let pos = reqIds.firstIndex(of: orig.id)
@@ -75,7 +78,11 @@ struct SwapSheet: View {
 struct WarmSheet: View {
     @EnvironmentObject var model: AppModel
     var body: some View {
-        var m = model.engine!
+        if let e = model.engine, e.db.active != nil, !e.liftList().isEmpty { main(e) } else { Color.clear }
+    }
+
+    @ViewBuilder private func main(_ e: Engine) -> some View {
+        var m = e
         let ex = m.shownEx(m.liftList()[m.curIdx()])
         let opts = m.warmupOptions()
         SheetChrome {
