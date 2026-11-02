@@ -48,6 +48,7 @@ final class AppModel: ObservableObject {
 
     private let store = LocalStore()
     let sensors = AppSensors()
+    let health = HealthKitService()
     var liveTicker: Task<Void, Never>?
     private var toastTask: Task<Void, Never>?
 
@@ -259,9 +260,7 @@ extension AppModel {
         guard var e = engine, let L = e.db.live else { return }
         e.nowMs = Self.nowMs()
         let payload = e.endCardio(reading: sensors.read(e.liveElapsed(L)))
-        // Apple Health is phase 3: nothing is saved there, and the screen says so.
-        _ = payload
-        e.recordHealthResult(saved: false)
+        e.recordHealthResult(saved: false)      // closes the session; the real result lands below
         engine = e
         persist()
         sensors.stop()
@@ -269,6 +268,11 @@ extension AppModel {
         UIApplication.shared.isIdleTimerDisabled = false
         screen = .cdone
         blockSheetOpen = true
+        // The footer shows what saveWorkout() really returned.
+        Task { @MainActor in
+            let saved = payload == nil ? false : await health.saveWorkout(payload!)
+            mutate { $0.wLast?.health = saved; return nil }
+        }
     }
 
     func discardCardio() {

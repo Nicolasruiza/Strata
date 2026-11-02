@@ -36,7 +36,7 @@ struct CardioDoneView: View {
                         }
                         HStack(spacing: 8) {
                             IconView(d: Icon.heart, size: 18, color: .white, line: 2.2)
-                            Text(v.health ? Config.Copy.footerSavedToHealth : Config.Copy.footerSavedInStrata).font(.system(size: 14, weight: .semibold))
+                            Text(v.health ? Config.Copy.footerSavedToHealth : Config.Copy.footerNotSavedToHealth).font(.system(size: 14, weight: .semibold))
                         }.padding(.horizontal, 16).padding(.vertical, 9).overlay(Capsule().strokeBorder(Theme.line))
                         RingsCard(st: st, headline: e.ringsLine(st))
                     }.padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 110)
