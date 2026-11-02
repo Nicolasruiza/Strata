@@ -33,15 +33,14 @@ struct JumpsView: View {
             }.frame(maxWidth: Theme.maxWidth)
         }
         .safeAreaInset(edge: .bottom) {
-            HStack(spacing: 10) {
+            DockRow {
                 Button("Skip") { model.mutate { $0.skipJumps(); return nil } }.buttonStyle(StrataButtonStyle())
+            } right: {
                 Button(allDone ? "Done · start lifting" : "Mark done · start lifting") {
                     let sets = model.jumpSets
                     model.mutate { $0.completeJumps(sets: sets) }
-                }.buttonStyle(StrataButtonStyle(kind: allDone ? .mint : .plain)).frame(maxWidth: .infinity).layoutPriority(1)
+                }.buttonStyle(StrataButtonStyle(kind: allDone ? .mint : .plain))
             }
-            .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 8)
-            .background(LinearGradient(colors: [Theme.bg.opacity(0), Theme.bg.opacity(0.94)], startPoint: .top, endPoint: .init(x: 0.5, y: 0.35)))
         }
     }
 

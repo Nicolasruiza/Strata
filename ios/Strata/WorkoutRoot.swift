@@ -20,6 +20,7 @@ struct WorkoutRoot: View {
                     }
                 }
                 .environment(\.safeTop, geo.safeAreaInsets.top)
+                .ignoresSafeArea(edges: .top)
                 if let c = model.countdown { CountdownOverlay(state: c).transition(.opacity) }
                 if let t = model.toast { ToastView(text: t).frame(maxHeight: .infinity, alignment: .top).padding(.top, geo.safeAreaInsets.top + 14).allowsHitTesting(false) }
             }

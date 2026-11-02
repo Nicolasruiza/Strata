@@ -78,7 +78,7 @@ struct FocusView: View {
                     }
                     Button { busy() } label: {
                         HStack(spacing: 8) { IconView(d: "M4 7v10M20 7v10M4 12h16M7 9v6M17 9v6", size: 18, color: .white, line: 1.9); Text("Machine busy") }
-                    }.buttonStyle(StrataButtonStyle(kind: .violet))
+                    }.buttonStyle(StrataButtonStyle(kind: .violetFlat))
                 }
                 .padding(.horizontal, Theme.gutter).padding(.top, -56).padding(.bottom, 110)
             }.frame(maxWidth: Theme.maxWidth)
@@ -194,7 +194,7 @@ struct FocusView: View {
         if i < cur {
             HStack(spacing: 12) {
                 Button { model.mutate { $0.undoSet(); return nil } } label: { CheckDot() }
-                    .buttonStyle(.plain).disabled(i != cur - 1).accessibilityLabel("Undo set \(i + 1)")
+                    .buttonStyle(.plain).allowsHitTesting(i == cur - 1).accessibilityLabel("Undo set \(i + 1)")
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Set \(i + 1)").nameStyle()
                     Text("\(wl) lb × \(Fmt.repLbl(ex, reps[i]))").metaStyle()

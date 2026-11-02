@@ -43,12 +43,11 @@ struct CardioDoneView: View {
                 }.frame(maxWidth: Theme.maxWidth)
             }
             .safeAreaInset(edge: .bottom) {
-                HStack(spacing: 10) {
+                DockRow {
                     Button("Add block") { model.blockSheetOpen = true }.buttonStyle(StrataButtonStyle())
-                    Button("Done") { model.finishCardioScreen() }.buttonStyle(StrataButtonStyle(kind: .primary)).frame(maxWidth: .infinity).layoutPriority(1)
+                } right: {
+                    Button("Done") { model.finishCardioScreen() }.buttonStyle(StrataButtonStyle(kind: .primary))
                 }
-                .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 8)
-                .background(LinearGradient(colors: [Theme.bg.opacity(0), Theme.bg.opacity(0.94)], startPoint: .top, endPoint: .init(x: 0.5, y: 0.35)))
             }
             .sheet(isPresented: $model.blockSheetOpen) { BlockSheet(v: v) }
         } else { Color.clear.onAppear { model.finishCardioScreen() } }
