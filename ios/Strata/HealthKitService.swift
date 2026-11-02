@@ -5,14 +5,38 @@ import StrataCore
 /// actually happened: `saved` is true only when the workout was written to Apple Health.
 /// Only the types Strata uses are requested: workouts and heart rate (write), steps (read).
 final class HealthKitService: HealthService {
-    private let store = HKHealthStore()
+    let store = HKHealthStore()
+    private(set) lazy var bridge = WatchBridge(store: store)
     private let hrType = HKQuantityType(.heartRate)
     private let stepType = HKQuantityType(.stepCount)
 
     var available: Bool { HKHealthStore.isHealthDataAvailable() }
 
-    /// The Watch is started by the watch phase; the phone has nothing to start on its own.
-    func startWatch(_ cfg: WatchStartConfig) async -> Bool { false }
+    /// Launches the Strata watch app with this workout (`HKHealthStore.startWatchApp`); the watch
+    /// then starts its session and mirrors it back. Returns whether the watch accepted the start.
+    func startWatch(_ cfg: WatchStartConfig) async -> Bool {
+        guard available else { return false }
+        _ = bridge
+        do {
+            try await store.startWatchApp(toHandle: configuration(act: cfg.activity, type: nil))
+            return true
+        } catch { return false }
+    }
+
+    private func configuration(act: String, type: String?) -> HKWorkoutConfiguration {
+        let cfg = HKWorkoutConfiguration()
+        let out = Catalog.shared.cardioActs[act]?.out == true
+        switch act {
+        case "bike_out", "bike_in": cfg.activityType = .cycling
+        case "walk": cfg.activityType = .walking
+        case "elliptical": cfg.activityType = .elliptical
+        case "row": cfg.activityType = .rowing
+        case "swim": cfg.activityType = .swimming; cfg.swimmingLocationType = .pool
+        default: cfg.activityType = type == "4x4" ? .running : .walking
+        }
+        if act != "elliptical" && act != "swim" { cfg.locationType = out ? .outdoor : .indoor }
+        return cfg
+    }
 
     private func authorize() async -> Bool {
         guard available else { return false }
@@ -23,18 +47,10 @@ final class HealthKitService: HealthService {
     }
 
     func saveWorkout(_ entry: HealthPayload) async -> Bool {
+        // With the watch session running, the watch saved the workout: report its real answer.
+        if let saved = await bridge.endAndWaitForSave() { return saved }
         guard await authorize() else { return false }
-        let cfg = HKWorkoutConfiguration()
-        let out = Catalog.shared.cardioActs[entry.act]?.out == true
-        switch entry.act {
-        case "bike_out", "bike_in": cfg.activityType = .cycling
-        case "walk": cfg.activityType = .walking
-        case "elliptical": cfg.activityType = .elliptical
-        case "row": cfg.activityType = .rowing
-        case "swim": cfg.activityType = .swimming; cfg.swimmingLocationType = .pool
-        default: cfg.activityType = entry.type == "4x4" ? .running : .walking
-        }
-        if entry.act != "elliptical" && entry.act != "swim" { cfg.locationType = out ? .outdoor : .indoor }
+        let cfg = configuration(act: entry.act, type: entry.type)
         let start = Date(timeIntervalSince1970: entry.start / 1000), end = Date(timeIntervalSince1970: entry.end / 1000)
         let builder = HKWorkoutBuilder(healthStore: store, configuration: cfg, device: .local())
         do {

@@ -12,6 +12,7 @@ final class AppSensors: NSObject, Sensors, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     private var altitude: Double?
     var onStateChange: ((LocationState) -> Void)?
+    weak var bridge: WatchBridge?
     private(set) var state: LocationState = .waiting { didSet { if state != oldValue { onStateChange?(state) } } }
 
     override init() {
@@ -34,8 +35,8 @@ final class AppSensors: NSObject, Sensors, CLLocationManagerDelegate {
         state = .waiting
     }
 
-    func read(_ t: Double) -> SensorReading { SensorReading(hr: nil, alt: altitude) }
-    func hrSource() -> String? { nil }        // "watch" when the watch session streams (phase 4)
+    func read(_ t: Double) -> SensorReading { SensorReading(hr: bridge?.reading(), alt: altitude) }
+    func hrSource() -> String? { bridge?.isConnected == true ? "watch" : nil }
 
     private func update() {
         if !CLLocationManager.locationServicesEnabled() { state = .noGPS; return }
