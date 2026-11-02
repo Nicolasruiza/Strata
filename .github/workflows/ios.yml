@@ -66,9 +66,9 @@ jobs:
         run: xcodegen generate
       - name: Build iPhone app
         run: |
-          xcodebuild build -project Strata.xcodeproj -scheme Strata -destination "id=${{ steps.sim.outputs.udid }}" CODE_SIGNING_ALLOWED=NO | tail -30
+          xcodebuild build -project Strata.xcodeproj -scheme Strata -destination "id=${{ steps.sim.outputs.udid }}" CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "error:|\*\* BUILD"
           exit ${PIPESTATUS[0]}
       - name: Build watch app
         run: |
-          xcodebuild build -project Strata.xcodeproj -scheme StrataWatch -destination 'generic/platform=watchOS Simulator' CODE_SIGNING_ALLOWED=NO | tail -30
+          xcodebuild build -project Strata.xcodeproj -scheme StrataWatch -destination 'generic/platform=watchOS Simulator' CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "error:|\*\* BUILD"
           exit ${PIPESTATUS[0]}
