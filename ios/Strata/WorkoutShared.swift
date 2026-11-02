@@ -11,7 +11,7 @@ struct RestBanner: View {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(rem > 0 ? "Rest" : "Go").labelStyle(rem > 0 ? Theme.violet : Theme.mint)
-                        Text(Fmt.mmss(rem.rounded(.up))).font(.system(size: 30, weight: .bold)).monospacedDigit()
+                        Text(Fmt.mmss(rem.rounded(.up))).font(.inter(size: 30, weight: .bold)).monospacedDigit()
                         if let n = r.next { Text(n).metaStyle() }
                     }
                     Spacer(minLength: 0)
@@ -42,10 +42,10 @@ struct CountdownOverlay: View {
     let state: CountdownState
     var body: some View {
         VStack(spacing: 12) {
-            Text(state.label).font(.system(size: 18, weight: .bold)).foregroundStyle(Theme.muted)
-            Text("\(state.n)").font(.system(size: 160, weight: .heavy)).foregroundStyle(.white).id(state.n)
+            Text(state.label).font(.inter(size: 18, weight: .bold)).foregroundStyle(Theme.muted)
+            Text("\(state.n)").font(.inter(size: 160, weight: .heavy)).foregroundStyle(.white).id(state.n)
                 .transition(.scale(scale: 1.5).combined(with: .opacity))
-            Text("Get ready").font(.system(size: 18, weight: .bold)).foregroundStyle(Theme.muted.opacity(0.6))
+            Text("Get ready").font(.inter(size: 18, weight: .bold)).foregroundStyle(Theme.muted.opacity(0.6))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(hex: "#0A0B10").opacity(0.94).ignoresSafeArea())

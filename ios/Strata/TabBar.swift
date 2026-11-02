@@ -20,7 +20,7 @@ struct TabBar: View {
                 } label: {
                     VStack(spacing: 3) {
                         IconView(d: icon, size: 22, color: on ? .white : Theme.muted, line: s == .today || s == .history || s == .settings ? 2 : 2.2)
-                        Text(label).font(.system(size: 11, weight: .semibold)).foregroundStyle(on ? .white : Theme.muted)
+                        Text(label).font(.inter(size: 11, weight: .semibold)).foregroundStyle(on ? .white : Theme.muted)
                     }
                     .frame(maxWidth: .infinity).frame(height: 56)
                     .background(Capsule().fill(on ? Color.white.opacity(0.12) : .clear))

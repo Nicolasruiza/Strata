@@ -52,3 +52,18 @@ extension Color {
         self.init(.sRGB, red: Double((v >> 16) & 255) / 255, green: Double((v >> 8) & 255) / 255, blue: Double(v & 255) / 255, opacity: 1)
     }
 }
+
+/// The web's font: Inter 400/500/600/700/800 (bundled from fonts.css), fixed size like the CSS.
+extension Font {
+    static func inter(size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        let face: String
+        switch weight {
+        case .heavy, .black: face = "ExtraBold"
+        case .bold: face = "Bold"
+        case .semibold: face = "SemiBold"
+        case .medium: face = "Medium"
+        default: face = "Regular"
+        }
+        return .custom("Inter-" + face, fixedSize: size)
+    }
+}

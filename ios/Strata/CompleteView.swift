@@ -77,8 +77,8 @@ struct CompleteView: View {
             statCell(big: (s.min ?? 0) != 0 ? jsMinutes(s.min!) : "—", small: "Minutes")
             Divider().overlay(Theme.line)
             VStack(spacing: 3) {
-                (Text("\(sum.mainN)/\(sum.reqCount)") + (sum.bonusN > 0 ? Text(" +\(sum.bonusN)").font(.system(size: 15)).foregroundColor(Theme.violet) : Text("")))
-                    .font(.system(size: 24, weight: .heavy)).monospacedDigit()
+                (Text("\(sum.mainN)/\(sum.reqCount)") + (sum.bonusN > 0 ? Text(" +\(sum.bonusN)").font(.inter(size: 15)).foregroundColor(Theme.violet) : Text("")))
+                    .font(.inter(size: 24, weight: .heavy)).monospacedDigit()
                 Text("Lifts\(sum.bonusN > 0 ? " · bonus" : "")").smallStyle()
             }.frame(maxWidth: .infinity)
             Divider().overlay(Theme.line)
@@ -88,7 +88,7 @@ struct CompleteView: View {
          .overlay(RoundedRectangle(cornerRadius: Theme.Radius.card).strokeBorder(Theme.line))
     }
     private func statCell(big: String, small: String) -> some View {
-        VStack(spacing: 3) { Text(big).font(.system(size: 24, weight: .heavy)).monospacedDigit(); Text(small).smallStyle() }.frame(maxWidth: .infinity)
+        VStack(spacing: 3) { Text(big).font(.inter(size: 24, weight: .heavy)).monospacedDigit(); Text(small).smallStyle() }.frame(maxWidth: .infinity)
     }
 
     private func nextTime(_ e: Engine, sum: SessionSummary, s: Session) -> some View {
@@ -112,7 +112,7 @@ struct CompleteView: View {
                 Text("\(reps) at \(jsMinutes(en.w)) lb").metaStyle()
                 if let u = r.unlocks {
                     Text("\(jsMinutes(r.need)) more rep\(r.need > 1 ? "s" : "") unlocks \(jsMinutes(u))")
-                        .font(.system(size: 13)).foregroundStyle(Theme.amber).padding(.top, 1)
+                        .font(.inter(size: 13)).foregroundStyle(Theme.amber).padding(.top, 1)
                 }
             }
             Spacer(minLength: 0)
@@ -127,7 +127,7 @@ struct CompleteView: View {
             IconView(d: "M12 19V5M6 11l6-6 6 6", size: 13, color: Theme.mint, line: 3.2)
             Text("\(jsMinutes(w)) lb")
         }
-        .font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.mint)
+        .font(.inter(size: 13, weight: .bold)).foregroundStyle(Theme.mint)
         .padding(.horizontal, 11).padding(.vertical, 7).background(Capsule().fill(Theme.mint.opacity(0.14)))
     }
 
@@ -137,15 +137,15 @@ struct CompleteView: View {
             HStack {
                 Text("vs last \(e.plan[s.day]?.name ?? "") · \(Dates.fmtD(cmp.prevDate, .init(month: .short, day: true)))").labelStyle()
                 Spacer()
-                Text("\(cmp.pct >= 0 ? "+" : "")\(jsMinutes(cmp.pct))%").font(.system(size: 22, weight: .heavy)).foregroundStyle(cmp.pct >= 0 ? Theme.mint : Theme.amber)
+                Text("\(cmp.pct >= 0 ? "+" : "")\(jsMinutes(cmp.pct))%").font(.inter(size: 22, weight: .heavy)).foregroundStyle(cmp.pct >= 0 ? Theme.mint : Theme.amber)
             }
             VStack(spacing: 12) {
                 ForEach(cmp.items, id: \.id) { it in
                     VStack(spacing: 6) {
                         HStack {
-                            Text(Fmt.cleanN(e.exById(it.id)?.n ?? it.id)).font(.system(size: 14))
+                            Text(Fmt.cleanN(e.exById(it.id)?.n ?? it.id)).font(.inter(size: 14))
                             Spacer()
-                            Text("\(Fmt.nf(it.a)) lb · \(it.p >= 0 ? "+" : "")\(jsMinutes(it.p))%").font(.system(size: 14)).foregroundStyle(Theme.muted)
+                            Text("\(Fmt.nf(it.a)) lb · \(it.p >= 0 ? "+" : "")\(jsMinutes(it.p))%").font(.inter(size: 14)).foregroundStyle(Theme.muted)
                         }
                         GeometryReader { g in
                             ZStack(alignment: .leading) {

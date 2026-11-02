@@ -17,7 +17,7 @@ struct NumField: View {
     var body: some View {
         TextField("", text: $text)
             .keyboardType(.decimalPad).multilineTextAlignment(.center)
-            .font(.system(size: 15, weight: .bold)).frame(width: width, height: 40)
+            .font(.inter(size: 15, weight: .bold)).frame(width: width, height: 40)
             .background(RoundedRectangle(cornerRadius: 12).fill(Color.black.opacity(0.25)))
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.line))
             .onChange(of: text) { _, new in
@@ -68,7 +68,7 @@ struct DetailView: View {
                         }
                         VStack(alignment: .leading, spacing: 4) {
                             HStack { Text("Main lifts").labelStyle(); Spacer(); Text("Tap a number to edit").smallStyle() }
-                            if main.isEmpty { Text("None").font(.system(size: 14)).foregroundStyle(Theme.muted).padding(26).frame(maxWidth: .infinity) }
+                            if main.isEmpty { Text("None").font(.inter(size: 14)).foregroundStyle(Theme.muted).padding(26).frame(maxWidth: .infinity) }
                             else { ForEach(main.indices, id: \.self) { i in lineRow(e, s, main[i], first: i == 0) } }
                         }.card()
                         if !extra.isEmpty {

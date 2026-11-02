@@ -26,17 +26,17 @@ struct CardioDoneView: View {
                             cell(v.avgHR.map(jsMinutes) ?? "—", "Avg bpm")
                             Divider().overlay(Theme.line)
                             cell(third(v).0, third(v).1)
-                        }.padding(.vertical, 14).padding(.horizontal, 6).card(tight: true)
+                        }.card(inset: EdgeInsets(top: 14, leading: 6, bottom: 14, trailing: 6))
                         if let z = v.zones {
-                            VStack(alignment: .leading, spacing: 10) {
+                            VStack(alignment: .leading, spacing: 0) {
                                 Text("Time in zones").labelStyle()
-                                ZoneBar(z: [0] + z, tot: zonesTotal)
-                                ZoneLabels(z: [0] + z)
+                                ZoneBar(z: [0] + z, tot: zonesTotal).padding(.top, 10)
+                                ZoneLabels(z: [0] + z).padding(.top, -4)       // .zlbl margin-top:-4px
                             }.card()
                         }
                         HStack(spacing: 8) {
                             IconView(d: Icon.heart, size: 18, color: .white, line: 2.2)
-                            Text(v.health ? Config.Copy.footerSavedToHealth : Config.Copy.footerNotSavedToHealth).font(.system(size: 14, weight: .semibold))
+                            Text(v.health ? Config.Copy.footerSavedToHealth : Config.Copy.footerNotSavedToHealth).font(.inter(size: 14, weight: .semibold))
                         }.padding(.horizontal, 16).padding(.vertical, 9).overlay(Capsule().strokeBorder(Theme.line))
                         RingsCard(st: st, headline: e.ringsLine(st))
                     }.padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 110)
@@ -54,7 +54,7 @@ struct CardioDoneView: View {
     }
 
     private func cell(_ big: String, _ small: String) -> some View {
-        VStack(spacing: 3) { Text(big).font(.system(size: 24, weight: .heavy)).monospacedDigit(); Text(small).smallStyle() }.frame(maxWidth: .infinity)
+        VStack(spacing: 3) { Text(big).font(.inter(size: 24, weight: .heavy)).monospacedDigit(); Text(small).smallStyle() }.frame(maxWidth: .infinity)
     }
     private func third(_ v: WLast) -> (String, String) {
         if v.type == "4x4" { return (jsMinutes(v.intervals ?? 0), "Hard intervals") }
@@ -85,9 +85,9 @@ struct BlockSheet: View {
                         IconView(d: Icon.dumbbell, size: 30, color: Theme.violet, line: 2.2).frame(width: 60, height: 60)
                             .background(RoundedRectangle(cornerRadius: 18).fill(Theme.violet.opacity(0.18)))
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Recommended").font(.system(size: 12, weight: .bold)).foregroundStyle(Color(hex: "#D9D2FF"))
+                            Text("Recommended").font(.inter(size: 12, weight: .bold)).foregroundStyle(Color(hex: "#D9D2FF"))
                                 .padding(.horizontal, 10).padding(.vertical, 4).background(Capsule().fill(Theme.violet.opacity(0.25)))
-                            Text("Add block:\nStrength · \(e.plan[nd]?.name ?? "")").font(.system(size: 22, weight: .heavy)).multilineTextAlignment(.leading)
+                            Text("Add block:\nStrength · \(e.plan[nd]?.name ?? "")").font(.inter(size: 22, weight: .heavy)).multilineTextAlignment(.leading)
                         }
                         Spacer(minLength: 0)
                         IconView(d: Icon.chev, size: 18, color: Theme.muted, line: 2.4)

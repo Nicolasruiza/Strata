@@ -20,7 +20,7 @@ struct OnboardView: View {
                             .padding(.top, 10)
                         Seg(items: [("male", "Male"), ("female", "Female")], selected: o.gender) { model.chooseGender($0) }
                             .padding(.top, 10)
-                        Text("Sets your plan template and starting loads.").font(.system(size: 13)).foregroundStyle(Theme.muted).padding(.top, 8)
+                        Text("Sets your plan template and starting loads.").font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 8)
                     }.card()
 
                     if o.gender != nil {
@@ -32,7 +32,7 @@ struct OnboardView: View {
                                 Button("Import a Lift Log export file") { importing = true }
                                     .buttonStyle(StrataButtonStyle(small: true)).padding(.top, 10)
                                 Text("Optional. In Lift Log: More → Export data, then pick that file here. Weights carry over, so nothing restarts.")
-                                    .font(.system(size: 13)).foregroundStyle(Theme.muted).padding(.top, 8)
+                                    .font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 8)
                             }
                         }.card()
                     }
@@ -44,12 +44,12 @@ struct OnboardView: View {
                         }
                         Spacer()
                         StepField(title: nil, placeholder: "—", text: ageBinding, keyboard: .numberPad, width: 70, big: false, alignRight: false)
-                            .font(.system(size: 22))
+                            .font(.inter(size: 22))
                     }.card()
 
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Office days").labelStyle()
-                        Text("Days you walk to work. Optional.").font(.system(size: 13)).foregroundStyle(Theme.muted).padding(.top, 6).padding(.bottom, 10)
+                        Text("Days you walk to work. Optional.").font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 6).padding(.bottom, 10)
                         DayChips(selected: o.off) { d in
                             var off = o.off
                             if let i = off.firstIndex(of: d) { off.remove(at: i) } else { off.append(d) }
@@ -64,7 +64,7 @@ struct OnboardView: View {
         .scrollDismissesKeyboard(.interactively)
         .safeAreaInset(edge: .bottom) {
             Button(ready ? "Get started" : "Add your name and gender") { model.finishOnboarding() }
-                .buttonStyle(StrataButtonStyle(kind: .primary)).disabled(!ready).opacity(ready ? 1 : 0.45)
+                .buttonStyle(StrataButtonStyle(kind: .primary)).allowsHitTesting(ready).opacity(ready ? 1 : 0.45)
                 .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 8)
                 .background(LinearGradient(colors: [Theme.bg.opacity(0), Theme.bg.opacity(0.94)], startPoint: .top, endPoint: .init(x: 0.5, y: 0.35)))
         }
@@ -99,7 +99,7 @@ struct DayChips: View {
                 let on = selected.contains(d)
                 Button { onToggle(d) } label: {
                     Text(String(Catalog.shared.wdShort[String(d)]!.first!))
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.inter(size: 15, weight: .bold))
                         .foregroundStyle(on ? Color(hex: "#0E1018") : Theme.muted)
                         .frame(width: 40, height: 40)
                         .background(Circle().fill(on ? Color(hex: "#F4F5F8") : .clear))

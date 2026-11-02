@@ -38,11 +38,11 @@ struct FocusView: View {
                             IconView(d: "M15 5l-7 7 7 7", size: 18, color: .white, line: 2.4)
                         }
                         Spacer()
-                        HStack(spacing: 8) { LogoMark(); Text("Strata").font(.system(size: 20, weight: .bold)) }
+                        HStack(spacing: 8) { LogoMark(); Text("Strata").font(.inter(size: 20, weight: .bold)) }
                         Spacer()
                         HStack(spacing: 6) {
                             IconView(d: Icon.timer, size: 18, color: .white, line: 1.9)
-                            ElapsedText(since: exT).font(.system(size: 15, weight: .bold)).monospacedDigit()
+                            ElapsedText(since: exT).font(.inter(size: 15, weight: .bold)).monospacedDigit()
                         }
                         .padding(.horizontal, 14).frame(height: 44)
                         .background(Capsule().fill(Color(hex: "#141620").opacity(0.55)))
@@ -52,11 +52,11 @@ struct FocusView: View {
 
                 VStack(alignment: .leading, spacing: 14) {
                     Text("\(blk?.kind ?? "Exercise") \(pos) of \(blk?.items.count ?? 1)")
-                        .font(.system(size: 14, weight: .bold)).foregroundStyle(Color(hex: "#D9D2FF"))
+                        .font(.inter(size: 14, weight: .bold)).foregroundStyle(Color(hex: "#D9D2FF"))
                         .padding(.horizontal, 12).padding(.vertical, 5)
                         .background(Capsule().fill(Theme.violet.opacity(0.18)))
                         .overlay(Capsule().strokeBorder(Theme.violet.opacity(0.6)))
-                    Text(Fmt.cleanN(ex.n)).font(.system(size: 30, weight: .heavy)).tracking(-0.75).padding(.top, -6)
+                    Text(Fmt.cleanN(ex.n)).font(.inter(size: 30, weight: .heavy)).tracking(-0.75).padding(.top, -6)
                     Text("\(n) sets × \(Fmt.repLbl(ex, orig.r.map(Double.init)))\(Fmt.perLeg(ex))\(ex.id != orig.id ? " · swapped" : "")").metaStyle().padding(.top, -10)
                     if orig.isInjured { WarnBox(markdown: "On hold for your injury flag. Go light or swap it.") }
                     lastCard(last: last, trend: tr)
@@ -122,7 +122,7 @@ struct FocusView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Last time").metaStyle()
                 Text(last.map { "\(jsMinutes($0.w)) × " + $0.reps.map { $0.map(jsMinutes) ?? "–" }.joined(separator: "/") } ?? "No history yet")
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.inter(size: 20, weight: .bold))
             }
             Spacer(minLength: 0)
             trendChip(trend)
@@ -142,7 +142,7 @@ struct FocusView: View {
         }()
         let icon = (t.t == "Progressing" || t.t == "On track") ? "M3 17l6-6 4 4 8-8M15 7h6v6" : "M3 12h18M15 6l6 6-6 6"
         return HStack(spacing: 6) { IconView(d: icon, size: 16, color: fg, line: 1.9); Text(t.t) }
-            .font(.system(size: 14, weight: .bold)).foregroundStyle(fg).fixedSize()
+            .font(.inter(size: 14, weight: .bold)).foregroundStyle(fg).fixedSize()
             .padding(.horizontal, 12).padding(.vertical, 7)
             .background(Capsule().fill(bg)).overlay(Capsule().strokeBorder(br))
     }
@@ -152,8 +152,8 @@ struct FocusView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Today's weight").metaStyle()
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(jsMinutes(w)).font(.system(size: 64, weight: .heavy)).tracking(-1.9).monospacedDigit()
-                    Text("lb").font(.system(size: 20, weight: .semibold)).foregroundStyle(Theme.muted)
+                    Text(jsMinutes(w)).font(.inter(size: 64, weight: .heavy)).tracking(-1.9).monospacedDigit()
+                    Text("lb").font(.inter(size: 20, weight: .semibold)).foregroundStyle(Theme.muted)
                 }
                 if !plate.isEmpty { Text(plate).metaStyle() }
             }
@@ -216,11 +216,11 @@ struct FocusView: View {
                 Spacer(minLength: 0)
                 HStack(spacing: 6) {
                     repButton("−", "Fewer") { model.mutate { $0.adjustReps(-1); return nil } }
-                    Text(jsMinutes(rv)).font(.system(size: 22, weight: .bold)).monospacedDigit().frame(minWidth: 32)
+                    Text(jsMinutes(rv)).font(.inter(size: 22, weight: .bold)).monospacedDigit().frame(minWidth: 32)
                     repButton("+", "More") { model.mutate { $0.adjustReps(1); return nil } }
                 }
                 Button("Log") { model.mutate { $0.logWoSet() } }
-                    .font(.system(size: 16, weight: .heavy)).foregroundStyle(Color(hex: "#0E1018"))
+                    .font(.inter(size: 16, weight: .heavy)).foregroundStyle(Color(hex: "#0E1018"))
                     .padding(.horizontal, 16).frame(height: 44).background(RoundedRectangle(cornerRadius: 14).fill(Theme.violet))
             }.padding(.horizontal, 14).padding(.vertical, 12)
              .background(RoundedRectangle(cornerRadius: 18).fill(Theme.violet.opacity(0.08)))
@@ -249,7 +249,7 @@ struct FocusView: View {
 
     private func repButton(_ t: String, _ label: String, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(t).font(.system(size: 22)).frame(width: 38, height: 44)
+            Text(t).font(.inter(size: 22)).frame(width: 38, height: 44)
                 .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.08)))
                 .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.line))
         }.buttonStyle(.plain).accessibilityLabel(label)

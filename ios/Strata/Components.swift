@@ -4,19 +4,19 @@ import SwiftUI
 
 extension View {
     func labelStyle(_ color: Color = Theme.muted) -> some View {
-        self.font(.system(size: Theme.Size.label, weight: .semibold))
+        self.font(.inter(size: Theme.Size.label, weight: .semibold))
             .tracking(Theme.Size.label * 0.16).textCase(.uppercase).foregroundStyle(color)
     }
     func nameStyle(_ size: CGFloat = Theme.Size.name, color: Color = .white) -> some View {
-        self.font(.system(size: size, weight: .semibold)).foregroundStyle(color)
+        self.font(.inter(size: size, weight: .semibold)).foregroundStyle(color)
     }
-    func metaStyle() -> some View { self.font(.system(size: Theme.Size.meta)).foregroundStyle(Theme.muted) }
-    func smallStyle() -> some View { self.font(.system(size: Theme.Size.small)).foregroundStyle(Theme.muted) }
+    func metaStyle() -> some View { self.font(.inter(size: Theme.Size.meta)).foregroundStyle(Theme.muted) }
+    func smallStyle() -> some View { self.font(.inter(size: Theme.Size.small)).foregroundStyle(Theme.muted) }
     func title2Style(_ size: CGFloat = Theme.Size.title2) -> some View {
-        self.font(.system(size: size, weight: .heavy)).tracking(-size * 0.02).foregroundStyle(.white)
+        self.font(.inter(size: size, weight: .heavy)).tracking(-size * 0.02).foregroundStyle(.white)
     }
     func bodyStyle() -> some View {
-        self.font(.system(size: Theme.Size.body)).foregroundStyle(Theme.soft).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
+        self.font(.inter(size: Theme.Size.body)).foregroundStyle(Theme.soft).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -25,10 +25,12 @@ struct CardStyle: ViewModifier {
     var tight = false
     var border: Color = Theme.line
     var dashed = false
+    var inset: EdgeInsets?          // replaces the default padding (e.g. `.stats{padding:14px 6px}`)
     var fill: AnyShapeStyle = AnyShapeStyle(Theme.glass)
     func body(content: Content) -> some View {
         content
-            .padding(tight ? 12 : 16)
+            .padding(inset ?? EdgeInsets(top: tight ? 12 : 16, leading: tight ? 12 : 16, bottom: tight ? 12 : 16, trailing: tight ? 12 : 16))
+            .padding(1)         // CSS borders take layout space; this one is drawn as an overlay
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: Theme.Radius.card).fill(fill))
             .overlay(RoundedRectangle(cornerRadius: Theme.Radius.card)
@@ -36,8 +38,8 @@ struct CardStyle: ViewModifier {
     }
 }
 extension View {
-    func card(tight: Bool = false, border: Color = Theme.line, dashed: Bool = false) -> some View {
-        modifier(CardStyle(tight: tight, border: border, dashed: dashed))
+    func card(tight: Bool = false, border: Color = Theme.line, dashed: Bool = false, inset: EdgeInsets? = nil) -> some View {
+        modifier(CardStyle(tight: tight, border: border, dashed: dashed, inset: inset))
     }
 }
 
@@ -55,7 +57,7 @@ struct StrataButtonStyle: ButtonStyle {
         let h = height ?? (small ? Theme.Size.buttonSmallHeight : Theme.Size.buttonHeight)
         let r = small ? Theme.Radius.buttonSmall : Theme.Radius.button
         configuration.label
-            .font(.system(size: small ? 14 : Theme.Size.button, weight: .bold))
+            .font(.inter(size: small ? 14 : Theme.Size.button, weight: .bold))
             .foregroundStyle(fg)
             .padding(.horizontal, hPad ?? 0)
             .frame(maxWidth: hPad == nil ? .infinity : nil, minHeight: h, maxHeight: h)
@@ -89,7 +91,7 @@ struct StrataButtonStyle: ButtonStyle {
 struct LinkButtonStyle: ButtonStyle {
     var color: Color = Theme.muted
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 14, weight: .semibold)).foregroundStyle(color)
+        configuration.label.font(.inter(size: 14, weight: .semibold)).foregroundStyle(color)
             .underline(true).padding(10).opacity(configuration.isPressed ? 0.7 : 1)
     }
 }
@@ -116,17 +118,17 @@ struct Hero: View {
             LinearGradient(stops: [.init(color: Theme.bg.opacity(0.25), location: 0), .init(color: Theme.bg.opacity(0.35), location: 0.45), .init(color: Theme.bg, location: 1)],
                            startPoint: .top, endPoint: .bottom)
             VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 8) { LogoMark(); Text("Strata").font(.system(size: 20, weight: .bold)).tracking(-0.2) }
+                HStack(spacing: 8) { LogoMark(); Text("Strata").font(.inter(size: 20, weight: .bold)).tracking(-0.2) }
                     .opacity(brand ? 1 : 0).frame(minHeight: 44)
                     .padding(.top, 14 + safeTop)
                 Spacer(minLength: 0)
                 if let e = eyebrow {
-                    Text(e).font(.system(size: 11, weight: .semibold)).tracking(2.2).textCase(.uppercase).foregroundStyle(Color.white.opacity(0.82))
+                    Text(e).font(.inter(size: 11, weight: .semibold)).tracking(2.2).textCase(.uppercase).foregroundStyle(Color.white.opacity(0.82))
                 }
                 Group { if let a = titleAttr { Text(a) } else { Text(title) } }
-                    .font(.system(size: titleSize, weight: .heavy)).tracking(-titleSize * 0.02).lineSpacing(0)
+                    .font(.inter(size: titleSize, weight: .heavy)).tracking(-titleSize * 0.02).lineSpacing(0)
                     .padding(.top, 6).padding(.bottom, 4).fixedSize(horizontal: false, vertical: true)
-                if let s = sub { Text(s).font(.system(size: 15)).foregroundStyle(Theme.soft).fixedSize(horizontal: false, vertical: true) }
+                if let s = sub { Text(s).font(.inter(size: 15)).foregroundStyle(Theme.soft).fixedSize(horizontal: false, vertical: true) }
             }
             .padding(.horizontal, 20).padding(.bottom, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -175,7 +177,7 @@ extension EnvironmentValues {
 struct ToastView: View {
     let text: String
     var body: some View {
-        Text(text).font(.system(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#0E1018"))
+        Text(text).font(.inter(size: 14, weight: .semibold)).foregroundStyle(Color(hex: "#0E1018"))
             .multilineTextAlignment(.center)
             .padding(.horizontal, 16).padding(.vertical, 11)
             .background(Capsule().fill(Color(hex: "#F4F5F8")))
@@ -207,7 +209,7 @@ struct Seg<Value: Hashable>: View {
             ForEach(items.indices, id: \.self) { i in
                 let (v, label) = items[i]
                 Button { onPick(v) } label: {
-                    Text(label).font(.system(size: 14, weight: .semibold))
+                    Text(label).font(.inter(size: 14, weight: .semibold))
                         .foregroundStyle(selected == v ? Color.white : Theme.muted)
                         .frame(maxWidth: .infinity).padding(.vertical, 10)
                         .background(RoundedRectangle(cornerRadius: 12).fill(selected == v ? Color.white.opacity(0.14) : .clear))
@@ -280,7 +282,7 @@ struct StepField: View {
             TextField("", text: $text, prompt: Text(placeholder).foregroundColor(Theme.dim))
                 .keyboardType(keyboard)
                 .multilineTextAlignment(alignRight ? .trailing : .center)
-                .font(.system(size: big ? 26 : 17, weight: big ? .heavy : .semibold))
+                .font(.inter(size: big ? 26 : 17, weight: big ? .heavy : .semibold))
                 .frame(width: width)
         }
         .padding(.horizontal, 14).padding(.vertical, 6)

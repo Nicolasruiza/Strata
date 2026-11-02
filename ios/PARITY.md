@@ -146,7 +146,9 @@ system font for now (the font files in `fonts.css` are WOFF2, which iOS can't lo
 - [x] Footer: "Strata · data stays on this phone. Export it now and then as a backup."
 
 ## Compared against the web in the simulator
-Today, onboarding, workout preview, jumps, strength overview, exercise focus, live cardio, History, session detail, Progress and Settings were run next to the web app with the same data. The 4×4 info screen was compared too (same rows, ramp line, selector, buttons). Not yet compared one by one: the cardio picker, cardio complete, 4×4 live/done, workout complete, the sheets and alerts, and the empty states.
+Every screen has now been run next to the web app with the same data (Today, onboarding, workout preview, jumps, strength overview, exercise focus, live cardio, cardio picker, cardio complete, 4×4 info, strength complete, History incl. empty, session detail, Progress incl. empty, Settings). Differences found and fixed in this pass: Inter is bundled (400–800) and used everywhere; the card border now takes layout space like the CSS border (text wraps at the same widths); stats cards use `.stats` padding; the cardio-complete zone labels overlap the bar by 4 px like `.zlbl`; picker tiles keep the 44 px icon box; the picker brand is centred; empty-state padding; Cardio/Steps cards stretch to equal height; the Data card has no divider above the first row; the onboarding button is dimmed once, not twice.
+Known, intended differences: the Apple Watch copy (Q3), the GPS states (Q4), no demo-data link, no Lift Log `localStorage` import. Not verified on a device: animations, sheet gestures, haptics, keyboard behaviour.
+Web quirk seen while comparing (not ported, not changed): opening the web app with an active workout can throw `WCFG is not defined` on the first render because `app.js` renders before `workout.js` has run; a second `render()` works.
 
 ## Apple Health (phase 3)
 - [x] `HealthKitService` (`HealthService`): `saveWorkout` writes an `HKWorkout` (activity type and indoor/outdoor from the web's `hk` mapping) with the heart-rate samples; returns the real result
