@@ -64,7 +64,7 @@ struct OnboardView: View {
         .scrollDismissesKeyboard(.interactively)
         .safeAreaInset(edge: .bottom) {
             Button(ready ? "Get started" : "Add your name and gender") { model.finishOnboarding() }
-                .buttonStyle(StrataButtonStyle(kind: .primary)).disabled(!ready).opacity(ready ? 1 : 0.45)
+                .buttonStyle(StrataButtonStyle(kind: .primary)).allowsHitTesting(ready).opacity(ready ? 1 : 0.45)
                 .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 8)
                 .background(LinearGradient(colors: [Theme.bg.opacity(0), Theme.bg.opacity(0.94)], startPoint: .top, endPoint: .init(x: 0.5, y: 0.35)))
         }

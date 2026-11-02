@@ -128,17 +128,17 @@ struct ProgressScreen: View {
                         }.padding(.top, 14)
                     }.card()
 
-                    HStack(alignment: .top, spacing: 10) {
+                    HStack(alignment: .top, spacing: 10) {         // .grid2: both cards stretch to the taller one
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Cardio").nameStyle(15); Text("sessions / week").metaStyle()
                             BarChart(vals: pw.cardio.map(Double.init), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { jsMinutes($0) }
-                        }.card(tight: true)
+                        }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Steps").nameStyle(15); Text("avg / office day").metaStyle()
                             Text(lastSteps != 0 ? Fmt.nf(Double(lastSteps)) : "—").font(.inter(size: 20, weight: .heavy)).monospacedDigit().padding(.top, 4)
                             BarChart(vals: pw.steps.map(Double.init), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { Fmt.fmtFixed($0 / 1000, 1) + "k" }
-                        }.card(tight: true)
-                    }
+                        }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
+                    }.fixedSize(horizontal: false, vertical: true)
 
                     VStack(alignment: .leading, spacing: 0) {
                         HStack(alignment: .top) {

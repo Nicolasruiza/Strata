@@ -30,6 +30,7 @@ struct CardStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(inset ?? EdgeInsets(top: tight ? 12 : 16, leading: tight ? 12 : 16, bottom: tight ? 12 : 16, trailing: tight ? 12 : 16))
+            .padding(1)         // CSS borders take layout space; this one is drawn as an overlay
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: Theme.Radius.card).fill(fill))
             .overlay(RoundedRectangle(cornerRadius: Theme.Radius.card)

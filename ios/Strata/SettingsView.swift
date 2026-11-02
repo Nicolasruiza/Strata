@@ -81,7 +81,7 @@ struct SettingsView: View {
                             Text("Age").nameStyle(15); Spacer()
                             HStack(spacing: 10) {
                                 ageButton("−", "Younger", -1)
-                                Text(e.db.age.map { jsMinutes($0) } ?? "—").font(.inter(size: 22, weight: .heavy)).monospacedDigit().frame(minWidth: 36)
+                                Text(e.db.age.map { jsMinutes($0) } ?? "—").font(.inter(size: 22, weight: .heavy)).monospacedDigit()
                                 ageButton("+", "Older", 1)
                             }.padding(4).background(RoundedRectangle(cornerRadius: 16).fill(Color.black.opacity(0.25)))
                         }.padding(.vertical, 12)
@@ -94,7 +94,7 @@ struct SettingsView: View {
 
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Data").labelStyle()
-                        dataRow(Icon.dl, "Export data", .white) { export() }
+                        dataRow(Icon.dl, "Export data", .white, first: true) { export() }
                         dataRow(Icon.ul, "Import (Strata or Lift Log file)", .white) { importing = true }
                         dataRow(Icon.close, "Reset \(e.profile.name)", Color(hex: "#FF8A70")) { resetPrompt = true }
                     }.card()
@@ -148,7 +148,7 @@ struct SettingsView: View {
         HStack { Text(l).font(.inter(size: 15)); Spacer(); Text(v).font(.inter(size: 15, weight: .bold)).foregroundStyle(c) }
             .padding(.vertical, 12).overlay(alignment: .top) { Rectangle().fill(Theme.line).frame(height: 1) }
     }
-    private func dataRow(_ icon: String, _ title: String, _ color: Color, _ action: @escaping () -> Void) -> some View {
+    private func dataRow(_ icon: String, _ title: String, _ color: Color, first: Bool = false, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 12) {
                 IconView(d: icon, size: 20, color: color == .white ? Theme.soft : color).frame(width: 40, height: 40)
@@ -156,7 +156,7 @@ struct SettingsView: View {
                 Text(title).nameStyle(15, color: color)
                 Spacer(minLength: 0)
                 if color == .white { IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4) }
-            }.padding(.vertical, 10).overlay(alignment: .top) { Rectangle().fill(Theme.line).frame(height: 1) }
+            }.padding(.vertical, 10).overlay(alignment: .top) { if !first { Rectangle().fill(Theme.line).frame(height: 1) } }       // .hrow:first-of-type{border-top:0}
         }.buttonStyle(.plain)
     }
 }

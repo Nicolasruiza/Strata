@@ -15,7 +15,7 @@ struct HistoryView: View {
                     if items.isEmpty {
                         Text("Nothing logged yet. Your first workout will show up here.")
                             .font(.inter(size: 14)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
-                            .padding(.vertical, 26).padding(.horizontal, 10).frame(maxWidth: .infinity).card()
+                            .frame(maxWidth: .infinity).card(inset: EdgeInsets(top: 26, leading: 10, bottom: 26, trailing: 10))
                     } else {
                         let weeks = Dictionary(grouping: items, by: { Dates.mondayOf($0.date) })
                         let curMon = Dates.mondayOf(e.today)
