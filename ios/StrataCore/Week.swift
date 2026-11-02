@@ -27,6 +27,7 @@ public struct HistoryItem: Codable, Equatable {
 public struct ProgressPoint: Codable, Equatable {
     public var l: String
     public var y: Double
+    public init(l: String, y: Double) { self.l = l; self.y = y }
 }
 
 public struct TopSet: Codable, Equatable {
@@ -290,5 +291,63 @@ extension Engine {
         let localSec = Int((nowMs / 1000).rounded(.down)) + off
         let h = ((localSec % 86_400) + 86_400) % 86_400 / 3600
         return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"
+    }
+}
+
+// MARK: History rows and chart scales (app.js histRow, lineSVG)
+
+public struct HistoryRowText: Codable, Equatable {
+    public var name: String
+    public var meta: String
+    public var right: String
+    public var icon: String       // "lift", "home", "heart" or "walk"
+    public var jumps: Bool        // the lift row's "· jumps" is mint
+}
+
+public struct ChartScale: Codable, Equatable {
+    public var y0: Double
+    public var y1: Double
+    public var ticks: [Double]
+}
+
+extension Engine {
+    /// The text of one History row (`histRow`).
+    public func historyRow(_ it: HistoryItem) -> HistoryRowText {
+        if it.kind == "lift" {
+            let h = db.history[it.index]
+            let nm = plan[h.day]?.name ?? "Workout"
+            let j = cardioOn(h.date, "jumps") != nil
+            let meta = "\(exCount(h)) exercises" + (j ? " · jumps" : "") + ((h.lowEnergy ?? false) ? " · lighter" : "")
+            let right = (h.min ?? 0) != 0 ? "\(jsMinutes(h.min!)) min" : "\(Fmt.nf(h.vol ?? 0)) lb"
+            return HistoryRowText(name: nm, meta: meta, right: right, icon: "lift", jumps: j)
+        }
+        let c = db.cardio[it.index]
+        var nm: String
+        if let a = c.act, let def = catalog.cardioActs[a] {
+            nm = def.n + (c.type == "4x4" ? " · 4×4" : c.type == "z2" ? " · Zone 2" : "")
+        } else {
+            let names = ["office": "Office day", "4x4": "4×4 intervals", "z2": "Zone 2 walk", "walk": "Walk", "cardio": "Cardio",
+                         "home": c.focus == "legs" ? "Home legs + bone" : "Home upper"]
+            nm = names[c.type] ?? c.type
+        }
+        let right = c.type == "office" ? "\(Fmt.nf(c.steps ?? 0)) steps"
+            : c.type == "4x4" ? "\((c.intervals ?? 0) != 0 ? jsMinutes(c.intervals!) : "4") × 4 min"
+            : "\(jsMinutes(c.min ?? 0)) min"
+        let sub: String
+        if let hr = c.avgHR, hr != 0 { sub = "Avg \(jsMinutes(hr)) bpm" + ((c.elev ?? 0) != 0 ? " · +\(jsMinutes(c.elev!)) m" : "") }
+        else if (c.home ?? 0) != 0 { sub = "At home" }
+        else if c.type == "home" { sub = "At home · bodyweight" }
+        else if c.type == "office" { sub = "Walk to and from work" }
+        else if c.type == "4x4" { sub = (c.min ?? 0) != 0 ? "\(jsMinutes(c.min!)) min total" : "Intervals" }
+        else { sub = "Easy pace" }
+        let icon = c.type == "home" ? "home" : c.type == "4x4" ? "heart" : "walk"
+        return HistoryRowText(name: nm, meta: sub, right: right, icon: icon, jumps: false)
+    }
+
+    /// Y range and ticks of a line chart (`lineSVG`).
+    public static func chartScale(_ ys: [Double]) -> ChartScale {
+        let lo = ys.min() ?? 0, hi = ys.max() ?? 0, pad = max(5, (hi - lo) * 0.2)
+        let y0 = ((lo - pad) / 5).rounded(.down) * 5, y1 = ((hi + pad) / 5).rounded(.up) * 5
+        return ChartScale(y0: y0, y1: y1, ticks: [y0, jsRound((y0 + y1) / 2), y1])
     }
 }

@@ -278,3 +278,20 @@ struct StepField: View {
         .background(RoundedRectangle(cornerRadius: 16).fill(Color.black.opacity(0.25)))
     }
 }
+
+/// `.sw`: 52 × 32 switch, light track and dark knob when on.
+struct WebSwitch: View {
+    @Binding var isOn: Bool
+    var label = ""
+    var body: some View {
+        Button { isOn.toggle() } label: {
+            ZStack(alignment: .leading) {
+                Capsule().fill(isOn ? Color(hex: "#F4F5F8") : Color.white.opacity(0.16))
+                Circle().fill(isOn ? Color(hex: "#0E1018") : Color.white).frame(width: 26, height: 26).padding(.leading, isOn ? 23 : 3)
+            }
+            .frame(width: 52, height: 32).animation(.easeOut(duration: 0.18), value: isOn)
+        }
+        .buttonStyle(.plain).accessibilityLabel(label)
+        .accessibilityAddTraits(.isButton).accessibilityValue(isOn ? "on" : "off")
+    }
+}

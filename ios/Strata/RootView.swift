@@ -16,6 +16,10 @@ struct RootView: View {
                         else {
                             switch model.screen {
                             case .today: TodayView()
+                            case .progress: ProgressScreen()
+                            case .history: HistoryView()
+                            case .detail(let i): DetailView(index: i)
+                            case .settings: SettingsView()
                             case .preview(let d): PreviewView(day: d)
                             case .pick: PickCardioView()
                             case .cdone: CardioDoneView()
@@ -28,6 +32,10 @@ struct RootView: View {
                 .environment(\.safeTop, geo.safeAreaInsets.top)
                 .ignoresSafeArea(edges: .top)
                 .frame(maxWidth: .infinity)
+                if model.onboard == nil, model.engine != nil, model.engine?.db.active == nil, model.engine?.db.live == nil,
+                   [Screen.today, .progress, .history, .settings].contains(model.screen), !(model.engine?.celebration != nil) {
+                    TabBar(current: model.screen).frame(maxHeight: .infinity, alignment: .bottom)
+                }
                 if let t = model.toast {
                     ToastView(text: t).padding(.top, geo.safeAreaInsets.top + 14)
                         .transition(.move(edge: .top).combined(with: .opacity)).zIndex(10)

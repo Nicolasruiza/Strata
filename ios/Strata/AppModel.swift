@@ -23,6 +23,10 @@ final class AppModel: ObservableObject {
     @Published var pending: PendingRoute?
     @Published var pendingEnd: Prompt?
     @Published var celebrationShown = false
+    @Published var progLift: String?
+    @Published var progRange = 8
+    @Published var importPrompt: String?
+    var importPending: AppData?
     @Published var pickAct: String?
     @Published var vo2N: Int?
     @Published var location: LocationState = .waiting
@@ -129,6 +133,10 @@ final class AppModel: ObservableObject {
 /// Where the user is, outside the locked workout (`scr` in the web).
 enum Screen: Equatable {
     case today
+    case progress
+    case history
+    case detail(index: Int)
+    case settings
     case preview(day: Int)
     case pick
     case cdone
@@ -139,8 +147,8 @@ enum Screen: Equatable {
 /// Buttons whose destination is built in a later PR record the request here and nothing opens
 /// (PARITY.md marks them).
 enum PendingRoute: Equatable {
-    case detail(historyIndex: Int)
-    case pickCardio, howTheFourByFourWorks      // handled now: they open the picker / the 4×4 screen
+    case detail(historyIndex: Int)              // handled: opens the session detail
+    case pickCardio, howTheFourByFourWorks      // handled: they open the picker / the 4×4 screen
 }
 
 extension AppModel {
@@ -148,7 +156,7 @@ extension AppModel {
         switch r {
         case .pickCardio: pickAct = nil; go(.pick)
         case .howTheFourByFourWorks: vo2N = nil; go(.vo2)
-        default: pending = r
+        case .detail(let i): go(.detail(index: i))
         }
     }
     func go(_ s: Screen) { screen = s }
