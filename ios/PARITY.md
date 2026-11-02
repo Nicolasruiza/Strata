@@ -43,12 +43,57 @@ system font for now (the font files in `fonts.css` are WOFF2, which iOS can't lo
 ## Toast
 - [x] Pill at the top, 2.8 s, same copy as the web
 
+## Workout preview (`previewView`) — `PreviewView.swift`
+- [x] Hero (short) with back button: eyebrow date, plan name, "Glutes, legs and bone" / "Chest, back, shoulders, arms"
+- [x] Pills: "~N min" (×0.75 rounded to 5 on a lighter day), "N main lifts", "N landings" (legs)
+- [x] Rest-day warning (when a workout isn't open)
+- [x] Warm-up card (legs or warm-up block): "Warm-up · Bone · 5 min" / "Do first"; Pogo hops 3 × 10, Box jumps 3 × 5 · step down, balance lifts "2 × r · balance"; form-video button on each
+- [x] "Main lifts": photo, name, "sets × reps[ / leg] · **weight**[ · heavy][ · on hold]", "Last: w × reps · plates", form-video button
+- [x] "Bonus · if time" (dashed) with "+N min" and the names (hidden on a lighter day)
+- [x] "Feeling flat?" switch: "Lighter version: 85% weight, 2 sets, no bonus. Weights don't go up."
+- [x] Dock: "Start with jumps" / "Start workout"; "Finish the open workout first" toast; rest-day confirm "…Start anyway?"
+
+## Jumps warm-up (`jumpsView`) — `JumpsView.swift`
+- [x] Hero (short): back (marks seen), eyebrow "Bone · <plan>", "Jumps warm-up", "Impact for bone density. Short, sharp, done before you lift."
+- [x] Cards: photo, name, "sets × reps", form-video, how-to copy, Set buttons that toggle to a check
+- [x] Dock: "Skip", "Mark done · start lifting" → "Done · start lifting" (mint) when all sets are done; logs 45 landings and the warm-up lifts
+
+## Strength overview (`overviewView`) — `OverviewView.swift`
+- [x] Top: plan name + live "mm:ss elapsed", "···" options sheet (Finish workout, Lighter day, Discard workout)
+- [x] Eyebrow "Strength[ + Bone][ · lighter day]" (violet), plan name, progress bar, "N of M main lifts done"
+- [x] Rest banner (Rest / Go, countdown, "+30 s", "Skip")
+- [x] Legs: "Warm-up · Bone" → "Jumps warm-up" row ("Pogo hops 3 × 10 · Box jumps 3 × 5", check when done)
+- [x] Groups "Basics / Compound / Isolation[ · if time]" with "d of n"; rows with photo, name, "n × reps · weight[ · swapped]" and Done check / "x/n" / "Busy" / "Next" / chevron
+- [x] Dock: "Discard" (confirm) + "Complete" (finish prompts)
+
+## Exercise in focus (`focusView`) — `FocusView.swift`
+- [x] Photo header with back to the list, logo, exercise timer
+- [x] Block tag ("Compound 1 of 2"), name, "n sets × reps", injury warning
+- [x] "Last time" + trend chip (First time / Progressing / On track / Behind / Stalled / On hold)
+- [x] Rest banner; "Today's weight" with −/+ and plate math
+- [x] Warm-up rows (check, "Warm-up i", plates, Remove); set rows (Done + undo on the last, current with reps stepper + "Log", upcoming)
+- [x] "+ Set", "+ Warm-up", "Form video", "Swap" (only when there are alternates), "Machine busy"
+- [x] Dock: "Discard", "Complete" (confirms when sets are unlogged)
+- [x] Sheets: warm-up options, "Machine busy?" swap list
+
+## Countdown and lock
+- [x] 3-2-1 overlay with "Strength · <plan>" / "Get ready" on first show; haptic cue at the end
+- [x] The workout is a full-screen cover that can't be swiped away; screen stays awake; Complete / Discard are the only exits
+- [ ] Starting the Apple Watch session after the countdown (phase 4)
+
+## Workout complete (`doneView`) — `CompleteView.swift`
+- [x] Hero (tall): "<plan> · <date>", "Workout complete", sub by outcome, check badge
+- [x] Stats: Minutes, "main/required[ +bonus]" Lifts, "lb moved"
+- [x] Rings card with "Still to go: …" / "All three layers done for the week."
+- [x] "Next time": per lift, reps at weight, "N more reps unlocks W", up/Hold chip
+- [x] "vs last <plan> · <date>" comparison with bars and legend; "Bone · impact" card; next-session card
+- [x] Dock: [~] "Add cardio", "Done"
+
 ## Not built yet (later PRs)
-Tab bar, workout preview, jumps warm-up, strength overview and focus, cardio picker / live / done,
-between-blocks sheet, workout complete, history and detail, progress, settings. Exercise-level
-screens use the same `Thumb`, `Hero`, `Card` and button styles added here.
+Tab bar, cardio picker / live / done, between-blocks sheet, history and detail, progress, settings
+(the other three tabs).
 
 ## Not checked visually
-These screens compile and share their data logic with the golden-tested core, but they have not yet
+Today and the screens above compile and share their data logic with the golden-tested core, but they have not yet
 been looked at in a simulator (the simulator was unusable on the build machine). Compare on a device
 or simulator before relying on spacing.

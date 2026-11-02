@@ -20,6 +20,12 @@ public struct Ex: Codable, Equatable {
     public var mult: Double?
     public var sets: Int?
 
+    public init(id: String, n: String, r: Int? = nil, w: Double? = nil, inc: Double? = nil, key: Int? = nil, each: Int? = nil,
+                bw: Int? = nil, plates: Int? = nil, injured: Int? = nil, bar: Double? = nil, frac: Double? = nil, mult: Double? = nil, sets: Int? = nil) {
+        self.id = id; self.n = n; self.r = r; self.w = w; self.inc = inc; self.key = key; self.each = each
+        self.bw = bw; self.plates = plates; self.injured = injured; self.bar = bar; self.frac = frac; self.mult = mult; self.sets = sets
+    }
+
     public var isBodyweight: Bool { (bw ?? 0) != 0 }
     public var isEach: Bool { (each ?? 0) != 0 }
     public var isKey: Bool { (key ?? 0) != 0 }

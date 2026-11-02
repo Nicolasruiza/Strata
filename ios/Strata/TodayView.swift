@@ -48,7 +48,7 @@ struct TodayView: View {
                 Text("In progress").labelStyle(Theme.violet)
                 Text(e.plan[A.day]?.name ?? "").title2Style().padding(.top, 4).padding(.bottom, 2)
                 Text("\(n) of \(req.count) main lifts logged").metaStyle()
-                Button("Resume workout") { model.navigate(.resume) }
+                Button("Resume workout") { model.tick() }
                     .buttonStyle(StrataButtonStyle(kind: .violet)).padding(.top, 14)
             }.card(border: Theme.violet.opacity(0.45))
         } else if e.skipOn(selDate) != nil && !e.slotDone(slot, selDate, mon) {
@@ -94,7 +94,7 @@ struct TodayView: View {
                             }
                         }.padding(.top, 12)
                         if let g = g, !g.ok { WarnBox(markdown: g.msg).padding(.top, 12) }
-                        Button(isToday ? "See workout" : "Preview") { model.navigate(.preview(day: d)) }
+                        Button(isToday ? "See workout" : "Preview") { model.go(.preview(day: d)) }
                             .buttonStyle(StrataButtonStyle(kind: isToday ? .violet : .plain)).padding(.top, 14)
                     }.card()
                 }
@@ -240,7 +240,7 @@ struct TodayView: View {
                     Text("\(e.requiredItems(nd).count) main lifts · ~\(jsMinutes(e.minutesFor(nd))) min\(e.isLegs(nd) ? " · jumps first" : "")").metaStyle()
                 }
                 Spacer(minLength: 0)
-                Button(e.liftedOn(t) != nil ? "Preview" : "Open") { model.navigate(.preview(day: nd)) }
+                Button(e.liftedOn(t) != nil ? "Preview" : "Open") { model.go(.preview(day: nd)) }
                     .buttonStyle(StrataButtonStyle(small: true)).fixedSize().padding(.horizontal, 0)
             }
             .padding(.horizontal, 14).padding(.vertical, 12)

@@ -19,7 +19,16 @@ final class AppModel: ObservableObject {
     @Published var selDay: Int?
     @Published var saveFailed = false
     @Published var sheet: Sheet?
-    @Published var route: Route?
+    @Published var screen: Screen = .today
+    @Published var pending: PendingRoute?
+    @Published var pendingEnd: Prompt?
+    @Published var celebrationShown = false
+    @Published var jumpSets: [String: Int] = [:]
+    @Published var swapOpen = false
+    @Published var warmOpen = false
+    @Published var menuOpen = false
+    var restTicker: Task<Void, Never>?
+    @Published var countdown: CountdownState?
     @Published var confirmDelete: (date: String, type: String)?
 
     enum Sheet: Identifiable {
@@ -52,6 +61,7 @@ final class AppModel: ObservableObject {
         let t = change(&e)
         engine = e
         persist()
+        if e.rest != nil { ensureRestTicker() }
         if let t = t, !t.isEmpty { show(t) }
     }
 
@@ -108,12 +118,77 @@ final class AppModel: ObservableObject {
     }
 }
 
-/// Where a button on Today leads. The destinations are built in the next PRs; until then
-/// `navigate` records the request and nothing is shown (PARITY.md marks these buttons).
-enum Route: Equatable {
-    case preview(day: Int), detail(historyIndex: Int), pickCardio, resume, howTheFourByFourWorks
+/// Where the user is, outside the locked workout (`scr` in the web).
+enum Screen: Equatable {
+    case today
+    case preview(day: Int)
+}
+
+/// Buttons whose destination is built in a later PR record the request here and nothing opens
+/// (PARITY.md marks them).
+enum PendingRoute: Equatable {
+    case detail(historyIndex: Int), pickCardio, howTheFourByFourWorks
 }
 
 extension AppModel {
-    func navigate(_ r: Route) { route = r }
+    func navigate(_ r: PendingRoute) { pending = r }
+    func go(_ s: Screen) { screen = s }
+}
+
+// MARK: workout support: rest timer, haptic cue, 3-2-1 countdown, form videos
+
+struct CountdownState: Equatable { var label: String; var n: Int }
+
+extension AppModel {
+    /// `cue()`: haptic (the web also beeps and vibrates). The watch haptic arrives in phase 4.
+    func cue() { UINotificationFeedbackGenerator().notificationOccurred(.warning) }
+
+    /// `tickLift`: beep once when rest ends, drop the banner 15 s later.
+    func ensureRestTicker() {
+        guard restTicker == nil else { return }
+        restTicker = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                guard let self = self else { return }
+                if self.engine?.rest == nil { self.restTicker = nil; return }
+                self.tickRest()
+            }
+        }
+    }
+
+    private func tickRest() {
+        guard var e = engine, var r = e.rest else { return }
+        e.nowMs = Self.nowMs()
+        let rem = (r.endAt - e.nowMs) / 1000
+        if rem <= 0 && !r.beeped { r.beeped = true; e.rest = r; engine = e; cue(); return }
+        if rem < -15 { e.rest = nil; engine = e; return }
+        engine = e
+    }
+
+    func extendRest() {
+        guard var e = engine, var r = e.rest else { return }
+        e.nowMs = Self.nowMs()
+        r.endAt = max(r.endAt, e.nowMs) + Config.Rest.extend * 1000
+        r.total += Config.Rest.extend
+        r.beeped = false
+        e.rest = r; engine = e
+    }
+    func skipRest() { engine?.rest = nil }
+
+    /// The 3-2-1 before a workout (`countdown()`); the watch is started here in phase 4.
+    func runCountdown(label: String) {
+        countdown = CountdownState(label: label, n: Config.workout.countdownSec)
+        Task { [weak self] in
+            for n in stride(from: Config.workout.countdownSec, to: 0, by: -1) {
+                await MainActor.run { self?.countdown?.n = n }
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+            }
+            await MainActor.run { self?.countdown = nil; self?.cue() }
+        }
+    }
+
+    func openFormVideo(id: String, name: String) {
+        guard let e = engine, let url = URL(string: Fmt.formVideoURL(id: id, name: name, qmapKey: e.ap.qmap)) else { return }
+        UIApplication.shared.open(url)
+    }
 }
