@@ -78,7 +78,7 @@ struct CardioLiveView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text(jsMinutes(hr)).font(.system(size: 84, weight: .heavy)).tracking(-3.4).monospacedDigit()
                         Text("bpm").font(.system(size: 24, weight: .semibold)).foregroundStyle(Theme.muted)
-                    }
+                    }.frame(height: 84)
                     if let z = zc {
                         HStack(spacing: 10) {
                             Text("Z\(z)").font(.system(size: 20, weight: .heavy)).foregroundStyle(Theme.coral)
@@ -95,7 +95,7 @@ struct CardioLiveView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text("—").font(.system(size: 84, weight: .heavy)).foregroundStyle(Theme.dim)
                         Text("bpm").font(.system(size: 24, weight: .semibold)).foregroundStyle(Theme.muted)
-                    }
+                    }.frame(height: 84)
                     Text(Config.Copy.noHeartRateNoWatchYet).metaStyle()
                 }
             }

@@ -105,6 +105,7 @@ struct Hero: View {
     var tall = false
     var short = false
     var image = "mountain"
+    var brand = true              // heroes with a back button replace the logo (`o.left`)
     @Environment(\.safeTop) private var safeTop
 
     var body: some View {
@@ -116,6 +117,7 @@ struct Hero: View {
                            startPoint: .top, endPoint: .bottom)
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 8) { LogoMark(); Text("Strata").font(.system(size: 20, weight: .bold)).tracking(-0.2) }
+                    .opacity(brand ? 1 : 0).frame(minHeight: 44)
                     .padding(.top, 14 + safeTop)
                 Spacer(minLength: 0)
                 if let e = eyebrow {

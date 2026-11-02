@@ -22,7 +22,7 @@ struct JumpsView: View {
             VStack(spacing: 0) {
                 ZStack(alignment: .topLeading) {
                     Hero(eyebrow: "Bone · \(e.plan[A.day]?.name ?? "")", title: "Jumps warm-up",
-                         sub: "Impact for bone density. Short, sharp, done before you lift.", short: true)
+                         sub: "Impact for bone density. Short, sharp, done before you lift.", short: true, brand: false)
                     GlassButton(action: { model.mutate { $0.skipJumps(); return nil } }, accessibility: "Back") {
                         IconView(d: "M15 5l-7 7 7 7", size: 18, color: .white, line: 2.4)
                     }.padding(.leading, 16).padding(.top, 14 + safeTop)
