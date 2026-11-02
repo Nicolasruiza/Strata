@@ -240,16 +240,25 @@ struct OptRow<Trailing: View>: View {
     }
 }
 
-/// Bottom sheet chrome (`.sheet`)
+private struct SheetHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
+}
+
+/// Bottom sheet chrome (`.sheet`): as tall as its content, up to 86% of the screen.
 struct SheetChrome<Content: View>: View {
     @ViewBuilder var content: () -> Content
+    @State private var height: CGFloat = 0
     var body: some View {
+        let cap = UIScreen.main.bounds.height * 0.86
         ScrollView {
             VStack(alignment: .leading, spacing: 0) { content() }
                 .padding(.horizontal, 16).padding(.top, 22).padding(.bottom, 20)
+                .background(GeometryReader { g in Color.clear.preference(key: SheetHeightKey.self, value: g.size.height) })
         }
+        .onPreferenceChange(SheetHeightKey.self) { height = $0 }
         .background(Color(hex: "#171A26").ignoresSafeArea())
-        .presentationDetents([.medium, .large])
+        .presentationDetents(height > 0 ? [.height(min(height, cap))] : [.medium])
         .presentationDragIndicator(.visible)
         .presentationBackground(Color(hex: "#171A26"))
         .preferredColorScheme(.dark)
