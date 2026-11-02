@@ -248,3 +248,47 @@ extension Engine {
         db.cardio = db.cardio.stableSorted { $0.date < $1.date }
     }
 }
+
+public struct WeekStripItem: Codable, Equatable {
+    public var w: Int
+    public var kind: String       // "normal" or "skip"
+    public var label: String
+    public var color: String      // hex
+    public var done: Bool
+    public var today: Bool
+}
+
+extension Engine {
+    /// The seven day buttons of the week strip on Today (`todayView`).
+    public func weekStrip() -> [WeekStripItem] {
+        let t = today, mon = Dates.mondayOf(t), wp = weekPlan(), slots = liftSlots(mon), ds = Dates.weekDates(mon)
+        let KC = ["m": "#9C8CFF", "h": "#FF6B4A", "b": "#4ADE80"]
+        return Engine.wdOrder.enumerated().map { (i, w) in
+            let s = wp[w] ?? "rest", d = ds[i], sk = skipOn(d)
+            let gymDone = s == "lift" ? liftedOn(d) != nil : s == "office" ? cardioOn(d, "office") != nil
+                : (catalog.ctype[s].map { cardioOn(d, $0) != nil } ?? false)
+            if let sk = sk, !gymDone {
+                let ring = catalog.home[sk.key]?.ring ?? "h"
+                return WeekStripItem(w: w, kind: "skip", label: sk.why == "sick" ? "Rest" : "Home",
+                                     color: sk.why == "sick" ? "#6E7385" : KC[ring]!, done: (sk.done ?? 0) != 0, today: d == t)
+            }
+            let col = s == "lift" ? KC["m"]! : heartSlots.contains(s) ? KC["h"]! : "#6E7385"
+            let lab: String
+            if s == "lift" {
+                if let day = slots[w]?.day, let name = plan[day]?.name {
+                    lab = name.replacingOccurrences(of: "Upper", with: "Up", options: [], range: name.range(of: "Upper"))
+                        .replacingOccurrences(of: "Legs", with: "Leg", options: [], range: nil)
+                } else { lab = "—" }
+            } else { lab = ["office": "Office", "z2": "Z2", "vo2": "4×4", "walk": "Walk", "rest": "Rest"][s] ?? "" }
+            return WeekStripItem(w: w, kind: "normal", label: lab, color: col, done: gymDone, today: d == t)
+        }
+    }
+
+    /// `greet()`: by the local hour.
+    public func greet() -> String {
+        let off = tz.secondsFromGMT(for: Date(timeIntervalSince1970: nowMs / 1000))
+        let localSec = Int((nowMs / 1000).rounded(.down)) + off
+        let h = ((localSec % 86_400) + 86_400) % 86_400 / 3600
+        return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"
+    }
+}

@@ -229,6 +229,9 @@ const Q = {   // pure queries: `ret` only
   progressWeeks: `(()=>{const mon=mondayOf(today()), W8=[...Array(8).keys()].map(i=>addDays(mon,-7*(7-i)));
     return {stats:W8.map(m=>weekStats(m)), cardio:W8.map(m=>{const ds=weekDates(m);return (DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type!=='jumps').length}),
       steps:W8.map(m=>{const ds=weekDates(m), s=(DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type==='office'&&c.steps);return s.length?Math.round(s.reduce((a,c)=>a+c.steps,0)/s.length):0})}})()`,
+  // copied from todayView() in app.js (the week strip); keep in sync
+  weekStrip: `(()=>{const t=today(), mon=mondayOf(t), wp=weekPlan(), slots=liftSlots(mon), ds=weekDates(mon); return WD_ORDER.map((w,i)=>{const s=wp[w], d=ds[i], sk=skipOn(d); const gymDone=s==='lift'?!!liftedOn(d):s==='office'?!!cardioOn(d,'office'):!!cardioOn(d,CTYPE[s]); if(sk&&!gymDone){return {w,kind:'skip',label:sk.why==='sick'?'Rest':'Home',color:sk.why==='sick'?'#6E7385':KC[HOME[sk.key].ring],done:!!sk.done,today:d===t}} const lp=slots[w]; const col=s==='lift'?KC.m:HEART.has(s)?KC.h:'#6E7385'; const lab=s==='lift'?(lp&&lp.day?PLAN[lp.day].name.replace('Upper','Up').replace('Legs','Leg'):'—'):({office:'Office',z2:'Z2',vo2:'4×4',walk:'Walk',rest:'Rest'}[s]); return {w,kind:'normal',label:lab,color:col,done:gymDone,today:d===t}})})()`,
+  greet: `greet()`,
   newProfile: `newProfile(__a[0],__a[1])`,
   rcHR: `rcHR()`,
   hrMax: `hrMax()`,
@@ -382,6 +385,7 @@ function buildCases(S) {
       add('liftSlots', sc, nk, [mondayOfLocal(NOWS[nk])]);
       add('nextCard', sc, nk, [localDate(NOWS[nk])]);
       add('gate', sc, nk, [1]); add('gate', sc, nk, [2]); add('gate', sc, nk, [3]); add('gate', sc, nk, [4]);
+      add('weekStrip', sc, nk); add('greet', sc, nk);
       add('recentCardio', sc, nk); add('agoLabel', sc, nk, ['2026-11-02']); add('agoLabel', sc, nk, ['2026-10-31']); add('agoLabel', sc, nk, ['2026-10-12']);
     }
     for (const mon of MONS) {

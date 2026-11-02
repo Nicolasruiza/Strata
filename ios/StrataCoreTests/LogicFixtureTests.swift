@@ -140,6 +140,8 @@ final class LogicFixtureTests: XCTestCase {
         case "isLegs": o.ret = e.isLegs(int(a, 0))
         case "ringsLine": o.ret = e.ringsLine(e.weekStats(str(a, 0)))
         case "weekHeadline": o.ret = e.weekHeadline(e.weekStats(str(a, 0)))
+        case "weekStrip": o.ret = obj(e.weekStrip())
+        case "greet": o.ret = e.greet()
         case "nextCard": o.ret = obj(e.nextCard(from: str(a, 0)))
         case "historyItems": o.ret = obj(e.historyItems())
         case "exCount": o.ret = e.exCount(e.db.history[int(a, 0)])
