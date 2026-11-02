@@ -50,7 +50,7 @@ struct CardioLiveView: View {
                     }.fixedSize(horizontal: false, vertical: true)
                     HStack(spacing: 8) {
                         IconView(d: Icon.watch, size: 18, color: .white, line: 1.9)
-                        Text(Config.Copy.chipWatchUnsupported).font(.inter(size: 14, weight: .semibold))
+                        Text(model.watchConnected ? Config.Copy.chipWatchConnected : Config.Copy.chipWatchNotConnected).font(.inter(size: 14, weight: .semibold))
                     }
                     .padding(.horizontal, 16).padding(.vertical, 9)
                     .overlay(Capsule().strokeBorder(Theme.line)).frame(maxWidth: .infinity)
@@ -96,7 +96,7 @@ struct CardioLiveView: View {
                         Text("—").font(.inter(size: 84, weight: .heavy)).foregroundStyle(Theme.dim)
                         Text("bpm").font(.inter(size: 24, weight: .semibold)).foregroundStyle(Theme.muted)
                     }.frame(height: 84)
-                    Text(Config.Copy.noHeartRateNoWatchYet).metaStyle()
+                    if !model.watchConnected { Text(Config.Copy.noHeartRateWatchUnreachable).metaStyle() }
                 }
             }
             Spacer(minLength: 0)

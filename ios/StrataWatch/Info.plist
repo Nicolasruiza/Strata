@@ -22,8 +22,16 @@
 	<string>1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Strata reads your heart rate during workouts.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Strata saves your workouts and heart rate to Apple Health.</string>
 	<key>WKApplication</key>
 	<true/>
+	<key>WKBackgroundModes</key>
+	<array>
+		<string>workout-processing</string>
+	</array>
 	<key>WKCompanionAppBundleIdentifier</key>
 	<string>net.nicolasruiz.strata</string>
 </dict>

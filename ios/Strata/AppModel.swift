@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 import StrataCore
 
@@ -49,11 +50,15 @@ final class AppModel: ObservableObject {
     private let store = LocalStore()
     let sensors = AppSensors()
     let health = HealthKitService()
+    private var watchSub: AnyCancellable?
+    @Published var watchConnected = false
     var liveTicker: Task<Void, Never>?
     private var toastTask: Task<Void, Never>?
 
     init() {
         sensors.onStateChange = { [weak self] s in Task { @MainActor in self?.location = s } }
+        sensors.bridge = health.bridge
+        watchSub = health.bridge.$connected.receive(on: DispatchQueue.main).sink { [weak self] c in self?.watchConnected = c }
         if let p = store.loadProfile() {
             engine = Engine(profile: p, db: store.loadData(), nowMs: Self.nowMs(), tz: .current)
             if let L = engine?.db.live { sensors.start(L); ensureLiveTicker() }     // reopened mid-workout
@@ -168,8 +173,8 @@ extension AppModel {
 struct CountdownState: Equatable { var label: String; var n: Int }
 
 extension AppModel {
-    /// `cue()`: haptic (the web also beeps and vibrates). The watch haptic arrives in phase 4.
-    func cue() { UINotificationFeedbackGenerator().notificationOccurred(.warning) }
+    /// `cue()`: haptic (the web also beeps and vibrates). The watch gets the same cue.
+    func cue() { UINotificationFeedbackGenerator().notificationOccurred(.warning); health.bridge.sendCue() }
 
     /// `tickLift`: beep once when rest ends, drop the banner 15 s later.
     func ensureRestTicker() {
@@ -238,6 +243,10 @@ extension AppModel {
             if let L = self.engine?.db.live { self.sensors.start(L) }
             self.ensureLiveTicker()
             self.screen = .today
+            // The web starts the watch right after the countdown and says so when it did.
+            Task { @MainActor in
+                if await self.health.startWatch(WatchStartConfig(activity: act)) { self.show("Apple Watch · \(name) started") }
+            }
         }
     }
 

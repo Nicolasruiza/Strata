@@ -155,3 +155,11 @@ Web quirk seen while comparing (not ported, not changed): opening the web app wi
 - [x] Cardio-complete footer: "Saved to Apple Health" only when that call returned true, otherwise "Saved in Strata · Not saved to Apple Health"
 - [x] Only workouts and heart rate (write) and steps (read) are requested; usage strings and the HealthKit entitlement are in `project.yml` / `Strata.entitlements`
 - Not verified: the Health permission sheet and a saved workout need a real device (the simulator has no Health data source)
+
+## Apple Watch (phase 4)
+- [x] `StrataWatch`: `HKWorkoutSession` + `HKLiveWorkoutBuilder` started by the phone (`startWatchApp`), mirrored to the phone; heart rate streamed as real readings; the watch saves the workout to Apple Health and reports what `finishWorkout()` returned
+- [x] Phone: `WatchBridge` feeds `Sensors.read` / `hrSource`; the cardio-complete footer uses the watch's real save result (falls back to a phone-side save when no watch session ran)
+- [x] Cue haptic on the watch (`WKInterfaceDevice.play(.notification)`) alongside the phone's
+- [x] Copy (Q3): "Apple Watch connected" / "Apple Watch not connected", "No heart rate. Open Strata on your Apple Watch."
+- Not done: Live Activity (needs a widget extension target)
+- Not verified: everything on this list needs a paired Apple Watch; it compiles in CI but has never run on hardware

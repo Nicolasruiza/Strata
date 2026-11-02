@@ -62,9 +62,13 @@ targets:
         WKApplication: true
         WKCompanionAppBundleIdentifier: net.nicolasruiz.strata
         ITSAppUsesNonExemptEncryption: false
+        WKBackgroundModes: [workout-processing]
+        NSHealthShareUsageDescription: Strata reads your heart rate during workouts.
+        NSHealthUpdateUsageDescription: Strata saves your workouts and heart rate to Apple Health.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: net.nicolasruiz.strata.watchkitapp
+        CODE_SIGN_ENTITLEMENTS: StrataWatch/StrataWatch.entitlements
         GENERATE_INFOPLIST_FILE: NO
 schemes:
   Strata:
