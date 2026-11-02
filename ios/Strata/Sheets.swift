@@ -50,11 +50,17 @@ struct EditCardioSheet: View {
     let date: String, type: String
     @State private var value = ""
 
+    private static func field(_ type: String, _ c: CardioEntry?) -> (String, Double) {
+        if type == "office" { return ("steps", c?.steps ?? 0.0) }
+        if type == "4x4" { return ("intervals", c?.intervals ?? 4.0) }
+        return ("minutes", c?.min ?? 0.0)
+    }
+
     var body: some View {
         let e = model.engine!
         let c = e.cardioOn(date, type)
         let names = ["office": "Office day", "4x4": "4×4 intervals", "z2": "Zone 2 walk", "walk": "Walk", "cardio": "Cardio", "home": "Home session"]
-        let field = type == "office" ? ("steps", c?.steps ?? 0) : type == "4x4" ? ("intervals", c?.intervals ?? 4) : ("minutes", c?.min ?? 0)
+        let field = Self.field(type, c)
         SheetChrome {
             Text(Dates.fmtD(date, .init(weekday: .long, month: .short, day: true))).labelStyle()
             Text(names[type] ?? type).title2Style(20).padding(.top, 4)
