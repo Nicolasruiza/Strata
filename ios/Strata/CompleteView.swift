@@ -29,8 +29,7 @@ struct CompleteView: View {
     @EnvironmentObject var model: AppModel
 
     var body: some View {
-        let e = model.engine!, c = e.celebration!
-        if let sum = e.sessionSummary(c) {
+        if let e = model.engine, let c = e.celebration, let sum = e.sessionSummary(c) {
             let s = e.db.history[c.idx]
             let st = e.weekStats(Dates.mondayOf(s.date))
             let lifts = c.ups.count

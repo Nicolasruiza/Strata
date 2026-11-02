@@ -6,6 +6,9 @@ public struct ExportHeader: Codable, Equatable {
     public var profile: String?
     public var profileName: String?
     public var planKey: String?
+    public init(app: String? = nil, profile: String? = nil, profileName: String? = nil, planKey: String? = nil) {
+        self.app = app; self.profile = profile; self.profileName = profileName; self.planKey = planKey
+    }
 }
 
 extension Engine {

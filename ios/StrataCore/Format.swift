@@ -40,6 +40,8 @@ public enum Fmt {
         while s.count > 3 { out = "," + s.suffix(3) + out; s = String(s.dropLast(3)) }
         return (r < 0 ? "-" : "") + s + out
     }
+    /// `Number.prototype.toFixed`
+    public static func fmtFixed(_ v: Double, _ digits: Int) -> String { jsFixed(v, digits) }
     public static func fmtSets(_ v: Double) -> String { v == v.rounded() ? jsNum(v) : jsFixed(v, 1) }
 
     /// `plateTxt`: "45 lb bar + 25 + 10 / side".

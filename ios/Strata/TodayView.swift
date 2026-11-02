@@ -282,8 +282,6 @@ struct TodayView: View {
     }
 }
 
-/// `1.0` → "1", for values the web prints straight from a JS number.
-func jsMinutes(_ v: Double) -> String { v == v.rounded() ? String(Int(v)) : "\(v)" }
 
 struct DayButton: View {
     let item: WeekStripItem

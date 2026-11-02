@@ -9,6 +9,9 @@ func jsNum(_ d: Double) -> String {
     return "\(d)"
 }
 
+/// A JS number printed straight from a template literal: `1.0` → "1".
+public func jsMinutes(_ v: Double) -> String { jsNum(v) }
+
 /// `Number.prototype.toFixed` for the small values the app uses.
 func jsFixed(_ d: Double, _ digits: Int) -> String { String(format: "%.\(digits)f", d) }
 

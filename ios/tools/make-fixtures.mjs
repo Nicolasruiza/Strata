@@ -235,6 +235,15 @@ const Q = {   // pure queries: `ret` only
   // copied from vo2View() / vo2DoneView() in app.js
   vo2Ramp: `(()=>{const c=(DB.cardio||[]).filter(x=>x.type==='4x4').length; return c<3?\`Ramp-up session \${c+1} of 3: 3 intervals at the low end of the range.\`:'Full 4×4. Add speed or incline when the last interval feels easier than the first.'})()`,
   vo2DoneView: `(()=>{const v=vo2Done||{intervals:4,min:rcMinutes(4),date:today()}, st=weekStats(mondayOf(v.date)); return {v,st,sub:st.all?'All 3 rings closed this week.':st.closed[1]?'Heart ring closed for the week.':'Heart work logged.',ringsLine:st.all?'Muscle, heart and bone: the full week is in.':ringsLine(st),note:(DB.cardio||[]).filter(x=>x.type==='4x4').length<3?'Ramp-up phase: keep it at 3 intervals until you have 3 sessions in.':'Next time, add a little speed or incline if the last interval felt easier than the first.'}})()`,
+  // histRow() returns HTML; the texts are read back out of it
+  historyRow: `(()=>{ const it=historyItems()[__a[0]]; const h=histRow(it,false); const strip=t=>t.replace(/<[^>]+>/g,'');
+    const name=strip(h.match(/<span class="name" style="display:block">([\\s\\S]*?)<\\/span>/)[1]);
+    const meta=strip(h.match(/<span class="meta">([\\s\\S]*?)<\\/span>/)[1]);
+    const right=strip(h.match(/<span class="name" style="font-size:15px">([\\s\\S]*?)<\\/span>/)[1]);
+    const icon=it.kind==='lift'?'lift':/I\\.home|M4 11l8-6.5/.test(h)?'home':/class="ico c"[^>]*><svg[^>]*><path d="M12 20s/.test(h)?'heart':'walk';
+    return {name,meta,right,icon,jumps:/color:var\\(--mint\\)">jumps/.test(h)} })()`,
+  // copied from lineSVG() in app.js
+  chartScale: `(()=>{const ys=__a[0], lo=Math.min(...ys), hi=Math.max(...ys), pad=Math.max(5,(hi-lo)*.2), y0=Math.floor((lo-pad)/5)*5, y1=Math.ceil((hi+pad)/5)*5; return {y0,y1,ticks:[y0,Math.round((y0+y1)/2),y1]}})()`,
   newProfile: `newProfile(__a[0],__a[1])`,
   rcHR: `rcHR()`,
   hrMax: `hrMax()`,
@@ -399,6 +408,7 @@ function buildCases(S) {
     for (const slot of ['lift', 'z2', 'vo2', 'walk', 'office', 'rest']) for (const d of ['2026-10-31', '2026-11-01', '2026-11-02']) add('homeKey', sc, 'mon', [slot, d]);
     for (const d of [1, 2, 3, 4]) { add('minutesFor', sc, 'mon', [d]); add('isLegs', sc, 'mon', [d]); add('warmIds', sc, 'mon', [d]); }
     for (const i of [0, 1, 2, 5, 10]) add('exCount', sc, 'mon', [i]);
+    for (let i = 0; i < 24; i++) add('historyRow', sc, 'mon', [i]);
     for (const [lift, weeks] of [['rdl', 8], ['bb_press', 8], ['bb_press', 26], ['bb_press', 52], ['sa_rdl', 8], ['sa_db_bench', 26], ['gob_squat', 4]]) {
       add('topSets', sc, 'mon', [lift, weeks]); add('progressPoints', sc, 'mon', [lift, weeks]);
     }
@@ -418,6 +428,8 @@ function buildCases(S) {
     cases.push({id: `nextUp:edge#${n++}`, fn: 'nextUp', scenario: 'nr_active_busy', now: t, args: []});
   for (const t of ['2026-11-02T07:59:39-05:00', '2026-11-02T07:59:40-05:00', '2026-11-02T07:59:41-05:00'])
     add('takeSample', 'nr_live_4x4', t, [], {snap: true, pre: {reading: {hr: 140, alt: null}}});
+
+  for (const ys of [[135], [135, 145], [95, 105, 115, 120], [0, 5], [100, 100], [47.5, 52.5, 60], [180, 185, 190, 192.5, 200]]) add('chartScale', 'nr_empty', 'mon', [ys]);
 
   // heart-rate and cardio maths
   for (const age of [null, 0, 13, 14, 20, 35, 40, 52, 70, 99, 100, 33.5]) {
@@ -712,7 +724,7 @@ for (const tz of ['America/Toronto', 'UTC']) {
     try { done.push(await runCase(w, c, scenarios)); }
     catch (e) { skipped.push(c.id + ': ' + e.message); }
   }
-  if (skipped.length) console.log(tz, 'skipped', skipped.length, 'cases that throw in the web app (out-of-range indexes):', skipped.slice(0, 3).join(' | '));
+  if (skipped.length) console.log(tz, 'skipped', skipped.length, 'cases that throw in the web app (out-of-range indexes):', skipped.filter(x=>x.startsWith('historyRow')).slice(0, 2).join(' | '));
   const used = new Set(done.map(c => c.scenario));
   const file = {tz, scenarios: Object.fromEntries([...used].map(k => [k, scenarios[k]])), cases: done};
   const name = `logic.${tz.replace('/', '_')}.json`;

@@ -145,6 +145,11 @@ final class LogicFixtureTests: XCTestCase {
         case "vo2DoneView":
             let r = e.vo2DoneView(e.vo2Done)
             o.ret = ["v": obj(r.v) ?? NSNull(), "st": obj(r.st) ?? NSNull(), "sub": r.sub, "ringsLine": r.ringsLine, "note": r.note]
+        case "historyRow":
+            let items = e.historyItems()
+            guard int(a, 0) < items.count else { throw NSError(domain: "fixture", code: 3) }
+            o.ret = obj(e.historyRow(items[int(a, 0)]))
+        case "chartScale": o.ret = obj(Engine.chartScale(a[0] as! [Double]))
         case "weekStrip": o.ret = obj(e.weekStrip())
         case "greet": o.ret = e.greet()
         case "nextCard": o.ret = obj(e.nextCard(from: str(a, 0)))

@@ -108,8 +108,7 @@ struct PreviewView: View {
                             Text("Lighter version: 85% weight, 2 sets, no bonus. Weights don't go up.").metaStyle()
                         }
                         Spacer(minLength: 0)
-                        Toggle("Lighter version", isOn: Binding(get: { model.engine?.preLow ?? false }, set: { _ in model.mutate { $0.togglePreviewLighter(); return nil } }))
-                            .labelsHidden().tint(Color(hex: "#F4F5F8"))
+                        WebSwitch(isOn: Binding(get: { model.engine?.preLow ?? false }, set: { _ in model.mutate { $0.togglePreviewLighter(); return nil } }), label: "Lighter version")
                     }.card(tight: true)
                 }.padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 110)
             }.frame(maxWidth: Theme.maxWidth)

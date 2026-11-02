@@ -93,8 +93,7 @@ struct BlockSheet: View {
                         IconView(d: Icon.chev, size: 18, color: Theme.muted, line: 2.4)
                     }
                     .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 22).fill(LinearGradient(colors: [Theme.violet.opacity(0.18), Theme.violet.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing)))
-                    .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(Theme.violet.opacity(0.5)))
+                    .glowPanel(Theme.violet, radial: 0.35, from: 0.18, to: 0.05, radius: 22, border: 0.5)
                 }.buttonStyle(.plain).padding(.top, 10)
             }
             Button {

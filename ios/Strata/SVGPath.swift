@@ -136,6 +136,13 @@ enum Icon {
     static let timer = "M4 13a8 8 0 1 0 16 0a8 8 0 1 0 -16 0M12 9v4l2.5 2M10 2h4"
     static let flag = "M5 21V4m0 0h12l-2.5 4L17 12H5"
     static let back = "M15 5l-7 7 7 7"
+    static let chart = "M5 20V12M10 20V6M15 20v-9M20 20V9"
+    static let cal = "M6.5 5h11a3 3 0 0 1 3 3v9.5a3 3 0 0 1-3 3h-11a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3zM3.5 10h17M8 3v4M16 3v4M8 14h2M13 14h2M8 17h2"
+    static let gear = "M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"
+    static let dl = "M12 4v11M7 10l5 5 5-5M5 20h14"
+    static let ul = "M12 15V4M7 9l5-5 5 5M5 20h14"
+    static let close = "M6 6l12 12M18 6L6 18"
+    static let star = "M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"
 
     /// Cardio activity icons by `CARDIO_ACTS` key.
     static func cardio(_ act: String) -> String {

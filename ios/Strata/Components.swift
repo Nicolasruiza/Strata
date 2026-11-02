@@ -240,16 +240,25 @@ struct OptRow<Trailing: View>: View {
     }
 }
 
-/// Bottom sheet chrome (`.sheet`)
+private struct SheetHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
+}
+
+/// Bottom sheet chrome (`.sheet`): as tall as its content, up to 86% of the screen.
 struct SheetChrome<Content: View>: View {
     @ViewBuilder var content: () -> Content
+    @State private var height: CGFloat = 0
     var body: some View {
+        let cap = UIScreen.main.bounds.height * 0.86
         ScrollView {
             VStack(alignment: .leading, spacing: 0) { content() }
                 .padding(.horizontal, 16).padding(.top, 22).padding(.bottom, 20)
+                .background(GeometryReader { g in Color.clear.preference(key: SheetHeightKey.self, value: g.size.height) })
         }
+        .onPreferenceChange(SheetHeightKey.self) { height = $0 }
         .background(Color(hex: "#171A26").ignoresSafeArea())
-        .presentationDetents([.medium, .large])
+        .presentationDetents(height > 0 ? [.height(min(height, cap))] : [.medium])
         .presentationDragIndicator(.visible)
         .presentationBackground(Color(hex: "#171A26"))
         .preferredColorScheme(.dark)
@@ -276,5 +285,48 @@ struct StepField: View {
         }
         .padding(.horizontal, 14).padding(.vertical, 6)
         .background(RoundedRectangle(cornerRadius: 16).fill(Color.black.opacity(0.25)))
+    }
+}
+
+/// `.sw`: 52 × 32 switch, light track and dark knob when on.
+struct WebSwitch: View {
+    @Binding var isOn: Bool
+    var label = ""
+    var body: some View {
+        Button { isOn.toggle() } label: {
+            ZStack(alignment: .leading) {
+                Capsule().fill(isOn ? Color(hex: "#F4F5F8") : Color.white.opacity(0.16))
+                Circle().fill(isOn ? Color(hex: "#0E1018") : Color.white).frame(width: 26, height: 26).padding(.leading, isOn ? 23 : 3)
+            }
+            .frame(width: 52, height: 32).animation(.easeOut(duration: 0.18), value: isOn)
+        }
+        .buttonStyle(.plain).accessibilityLabel(label)
+        .accessibilityAddTraits(.isButton).accessibilityValue(isOn ? "on" : "off")
+    }
+}
+
+/// The web's accent panels: a radial glow from the bottom-right corner over a diagonal tint
+/// (`radial-gradient(120% 120% at 100% 100%, c .35, transparent 55%), linear-gradient(135deg, c .2, c .05)`).
+struct GlowPanel: ViewModifier {
+    let color: Color
+    var radial = 0.35, from = 0.2, to = 0.05
+    var radius: CGFloat = 24
+    var border: Double = 0.35
+    var ring = false
+    func body(content: Content) -> some View {
+        content
+            .background(
+                ZStack {
+                    LinearGradient(colors: [color.opacity(from), color.opacity(to)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    RadialGradient(colors: [color.opacity(radial), .clear], center: .bottomTrailing, startRadius: 0, endRadius: 230)
+                }.clipShape(RoundedRectangle(cornerRadius: radius))
+            )
+            .overlay(RoundedRectangle(cornerRadius: radius).strokeBorder(color.opacity(ring ? 1 : border), lineWidth: ring ? 1.5 : 1))
+            .overlay { if ring { RoundedRectangle(cornerRadius: radius).stroke(color.opacity(0.15), lineWidth: 4).padding(-4) } }
+    }
+}
+extension View {
+    func glowPanel(_ color: Color, radial: Double = 0.35, from: Double = 0.2, to: Double = 0.05, radius: CGFloat = 24, border: Double = 0.35, ring: Bool = false) -> some View {
+        modifier(GlowPanel(color: color, radial: radial, from: from, to: to, radius: radius, border: border, ring: ring))
     }
 }

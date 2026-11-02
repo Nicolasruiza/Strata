@@ -25,7 +25,10 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Strata uses your location during outdoor workouts to measure elevation gain.</string>
 	<key>UILaunchScreen</key>
-	<dict/>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+	</dict>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

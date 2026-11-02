@@ -8,8 +8,10 @@ struct OverviewView: View {
     @State private var confirmDiscard = false
 
     var body: some View {
-        let e = model.engine!, A = e.db.active!
-        let L = e.liftList(), req = e.requiredItems(A.day)
+        if let e = model.engine, let A = e.db.active { main(e, A) } else { Color.clear }
+    }
+
+    @ViewBuilder private func main(_ e: Engine, _ A: ActiveWorkout) -> some View {        let L = e.liftList(), req = e.requiredItems(A.day)
         let done = req.filter { e.exState($0) == "done" }.count
         let nx = e.nextUp(), legs = e.isLegs(A.day), jumps = e.cardioOn(A.date, "jumps") != nil
         let name = e.plan[A.day]?.name ?? ""

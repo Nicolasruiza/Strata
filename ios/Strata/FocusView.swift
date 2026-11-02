@@ -9,8 +9,10 @@ struct FocusView: View {
     @State private var partialPrompt: String?
 
     var body: some View {
-        let e = model.engine!, A = e.db.active!
-        let L = e.liftList(), idx = e.curIdx(), orig = L[idx], ex = e.shownEx(orig)
+        if let e = model.engine, let A = e.db.active { main(e, A) } else { Color.clear }
+    }
+
+    @ViewBuilder private func main(_ e: Engine, _ A: ActiveWorkout) -> some View {        let L = e.liftList(), idx = e.curIdx(), orig = L[idx], ex = e.shownEx(orig)
         let blk = e.woBlocks().first { $0.items.contains(orig.id) }
         let pos = (blk?.items.firstIndex(of: orig.id) ?? 0) + 1
         let n = e.setsOf(orig), p = e.progOf(orig)
