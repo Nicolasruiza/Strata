@@ -38,9 +38,12 @@ targets:
           - UIInterfaceOrientationPortrait
         ITSAppUsesNonExemptEncryption: false
         NSLocationWhenInUseUsageDescription: Strata uses your location during outdoor workouts to measure elevation gain.
+        NSHealthShareUsageDescription: Strata reads your steps to fill in your office-day walks.
+        NSHealthUpdateUsageDescription: Strata saves your cardio workouts and heart rate to Apple Health.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: net.nicolasruiz.strata
+        CODE_SIGN_ENTITLEMENTS: Strata/Strata.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1"
         GENERATE_INFOPLIST_FILE: NO

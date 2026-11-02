@@ -146,4 +146,10 @@ system font for now (the font files in `fonts.css` are WOFF2, which iOS can't lo
 - [x] Footer: "Strata · data stays on this phone. Export it now and then as a backup."
 
 ## Compared against the web in the simulator
-Today, onboarding, workout preview, jumps, strength overview, exercise focus, live cardio, History, session detail, Progress and Settings were run next to the web app with the same data. Not yet compared one by one: the cardio picker, cardio complete, 4×4 screens, workout complete, the sheets and alerts, and the empty states.
+Today, onboarding, workout preview, jumps, strength overview, exercise focus, live cardio, History, session detail, Progress and Settings were run next to the web app with the same data. The 4×4 info screen was compared too (same rows, ramp line, selector, buttons). Not yet compared one by one: the cardio picker, cardio complete, 4×4 live/done, workout complete, the sheets and alerts, and the empty states.
+
+## Apple Health (phase 3)
+- [x] `HealthKitService` (`HealthService`): `saveWorkout` writes an `HKWorkout` (activity type and indoor/outdoor from the web's `hk` mapping) with the heart-rate samples; returns the real result
+- [x] Cardio-complete footer: "Saved to Apple Health" only when that call returned true, otherwise "Saved in Strata · Not saved to Apple Health"
+- [x] Only workouts and heart rate (write) and steps (read) are requested; usage strings and the HealthKit entitlement are in `project.yml` / `Strata.entitlements`
+- Not verified: the Health permission sheet and a saved workout need a real device (the simulator has no Health data source)
