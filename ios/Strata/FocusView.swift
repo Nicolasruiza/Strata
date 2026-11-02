@@ -39,7 +39,7 @@ struct FocusView: View {
                         HStack(spacing: 8) { LogoMark(); Text("Strata").font(.system(size: 20, weight: .bold)) }
                         Spacer()
                         HStack(spacing: 6) {
-                            IconView(d: "M12 5a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 9v4l2.5 2M10 2h4", size: 18, color: .white, line: 1.9)
+                            IconView(d: Icon.timer, size: 18, color: .white, line: 1.9)
                             ElapsedText(since: exT).font(.system(size: 15, weight: .bold)).monospacedDigit()
                         }
                         .padding(.horizontal, 14).frame(height: 44)

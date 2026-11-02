@@ -89,9 +89,37 @@ system font for now (the font files in `fonts.css` are WOFF2, which iOS can't lo
 - [x] "vs last <plan> · <date>" comparison with bars and legend; "Bone · impact" card; next-session card
 - [x] Dock: [~] "Add cardio", "Done"
 
+## Pick a cardio activity (`pickView`) — `PickCardioView.swift`
+- [x] Back, logo; "Cardio" (coral), "Choose your workout"
+- [x] Recommended card: "Recommended today:" + title (activity [· 4×4 / Zone 2]) + the sub-line from today's plan
+- [x] "Recent": the last two distinct activities with "Today / Yesterday / <weekday> · N min"
+- [x] "All": Outdoor bike, Indoor bike, Walk, Elliptical, Rower, Swim
+- [x] Dock: "Start · <activity>[ · 4×4 / Zone 2]" → 3-2-1 → live session
+
+## Cardio in progress (`cardioView`) — `CardioLiveView.swift`
+- [x] "Cardio[ · mode]", activity name, "Workout in progress" pill
+- [x] Heart rate: number + "bpm" + zone chip + zone name, "Target: stay in Z2 · a–b bpm"; no reading → "—" and the honest copy (`Config.Copy`); no age → "Add your age in Settings to see zones"
+- [x] 4×4 phase card (label, countdown, hard / recover target, segmented phase bar); haptic at each phase change
+- [x] "Time in zones" bar and Z1–Z5 times (only with age and readings)
+- [x] Elapsed; Elevation (outdoor: "+N m" or "—" with Waiting for GPS / No GPS / Precise location off) or Avg heart rate (indoor)
+- [x] Source chip: "Apple Watch: not yet supported" (changes with the watch in phase 4)
+- [x] Dock: "Discard" (confirm) + "Complete"; the screen stays awake; a reopened app resumes the session
+- Altitude is Core Location (readings less accurate than 20 m are dropped); heart rate has no source until the watch app.
+
+## Cardio complete (`cDoneView`) and between blocks (`blockSheet`) — `CardioDoneView.swift`
+- [x] Hero: "<activity>[ · 4×4 / Zone 2] · <date>", "Session complete", "Heart ring closed for the week." / "Heart work logged."
+- [x] Minutes / Avg bpm / Hard intervals or m climbed or Max bpm; "Time in zones"
+- [x] Footer chip: "Saved in Strata" (or "Saved to Apple Health" only when that really happened, phase 3)
+- [x] Rings card; dock "Add block" + "Done"
+- [x] Sheet: "<activity> · N min done"; "Add block: Strength · <plan>" (recommended, hidden if a lift was logged today); "End session"
+
+## 4×4 screens (`vo2View`, `vo2DoneView`) — `Vo2Views.swift`
+- [x] Info: treadmill hero, ramp-up line, the five steps, hard target (or "Set your age…"), 3 / 4 intervals switch, "Already did it? Log without the timer", "Start 4×4"
+- [x] Logged: minutes, hard intervals, hard minutes, rings, ramp-up note, next-session card, "Done"
+- Not ported: the standalone timer (`timerView`), unreachable on `main`.
+
 ## Not built yet (later PRs)
-Tab bar, cardio picker / live / done, between-blocks sheet, history and detail, progress, settings
-(the other three tabs).
+Tab bar, history and detail, progress, settings (the other three tabs).
 
 ## Not checked visually
 Today and the screens above compile and share their data logic with the golden-tested core, but they have not yet

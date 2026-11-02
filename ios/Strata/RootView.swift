@@ -17,6 +17,10 @@ struct RootView: View {
                             switch model.screen {
                             case .today: TodayView()
                             case .preview(let d): PreviewView(day: d)
+                            case .pick: PickCardioView()
+                            case .cdone: CardioDoneView()
+                            case .vo2: Vo2InfoView()
+                            case .vo2done: Vo2DoneView()
                             }
                         }
                     }
@@ -29,11 +33,12 @@ struct RootView: View {
                         .transition(.move(edge: .top).combined(with: .opacity)).zIndex(10)
                 }
             }
+            .overlay { if let c = model.countdown { CountdownOverlay(state: c) } }
             .animation(.easeOut(duration: 0.25), value: model.toast)
         }
         .foregroundStyle(Theme.text)
         .preferredColorScheme(.dark)
-        .fullScreenCover(isPresented: Binding(get: { model.engine?.db.active != nil }, set: { _ in })) {
+        .fullScreenCover(isPresented: Binding(get: { (model.engine?.db.active != nil || model.engine?.db.live != nil) }, set: { _ in })) {
             WorkoutRoot()
         }
         .onChange(of: phase) { _, p in if p == .active { model.tick() } }

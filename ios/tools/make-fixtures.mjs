@@ -232,6 +232,9 @@ const Q = {   // pure queries: `ret` only
   // copied from todayView() in app.js (the week strip); keep in sync
   weekStrip: `(()=>{const t=today(), mon=mondayOf(t), wp=weekPlan(), slots=liftSlots(mon), ds=weekDates(mon); return WD_ORDER.map((w,i)=>{const s=wp[w], d=ds[i], sk=skipOn(d); const gymDone=s==='lift'?!!liftedOn(d):s==='office'?!!cardioOn(d,'office'):!!cardioOn(d,CTYPE[s]); if(sk&&!gymDone){return {w,kind:'skip',label:sk.why==='sick'?'Rest':'Home',color:sk.why==='sick'?'#6E7385':KC[HOME[sk.key].ring],done:!!sk.done,today:d===t}} const lp=slots[w]; const col=s==='lift'?KC.m:HEART.has(s)?KC.h:'#6E7385'; const lab=s==='lift'?(lp&&lp.day?PLAN[lp.day].name.replace('Upper','Up').replace('Legs','Leg'):'—'):({office:'Office',z2:'Z2',vo2:'4×4',walk:'Walk',rest:'Rest'}[s]); return {w,kind:'normal',label:lab,color:col,done:gymDone,today:d===t}})})()`,
   greet: `greet()`,
+  // copied from vo2View() / vo2DoneView() in app.js
+  vo2Ramp: `(()=>{const c=(DB.cardio||[]).filter(x=>x.type==='4x4').length; return c<3?\`Ramp-up session \${c+1} of 3: 3 intervals at the low end of the range.\`:'Full 4×4. Add speed or incline when the last interval feels easier than the first.'})()`,
+  vo2DoneView: `(()=>{const v=vo2Done||{intervals:4,min:rcMinutes(4),date:today()}, st=weekStats(mondayOf(v.date)); return {v,st,sub:st.all?'All 3 rings closed this week.':st.closed[1]?'Heart ring closed for the week.':'Heart work logged.',ringsLine:st.all?'Muscle, heart and bone: the full week is in.':ringsLine(st),note:(DB.cardio||[]).filter(x=>x.type==='4x4').length<3?'Ramp-up phase: keep it at 3 intervals until you have 3 sessions in.':'Next time, add a little speed or incline if the last interval felt easier than the first.'}})()`,
   newProfile: `newProfile(__a[0],__a[1])`,
   rcHR: `rcHR()`,
   hrMax: `hrMax()`,
@@ -312,7 +315,7 @@ async function runCase(w, c, scenarios) {
   w.context.__json = JSON.stringify({profile: sc.profile, db: sc.db, pre: c.pre || {}, args: c.args || []});
   w.run(`(()=>{const J=JSON.parse(__json); profile=J.profile; DB=J.db; rest=J.pre.rest||null; celebration=J.pre.celebration||null;
     woReps=J.pre.woReps==null?null:J.pre.woReps; preLow=!!J.pre.preLow; W_last=J.pre.wLast||null; view=J.pre.view||1; previewDay=J.pre.previewDay||null;
-    detailIdx=J.pre.detailIdx==null?null:J.pre.detailIdx; pickAct=J.pre.pickAct||null; jumpSets=J.pre.jumpSets||{}; editSet=null; selDay=null;
+    vo2N=J.pre.vo2N==null?null:J.pre.vo2N; vo2Done=J.pre.vo2Done||null; detailIdx=J.pre.detailIdx==null?null:J.pre.detailIdx; pickAct=J.pre.pickAct||null; jumpSets=J.pre.jumpSets||{}; editSet=null; selDay=null;
     __a=J.args; __pre=J.pre; __payload=null;
     Sensors.read=()=>({hr:__pre.reading?__pre.reading.hr:null,alt:__pre.reading?__pre.reading.alt:null});
     Health.saveWorkout=async(e)=>{__payload=e;return {saved:!!__pre.saved}}; setActivePlan(); })()`);
@@ -322,7 +325,7 @@ async function runCase(w, c, scenarios) {
   else { const code = Q[c.fn] || M_SNAP[c.fn]; ret = clone(await w.run(code)); }
   const out = {...c, ret: ret === undefined ? undefined : ret};
   if (c.snap || c.click) {
-    out.after = JSON.parse(w.run('JSON.stringify({db:DB,rest,celebration,woReps,preLow,wLast:W_last,view,profile,payload:__payload})'));
+    out.after = JSON.parse(w.run('JSON.stringify({db:DB,rest,celebration,woReps,preLow,wLast:W_last,vo2Done,view,profile,payload:__payload})'));
     out.toasts = [...w.toasts]; out.confirms = [...w.confirms];
   }
   return out;
@@ -580,6 +583,13 @@ function buildCases(S) {
   for (const sc of ['nr_empty', 'nr_steady', 'sa_steady', 'nr_active', 'nr_live_4x4', 'nr_skips']) for (const p of [exp1, shuffled, bare, {history: []}])
     add('applyImport', sc, 'mon', [p], {snap: true});
   for (const [nm, g] of [['Nico', 'male'], ['Sofia', 'female'], ['', 'male'], ['Élodie', 'female'], ['a', 'male']]) add('newProfile', 'nr_empty', 'mon', [nm, g]);
+
+  // the 4×4 info screen
+  for (const sc of ['nr_empty', 'cardio_2', 'cardio_4', 'nr_steady']) {
+    add('vo2Ramp', sc, 'mon');
+    add('vo2DoneView', sc, 'mon'); add('vo2DoneView', sc, 'sat', [], {pre: {vo2Done: {intervals: 3, min: 35, date: '2026-10-31'}}});
+    for (const n of [3, 4, null]) addClick(`logVo2-${n}`, sc, 'mon', {id: 'logVo2'}, n == null ? {} : {vo2N: n});
+  }
 
   // can't train today, home sessions
   for (const sc of ['nr_steady', 'nr_empty', 'sa_steady', 'nr_skips']) for (const nk of ['mon', 'wed', 'sat', 'sun', 'thu', 'sunFallBack']) for (const why of ['time', 'away', 'sick'])

@@ -12,7 +12,8 @@ struct WorkoutRoot: View {
             ZStack {
                 Theme.bg.ignoresSafeArea()
                 Group {
-                    if let e = e, e.db.active != nil {
+                    if let e = e, e.db.live != nil { CardioLiveView() }
+                    else if let e = e, e.db.active != nil {
                         if e.needsJumps { JumpsView() }
                         else if e.db.active?.view == "focus" { FocusView() }
                         else { OverviewView() }
@@ -28,6 +29,7 @@ struct WorkoutRoot: View {
         .interactiveDismissDisabled(true)
         .onAppear {
             UIApplication.shared.isIdleTimerDisabled = true      // `lockScreen(true)`
+            if model.engine?.db.live != nil { return }
             if let a = model.engine?.db.active, a.cd == nil, let name = model.engine?.plan[a.day]?.name {
                 model.mutate { $0.markCountdownShown(); return nil }
                 model.runCountdown(label: "Strength · \(name)")

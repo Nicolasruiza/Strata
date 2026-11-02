@@ -100,13 +100,14 @@ struct Hero: View {
     var sub: String?
     var tall = false
     var short = false
+    var image = "mountain"
     @Environment(\.safeTop) private var safeTop
 
     var body: some View {
         let h: CGFloat = (tall ? 310 : short ? 200 : 250)
         ZStack(alignment: .bottomLeading) {
             Theme.bg2
-            BundleImage(name: "mountain").frame(maxWidth: .infinity).frame(height: h + safeTop).clipped()
+            BundleImage(name: image).frame(maxWidth: .infinity).frame(height: h + safeTop).clipped()
             LinearGradient(stops: [.init(color: Theme.bg.opacity(0.25), location: 0), .init(color: Theme.bg.opacity(0.35), location: 0.45), .init(color: Theme.bg, location: 1)],
                            startPoint: .top, endPoint: .bottom)
             VStack(alignment: .leading, spacing: 0) {

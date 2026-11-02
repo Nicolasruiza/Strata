@@ -129,6 +129,26 @@ enum Icon {
     static let check = "M5 12.5l4.5 4.5L19 7.5"
     static let chev = "M9 5l7 7-7 7"
     static let home = "M4 11l8-6.5 8 6.5V20h-5.5v-5.5h-5V20H4z"
+
+    // workout.js `WIC` (circles and rects written out as path data)
+    static let watch = "M10 6h4a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3zM9 6l1-3h4l1 3M9 18l1 3h4l1-3"
+    static let mount = "M3 19l6-10 4 6 2.5-3.5L21 19z"
+    static let timer = "M4 13a8 8 0 1 0 16 0a8 8 0 1 0 -16 0M12 9v4l2.5 2M10 2h4"
+    static let flag = "M5 21V4m0 0h12l-2.5 4L17 12H5"
+    static let back = "M15 5l-7 7 7 7"
+
+    /// Cardio activity icons by `CARDIO_ACTS` key.
+    static func cardio(_ act: String) -> String {
+        switch act {
+        case "treadmill": return "M9.4 4.5a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0 -3.2 0M8.5 15l2-4 3 2.5M10.5 11l-.5-3.5-3 2M3 19h13.5l4-9.5M16.5 9.5l-1.5-3"
+        case "bike_out": return "M2.5 16a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M14.5 16a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M6 16l4-7h5l3 7M10 9l3.2 7H6M13.5 6.5h2.5M14 4l3-2 3 3"
+        case "bike_in": return "M4 15a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M8 15h7.5l2-7.5M16 7.5h3.5M11.5 11l-2-5H7M5 21h14M15.5 15l1.5 6"
+        case "walk": return "M11.2 4.5a1.8 1.8 0 1 0 3.6 0a1.8 1.8 0 1 0 -3.6 0M11 21l2-6-2.5-3 1.2-4.5 3.3 3 3 1M10.7 8L7 10.5v3.5M13 15l3 6"
+        case "elliptical": return "M5 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M4 21h15M8 17l7-4.5L17 4M15 12.5l3.5 4.5"
+        case "row": return "M8.4 5.5a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0 -3.2 0M3 19h18M6 19l4-5.5h5l3 5.5M10 13.5l-1-4.5 3-.8 3 3"
+        default: return "M14.7 6a1.8 1.8 0 1 0 3.6 0a1.8 1.8 0 1 0 -3.6 0M3 18c2 0 2.2-1.5 4.5-1.5S9.7 18 12 18s2.3-1.5 4.5-1.5S19 18 21 18M7 14l4-4 4 3-2.5-5.5-5 2"
+        }
+    }
 }
 
 /// A stroked icon at a given size.
