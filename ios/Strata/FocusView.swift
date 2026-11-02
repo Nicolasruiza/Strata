@@ -27,8 +27,8 @@ struct FocusView: View {
                 ZStack(alignment: .top) {
                     Color(hex: "#1b1e28")
                     if let img = e.catalog.imageName(of: ex.id) {
-                        BundleImage(name: ((img as NSString).lastPathComponent as NSString).deletingPathExtension)
-                            .frame(maxWidth: .infinity).frame(height: 330 + safeTop).clipped()
+                        Color.clear.frame(height: 330 + safeTop)
+                            .overlay(BundleImage(name: ((img as NSString).lastPathComponent as NSString).deletingPathExtension)).clipped()
                     }
                     LinearGradient(stops: [.init(color: Theme.bg.opacity(0.35), location: 0), .init(color: Theme.bg.opacity(0), location: 0.35), .init(color: Theme.bg, location: 1)], startPoint: .top, endPoint: .bottom)
                     HStack {
