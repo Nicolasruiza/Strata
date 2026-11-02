@@ -37,6 +37,7 @@ targets:
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         ITSAppUsesNonExemptEncryption: false
+        UIAppFonts: [Inter-Regular.ttf, Inter-Medium.ttf, Inter-SemiBold.ttf, Inter-Bold.ttf, Inter-ExtraBold.ttf]
         NSLocationWhenInUseUsageDescription: Strata uses your location during outdoor workouts to measure elevation gain.
         NSHealthShareUsageDescription: Strata reads your steps to fill in your office-day walks.
         NSHealthUpdateUsageDescription: Strata saves your cardio workouts and heart rate to Apple Health.

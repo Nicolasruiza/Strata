@@ -26,12 +26,12 @@ struct OverviewView: View {
                     }
                     Spacer()
                     GlassButton(action: { model.menuOpen = true }, accessibility: "Workout options") {
-                        Text("···").font(.system(size: 14, weight: .heavy)).tracking(2)
+                        Text("···").font(.inter(size: 14, weight: .heavy)).tracking(2)
                     }
                 }
                 Text("Strength\(legs ? " + Bone" : "")\((A.lowEnergy ?? false) ? " · lighter day" : "")")
-                    .font(.system(size: 17, weight: .bold)).foregroundStyle(Theme.violet).padding(.top, 6)
-                Text(name).font(.system(size: 34, weight: .heavy)).tracking(-0.85).padding(.top, -8)
+                    .font(.inter(size: 17, weight: .bold)).foregroundStyle(Theme.violet).padding(.top, 6)
+                Text(name).font(.inter(size: 34, weight: .heavy)).tracking(-0.85).padding(.top, -8)
                 ProgressBar(fraction: req.isEmpty ? 0 : Double(done) / Double(req.count))
                 Text("\(done) of \(req.count) main lifts done").metaStyle().padding(.top, -6)
                 RestBanner()
@@ -39,7 +39,7 @@ struct OverviewView: View {
                 ForEach(e.woBlocks(), id: \.t) { b in
                     let d = b.items.filter { id in L.first { $0.id == id }.map { e.exState($0) == "done" } ?? false }.count
                     HStack {
-                        Text("\(b.kind)\(b.opt ? " · if time" : "")").font(.system(size: 20, weight: .heavy)).tracking(-0.2)
+                        Text("\(b.kind)\(b.opt ? " · if time" : "")").font(.inter(size: 20, weight: .heavy)).tracking(-0.2)
                         Spacer(); Text("\(d) of \(b.items.count)").metaStyle().fontWeight(.semibold)
                     }.padding(.top, 8)
                     ForEach(b.items, id: \.self) { id in
@@ -65,7 +65,7 @@ struct OverviewView: View {
 
     private func jumpsRow(_ done: Bool) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Warm-up · Bone").font(.system(size: 20, weight: .heavy)).tracking(-0.2).padding(.top, 8)
+            Text("Warm-up · Bone").font(.inter(size: 20, weight: .heavy)).tracking(-0.2).padding(.top, 8)
             Button {
                 model.jumpSets = [:]
                 model.mutate { $0.db.active?.jumpsSeen = 0; return nil }

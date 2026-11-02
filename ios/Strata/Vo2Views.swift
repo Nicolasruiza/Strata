@@ -28,10 +28,10 @@ struct Vo2InfoView: View {
                         if let hr = hr {
                             VStack(alignment: .leading, spacing: 4) {
                                 HStack { Text("Hard target").nameStyle(); Spacer(); Text("\(hr.hard[0])–\(hr.hard[1]) bpm").nameStyle(color: Theme.coral) }
-                                Text("Check it on your watch. Easy phases: under \(hr.z2[1]) bpm.").font(.system(size: 13)).foregroundStyle(Theme.muted)
+                                Text("Check it on your watch. Easy phases: under \(hr.z2[1]) bpm.").font(.inter(size: 13)).foregroundStyle(Theme.muted)
                             }.padding(.horizontal, 4)
                         } else {
-                            Text("Set your age in Settings to see heart-rate targets.").font(.system(size: 13)).foregroundStyle(Theme.muted).padding(4)
+                            Text("Set your age in Settings to see heart-rate targets.").font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(4)
                         }
                     }.card(tight: true)
                     Seg(items: [(3, "3 intervals · \(e.rcMinutes(3)) min"), (4, "4 intervals · \(e.rcMinutes(4)) min")], selected: n) { model.vo2N = $0 }
@@ -74,7 +74,7 @@ struct Vo2DoneView: View {
                         cell("\(r.v.min)", "Minutes"); Divider().overlay(Theme.line)
                         cell("\(r.v.intervals)", "Hard intervals"); Divider().overlay(Theme.line)
                         cell("\(r.v.intervals * Config.Intervals.hardSec / 60)", "Hard minutes")
-                    }.padding(.vertical, 14).padding(.horizontal, 6).card(tight: true)
+                    }.card(inset: EdgeInsets(top: 14, leading: 6, bottom: 14, trailing: 6))
                     RingsCard(st: r.st, headline: r.ringsLine)
                     Text(r.note).bodyStyle().card()
                     if let n = e.nextCard(from: r.v.date) { NextCardView(card: n) }
@@ -88,6 +88,6 @@ struct Vo2DoneView: View {
         }
     }
     private func cell(_ big: String, _ small: String) -> some View {
-        VStack(spacing: 3) { Text(big).font(.system(size: 24, weight: .heavy)).monospacedDigit(); Text(small).smallStyle() }.frame(maxWidth: .infinity)
+        VStack(spacing: 3) { Text(big).font(.inter(size: 24, weight: .heavy)).monospacedDigit(); Text(small).smallStyle() }.frame(maxWidth: .infinity)
     }
 }

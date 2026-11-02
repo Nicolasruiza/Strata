@@ -38,7 +38,7 @@ struct SettingsView: View {
                         HStack {
                             Text("Name").nameStyle()
                             TextField("", text: $name).focused($nameFocus).multilineTextAlignment(.trailing)
-                                .font(.system(size: 17, weight: .semibold)).textContentType(.givenName)
+                                .font(.inter(size: 17, weight: .semibold)).textContentType(.givenName)
                                 .onSubmit { commitName() }
                         }
                         .padding(.horizontal, 14).padding(.vertical, 6).frame(minHeight: 46)
@@ -47,12 +47,12 @@ struct SettingsView: View {
                             if g != e.profile.gender { pendingGender = g; genderPrompt = e.genderPrompt(g) }
                         }.padding(.top, 10)
                         Text("Gender sets the plan template and starting loads. Your history and weights stay when you change it.")
-                            .font(.system(size: 13)).foregroundStyle(Theme.muted).padding(.top, 10)
+                            .font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 10)
                     }.card()
 
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Injury flags").labelStyle()
-                        Text("Flagging one holds every lift that loads it and adds safer substitutes.").font(.system(size: 13)).foregroundStyle(Theme.muted).padding(.top, 6).padding(.bottom, 4)
+                        Text("Flagging one holds every lift that loads it and adds safer substitutes.").font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 6).padding(.bottom, 4)
                         ForEach(e.catalog.injShow.indices, id: \.self) { i in
                             let k = e.catalog.injShow[i][0], l = e.catalog.injShow[i][1]
                             let rec = e.db.injuries.first { $0.key == k }
@@ -70,9 +70,9 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Office days").labelStyle()
                         Text("Walking to work is your easy cardio on these days. With 2 office days the 4×4 moves to Sunday.")
-                            .font(.system(size: 13)).foregroundStyle(Theme.muted).padding(.top, 6).padding(.bottom, 10)
+                            .font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 6).padding(.bottom, 10)
                         DayChips(selected: off) { d in model.mutate { $0.toggleOfficeDay(d); return nil } }
-                        Text("Lift days are Mon, Wed, Fri, Sat. An office day on a lift day keeps the lift.").font(.system(size: 13)).foregroundStyle(Theme.muted).padding(.top, 10)
+                        Text("Lift days are Mon, Wed, Fri, Sat. An office day on a lift day keeps the lift.").font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 10)
                     }.card()
 
                     VStack(alignment: .leading, spacing: 0) {
@@ -81,14 +81,14 @@ struct SettingsView: View {
                             Text("Age").nameStyle(15); Spacer()
                             HStack(spacing: 10) {
                                 ageButton("−", "Younger", -1)
-                                Text(e.db.age.map { jsMinutes($0) } ?? "—").font(.system(size: 22, weight: .heavy)).monospacedDigit().frame(minWidth: 36)
+                                Text(e.db.age.map { jsMinutes($0) } ?? "—").font(.inter(size: 22, weight: .heavy)).monospacedDigit().frame(minWidth: 36)
                                 ageButton("+", "Older", 1)
                             }.padding(4).background(RoundedRectangle(cornerRadius: 16).fill(Color.black.opacity(0.25)))
                         }.padding(.vertical, 12)
                         if let hr = hr {
                             line("Zone 2 (easy)", "\(hr.z2[0])–\(hr.z2[1]) bpm", Color.white)
                             line("4×4 hard", "\(hr.hard[0])–\(hr.hard[1]) bpm", Theme.coral)
-                            Text("Estimated max \(hr.max) bpm.").font(.system(size: 13)).foregroundStyle(Theme.muted).padding(.top, 6)
+                            Text("Estimated max \(hr.max) bpm.").font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 6)
                         }
                     }.card()
 
@@ -99,7 +99,7 @@ struct SettingsView: View {
                         dataRow(Icon.close, "Reset \(e.profile.name)", Color(hex: "#FF8A70")) { resetPrompt = true }
                     }.card()
                     Text("Strata · data stays on this phone. Export it now and then as a backup.")
-                        .font(.system(size: 13)).foregroundStyle(Theme.muted).multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                        .font(.inter(size: 13)).foregroundStyle(Theme.muted).multilineTextAlignment(.center).frame(maxWidth: .infinity)
                 }.padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 110)
             }.frame(maxWidth: Theme.maxWidth)
         }
@@ -140,12 +140,12 @@ struct SettingsView: View {
     }
     private func ageButton(_ t: String, _ label: String, _ dir: Int) -> some View {
         Button { model.mutate { $0.adjustAge(dir); return nil } } label: {
-            Text(t).font(.system(size: 22, weight: .semibold)).frame(width: 40, height: 40)
+            Text(t).font(.inter(size: 22, weight: .semibold)).frame(width: 40, height: 40)
                 .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.1)))
         }.buttonStyle(.plain).accessibilityLabel(label)
     }
     private func line(_ l: String, _ v: String, _ c: Color) -> some View {
-        HStack { Text(l).font(.system(size: 15)); Spacer(); Text(v).font(.system(size: 15, weight: .bold)).foregroundStyle(c) }
+        HStack { Text(l).font(.inter(size: 15)); Spacer(); Text(v).font(.inter(size: 15, weight: .bold)).foregroundStyle(c) }
             .padding(.vertical, 12).overlay(alignment: .top) { Rectangle().fill(Theme.line).frame(height: 1) }
     }
     private func dataRow(_ icon: String, _ title: String, _ color: Color, _ action: @escaping () -> Void) -> some View {

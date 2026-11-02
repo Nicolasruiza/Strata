@@ -28,6 +28,14 @@
 	<string>Strata saves your cardio workouts and heart rate to Apple Health.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Strata uses your location during outdoor workouts to measure elevation gain.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Inter-Regular.ttf</string>
+		<string>Inter-Medium.ttf</string>
+		<string>Inter-SemiBold.ttf</string>
+		<string>Inter-Bold.ttf</string>
+		<string>Inter-ExtraBold.ttf</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

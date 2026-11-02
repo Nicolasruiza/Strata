@@ -11,23 +11,23 @@ struct PickCardioView: View {
         let recent = e.recentCardio()
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                HStack {
-                    GlassButton(action: { model.pickAct = nil; model.go(.today) }, accessibility: "Back") {
-                        IconView(d: Icon.back, size: 18, color: .white, line: 2.4)
+                ZStack {
+                    HStack(spacing: 8) { LogoMark(); Text("Strata").font(.inter(size: 20, weight: .bold)) }
+                    HStack {
+                        GlassButton(action: { model.pickAct = nil; model.go(.today) }, accessibility: "Back") {
+                            IconView(d: Icon.back, size: 18, color: .white, line: 2.4)
+                        }
+                        Spacer()
                     }
-                    Spacer()
-                    HStack(spacing: 8) { LogoMark(); Text("Strata").font(.system(size: 20, weight: .bold)) }
-                    Spacer()
-                    Color.clear.frame(width: 44, height: 44)
                 }
-                Text("Cardio").font(.system(size: 17, weight: .bold)).foregroundStyle(Theme.coral).padding(.top, 6)
-                Text("Choose your workout").font(.system(size: 34, weight: .heavy)).tracking(-0.85).padding(.top, -8)
+                Text("Cardio").font(.inter(size: 17, weight: .bold)).foregroundStyle(Theme.coral).padding(.top, 6)
+                Text("Choose your workout").font(.inter(size: 34, weight: .heavy)).tracking(-0.85).padding(.top, -8)
                 Button { model.pickAct = nil } label: {
                     HStack(spacing: 16) {
                         CardioIcon(act: P.act, big: true)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Recommended today:\n\(P.title)").font(.system(size: 22, weight: .heavy)).tracking(-0.2).multilineTextAlignment(.leading)
-                            Text(P.sub).font(.system(size: 14)).foregroundStyle(Theme.muted).multilineTextAlignment(.leading)
+                            Text("Recommended today:\n\(P.title)").font(.inter(size: 22, weight: .heavy)).tracking(-0.2).multilineTextAlignment(.leading)
+                            Text(P.sub).font(.inter(size: 14)).foregroundStyle(Theme.muted).multilineTextAlignment(.leading)
                         }
                         Spacer(minLength: 0)
                     }
@@ -36,7 +36,7 @@ struct PickCardioView: View {
                 }.buttonStyle(.plain)
 
                 if !recent.isEmpty {
-                    Text("Recent").font(.system(size: 20, weight: .heavy)).padding(.top, 8)
+                    Text("Recent").font(.inter(size: 20, weight: .heavy)).padding(.top, 8)
                     ForEach(recent, id: \.act) { c in
                         let act = c.act!
                         Button { model.pickAct = act } label: {
@@ -55,14 +55,14 @@ struct PickCardioView: View {
                         }.buttonStyle(.plain)
                     }
                 }
-                Text("All").font(.system(size: 20, weight: .heavy)).padding(.top, 8)
+                Text("All").font(.inter(size: 20, weight: .heavy)).padding(.top, 8)
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
                     ForEach(cat.gridActs, id: \.self) { k in
                         let on = sel == k && model.pickAct != nil
                         Button { model.pickAct = k } label: {
                             VStack(spacing: 8) {
-                                IconView(d: Icon.cardio(k), size: 32, color: Theme.coral, line: 1.9)
-                                Text(cat.cardioActs[k]?.n ?? k).font(.system(size: 14, weight: .bold))
+                                IconView(d: Icon.cardio(k), size: 32, color: Theme.coral, line: 1.9).frame(width: 44, height: 44)
+                                Text(cat.cardioActs[k]?.n ?? k).font(.inter(size: 14, weight: .bold))
                             }
                             .frame(maxWidth: .infinity).padding(.vertical, 16).padding(.horizontal, 6)
                             .background(RoundedRectangle(cornerRadius: 20).fill(on ? Theme.coral.opacity(0.1) : Theme.glass))

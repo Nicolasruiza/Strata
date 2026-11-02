@@ -14,7 +14,7 @@ struct HistoryView: View {
                 VStack(spacing: 12) {
                     if items.isEmpty {
                         Text("Nothing logged yet. Your first workout will show up here.")
-                            .font(.system(size: 14)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+                            .font(.inter(size: 14)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
                             .padding(.vertical, 26).padding(.horizontal, 10).frame(maxWidth: .infinity).card()
                     } else {
                         let weeks = Dictionary(grouping: items, by: { Dates.mondayOf($0.date) })
@@ -58,7 +58,7 @@ struct HistoryView: View {
         } label: {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 0) { Text(wk); Text(md) }
-                    .font(.system(size: 12)).foregroundStyle(Theme.muted).lineSpacing(2).frame(width: 46, alignment: .leading)
+                    .font(.inter(size: 12)).foregroundStyle(Theme.muted).lineSpacing(2).frame(width: 46, alignment: .leading)
                 ZStack {
                     Circle().fill((t.icon == "lift" || t.icon == "home") ? Theme.violet.opacity(0.18) : Theme.coral.opacity(0.18))
                     IconView(d: t.icon == "lift" ? Icon.dumbbell : t.icon == "home" ? Icon.home : t.icon == "heart" ? Icon.heart : Icon.walk,
@@ -69,7 +69,7 @@ struct HistoryView: View {
                     meta(t)
                 }
                 Spacer(minLength: 0)
-                Text(t.right).font(.system(size: 15, weight: .semibold))
+                Text(t.right).font(.inter(size: 15, weight: .semibold))
                 IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4)
             }
             .padding(.vertical, 10).padding(.horizontal, 4)
@@ -82,7 +82,7 @@ struct HistoryView: View {
     private func meta(_ t: HistoryRowText) -> some View {
         if t.jumps, let r = t.meta.range(of: "jumps") {
             (Text(String(t.meta[..<r.lowerBound])).foregroundColor(Theme.muted) + Text("jumps").foregroundColor(Theme.mint)
-                + Text(String(t.meta[r.upperBound...])).foregroundColor(Theme.muted)).font(.system(size: 13))
+                + Text(String(t.meta[r.upperBound...])).foregroundColor(Theme.muted)).font(.inter(size: 13))
         } else { Text(t.meta).metaStyle() }
     }
 }

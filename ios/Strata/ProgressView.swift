@@ -7,7 +7,7 @@ struct LineChart: View {
     let color: Color
     var body: some View {
         if pts.isEmpty {
-            Text("No data yet.").font(.system(size: 14)).foregroundStyle(Theme.muted).frame(maxWidth: .infinity).padding(.vertical, 26)
+            Text("No data yet.").font(.inter(size: 14)).foregroundStyle(Theme.muted).frame(maxWidth: .infinity).padding(.vertical, 26)
         } else {
             Canvas { ctx, size in
                 let W = 340.0, H = 150.0, pl = 34.0, pr = 12.0, pt = 22.0, pb = 24.0
@@ -19,7 +19,7 @@ struct LineChart: View {
                 for t in sc.ticks {
                     var l = Path(); l.move(to: P(pl, Y(t))); l.addLine(to: P(W - pr, Y(t)))
                     ctx.stroke(l, with: .color(.white.opacity(0.08)), lineWidth: 1)
-                    ctx.draw(Text(jsMinutes(t)).font(.system(size: 11 * k)).foregroundColor(Color(hex: "#A9AEBD")), at: P(pl - 6, Y(t)), anchor: .trailing)
+                    ctx.draw(Text(jsMinutes(t)).font(.inter(size: 11 * k)).foregroundColor(Color(hex: "#A9AEBD")), at: P(pl - 6, Y(t)), anchor: .trailing)
                 }
                 var line = Path()
                 for i in 0..<n { let p = P(X(i), Y(pts[i].y)); if i == 0 { line.move(to: p) } else { line.addLine(to: p) } }
@@ -32,11 +32,11 @@ struct LineChart: View {
                     let r = (i == n - 1 ? 5.0 : 3.5) * k, c = P(X(i), Y(pts[i].y))
                     ctx.fill(Path(ellipseIn: CGRect(x: c.x - r, y: c.y - r, width: 2 * r, height: 2 * r)), with: .color(color))
                     if i % every == 0 || i == n - 1 {
-                        ctx.draw(Text(pts[i].l).font(.system(size: 10.5 * k)).foregroundColor(Color(hex: "#A9AEBD")), at: P(X(i), H - 6), anchor: .center)
+                        ctx.draw(Text(pts[i].l).font(.inter(size: 10.5 * k)).foregroundColor(Color(hex: "#A9AEBD")), at: P(X(i), H - 6), anchor: .center)
                     }
                 }
-                ctx.draw(Text(jsMinutes(pts[0].y)).font(.system(size: 12 * k, weight: .bold)).foregroundColor(.white), at: P(X(0), Y(pts[0].y) - 9), anchor: .center)
-                if n > 1 { ctx.draw(Text(jsMinutes(pts[n - 1].y)).font(.system(size: 13 * k, weight: .heavy)).foregroundColor(.white), at: P(X(n - 1), Y(pts[n - 1].y) - 10), anchor: .center) }
+                ctx.draw(Text(jsMinutes(pts[0].y)).font(.inter(size: 12 * k, weight: .bold)).foregroundColor(.white), at: P(X(0), Y(pts[0].y) - 9), anchor: .center)
+                if n > 1 { ctx.draw(Text(jsMinutes(pts[n - 1].y)).font(.inter(size: 13 * k, weight: .heavy)).foregroundColor(.white), at: P(X(n - 1), Y(pts[n - 1].y) - 10), anchor: .center) }
             }
             .aspectRatio(340.0 / 150.0, contentMode: .fit).padding(.top, 8)
         }
@@ -57,8 +57,8 @@ struct BarChart: View {
                 let x = Double(i) * W / Double(n) + (W / Double(n) - bw) / 2, h = v / mx * (H - pb - pt)
                 let rect = CGRect(x: x * k, y: (H - pb - h) * k, width: bw * k, height: max(h, v != 0 ? 2 : 0) * k)
                 ctx.fill(Path(roundedRect: rect, cornerRadius: 3 * k), with: .color(color.opacity(i == 7 ? 0.45 : 1)))
-                if v != 0 { ctx.draw(Text(fmt(v)).font(.system(size: 9.5 * k, weight: .bold)).foregroundColor(.white), at: CGPoint(x: (x + bw / 2) * k, y: (H - pb - h - 4) * k - 4 * k), anchor: .center) }
-                ctx.draw(Text(labels[i]).font(.system(size: 8.5 * k)).foregroundColor(Color(hex: "#A9AEBD")), at: CGPoint(x: (x + bw / 2) * k, y: (H - 5) * k - 3 * k), anchor: .center)
+                if v != 0 { ctx.draw(Text(fmt(v)).font(.inter(size: 9.5 * k, weight: .bold)).foregroundColor(.white), at: CGPoint(x: (x + bw / 2) * k, y: (H - pb - h - 4) * k - 4 * k), anchor: .center) }
+                ctx.draw(Text(labels[i]).font(.inter(size: 8.5 * k)).foregroundColor(Color(hex: "#A9AEBD")), at: CGPoint(x: (x + bw / 2) * k, y: (H - 5) * k - 3 * k), anchor: .center)
             }
         }.aspectRatio(160.0 / 110.0, contentMode: .fit).padding(.top, 8)
     }
@@ -91,7 +91,7 @@ struct ProgressScreen: View {
                             Spacer()
                             if pts.count > 1 {
                                 VStack(alignment: .trailing, spacing: 2) {
-                                    Text("\(pct >= 0 ? "+" : "")\(jsMinutes(pct))%").font(.system(size: 24, weight: .heavy)).foregroundStyle(Theme.violet)
+                                    Text("\(pct >= 0 ? "+" : "")\(jsMinutes(pct))%").font(.inter(size: 24, weight: .heavy)).foregroundStyle(Theme.violet)
                                     Text("\(jsMinutes(first!.y)) → \(jsMinutes(last!.y)) lb").smallStyle()
                                 }
                             }
@@ -100,7 +100,7 @@ struct ProgressScreen: View {
                             HStack(spacing: 6) {
                                 ForEach(keys, id: \.id) { k in
                                     Button { model.progLift = k.id } label: {
-                                        Text(Fmt.cleanN(k.n)).font(.system(size: 12, weight: .semibold)).lineLimit(1).fixedSize()
+                                        Text(Fmt.cleanN(k.n)).font(.inter(size: 12, weight: .semibold)).lineLimit(1).fixedSize()
                                             .foregroundStyle(k.id == lift ? Color(hex: "#0E1018") : Color(hex: "#E6E8EE"))
                                             .padding(.horizontal, 11).padding(.vertical, 7)
                                             .background(Capsule().fill(k.id == lift ? Color(hex: "#F4F5F8") : Theme.glass2))
@@ -122,7 +122,7 @@ struct ProgressScreen: View {
                                             Circle().fill(pw.stats[i].closed[j] ? Theme.ring(["m", "h", "b"][j]) : Color.white.opacity(0.12)).frame(width: 12, height: 12)
                                         }
                                     }
-                                    Text(i == 7 ? "Now" : wl[i]).font(.system(size: 12, weight: i == 7 ? .bold : .regular)).foregroundStyle(i == 7 ? .white : Theme.muted)
+                                    Text(i == 7 ? "Now" : wl[i]).font(.inter(size: 12, weight: i == 7 ? .bold : .regular)).foregroundStyle(i == 7 ? .white : Theme.muted)
                                 }.frame(maxWidth: .infinity)
                             }
                         }.padding(.top, 14)
@@ -135,7 +135,7 @@ struct ProgressScreen: View {
                         }.card(tight: true)
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Steps").nameStyle(15); Text("avg / office day").metaStyle()
-                            Text(lastSteps != 0 ? Fmt.nf(Double(lastSteps)) : "—").font(.system(size: 20, weight: .heavy)).monospacedDigit().padding(.top, 4)
+                            Text(lastSteps != 0 ? Fmt.nf(Double(lastSteps)) : "—").font(.inter(size: 20, weight: .heavy)).monospacedDigit().padding(.top, 4)
                             BarChart(vals: pw.steps.map(Double.init), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { Fmt.fmtFixed($0 / 1000, 1) + "k" }
                         }.card(tight: true)
                     }
@@ -144,13 +144,13 @@ struct ProgressScreen: View {
                         HStack(alignment: .top) {
                             VStack(alignment: .leading, spacing: 2) { Text("Waist").nameStyle(); Text("cm · the honest recomp number").metaStyle() }
                             Spacer()
-                            if let l = waistPts.last { Text(jsMinutes(l.cm)).font(.system(size: 24, weight: .heavy)) }
+                            if let l = waistPts.last { Text(jsMinutes(l.cm)).font(.inter(size: 24, weight: .heavy)) }
                         }
                         if waistPts.count > 1 {
                             LineChart(pts: waistPts.map { ProgressPoint(l: Dates.fmtD($0.date, .init(month: .short, day: true)), y: $0.cm) }, color: Color(hex: "#C9CED8"))
                         } else {
                             Text("Measure at the belly button, relaxed, same time of day. Every 2 weeks is enough.")
-                                .font(.system(size: 13)).foregroundStyle(Theme.muted).padding(.top, 10)
+                                .font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 10)
                         }
                         HStack(spacing: 8) {
                             StepField(title: nil, placeholder: "cm", text: $waist, keyboard: .decimalPad, big: false, alignRight: false)
@@ -165,7 +165,7 @@ struct ProgressScreen: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) { Text("Current streak").nameStyle(); Text("Weeks with all 3 rings closed").metaStyle() }
                             Spacer()
-                            Text("\(sk) week\(sk == 1 ? "" : "s")").font(.system(size: 24, weight: .heavy))
+                            Text("\(sk) week\(sk == 1 ? "" : "s")").font(.inter(size: 24, weight: .heavy))
                         }
                         HStack {
                             ForEach(0..<8, id: \.self) { i in
@@ -179,7 +179,7 @@ struct ProgressScreen: View {
                         }.padding(.top, 14)
                         HStack {
                             ForEach(0..<8, id: \.self) { i in
-                                Text(i == 7 ? "Now" : wl[i]).font(.system(size: 12)).foregroundStyle(Theme.muted).frame(width: 26)
+                                Text(i == 7 ? "Now" : wl[i]).font(.inter(size: 12)).foregroundStyle(Theme.muted).frame(width: 26)
                                     .fixedSize()
                                 if i < 7 { Spacer(minLength: 0) }
                             }

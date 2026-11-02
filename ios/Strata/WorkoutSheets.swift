@@ -46,7 +46,7 @@ struct SwapSheet: View {
         SheetChrome {
             Text("\(pos.map { "Lift \($0 + 1) of \(reqIds.count)" } ?? "Bonus") · Swap").labelStyle()
             Text("Machine busy?").title2Style(20).padding(.top, 4)
-            Text("Same movement, different equipment. Each option keeps its own weight history.").font(.system(size: 13)).foregroundStyle(Theme.muted).padding(.top, 4)
+            Text("Same movement, different equipment. Each option keeps its own weight history.").font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 4)
             ForEach(opts, id: \.id) { o in
                 let w: Double = {
                     var m = e
@@ -88,7 +88,7 @@ struct WarmSheet: View {
         SheetChrome {
             Text(Fmt.cleanN(ex.n)).labelStyle()
             Text("Add a warm-up set").title2Style(20).padding(.top, 4)
-            Text("Warm-up sets don't count toward progression.").font(.system(size: 13)).foregroundStyle(Theme.muted).padding(.top, 4)
+            Text("Warm-up sets don't count toward progression.").font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 4)
             if opts.isEmpty {
                 Text("Bodyweight lift: do a slow first set of 5 instead.").bodyStyle().padding(.top, 8)
             } else {

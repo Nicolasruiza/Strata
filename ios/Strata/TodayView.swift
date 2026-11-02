@@ -291,7 +291,7 @@ struct DayButton: View {
         let col = Color(hex: item.color)
         Button(action: action) {
             VStack(spacing: 5) {
-                Text(String(Catalog.shared.wdShort[String(item.w)]!.first!)).font(.system(size: 11, weight: .semibold))
+                Text(String(Catalog.shared.wdShort[String(item.w)]!.first!)).font(.inter(size: 11, weight: .semibold))
                 ZStack {
                     if item.done {
                         Circle().fill(col)
@@ -300,7 +300,7 @@ struct DayButton: View {
                         Circle().strokeBorder(col, style: StrokeStyle(lineWidth: 2, dash: item.kind == "skip" ? [3, 2.5] : [])).opacity(0.9)
                     }
                 }.frame(width: 22, height: 22)
-                Text(item.label).font(.system(size: 10, weight: .semibold)).tracking(0.2)
+                Text(item.label).font(.inter(size: 10, weight: .semibold)).tracking(0.2)
             }
             .foregroundStyle(selected ? Color.white : Theme.muted)
             .frame(maxWidth: .infinity).padding(.top, 8).padding(.bottom, 7)
@@ -316,7 +316,7 @@ struct DayButton: View {
 struct WarnBox: View {
     let markdown: String
     var body: some View {
-        RichText(markdown: markdown).font(.system(size: 13)).foregroundStyle(Color(hex: "#F7D08A")).lineSpacing(3)
+        RichText(markdown: markdown).font(.inter(size: 13)).foregroundStyle(Color(hex: "#F7D08A")).lineSpacing(3)
             .fixedSize(horizontal: false, vertical: true)
             .padding(12).frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: 16).fill(Theme.amber.opacity(0.1)))

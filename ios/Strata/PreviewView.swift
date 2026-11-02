@@ -23,7 +23,7 @@ struct Chip: View {
     var leading: AnyView?
     var body: some View {
         HStack(spacing: 5) { if let l = leading { l }; Text(text) }
-            .font(.system(size: 13, weight: .bold)).foregroundStyle(fg)
+            .font(.inter(size: 13, weight: .bold)).foregroundStyle(fg)
             .padding(.horizontal, 11).padding(.vertical, 7)
             .background(Capsule().fill(bg))
     }
@@ -35,7 +35,7 @@ struct Pill: View {
     var fg: Color = Color(hex: "#E6E8EE")
     var bg: Color = Theme.glass2
     var body: some View {
-        Text(text).font(.system(size: 12, weight: .semibold)).foregroundStyle(fg)
+        Text(text).font(.inter(size: 12, weight: .semibold)).foregroundStyle(fg)
             .padding(.horizontal, 11).padding(.vertical, 7).background(Capsule().fill(bg))
     }
 }
@@ -180,8 +180,8 @@ struct PreviewView: View {
             Thumb(path: e.catalog.imageName(of: ex.id))
             VStack(alignment: .leading, spacing: 2) {
                 Text(Fmt.cleanN(ex.n)).nameStyle()
-                meta.font(.system(size: 13))
-                if !extra.isEmpty { Text(extra.joined(separator: " · ")).font(.system(size: 12)).foregroundStyle(Theme.muted) }
+                meta.font(.inter(size: 13))
+                if !extra.isEmpty { Text(extra.joined(separator: " · ")).font(.inter(size: 12)).foregroundStyle(Theme.muted) }
             }
             Spacer(minLength: 0)
             VideoButton(id: ex.id, name: Fmt.cleanN(ex.n))

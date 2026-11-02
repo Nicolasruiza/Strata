@@ -32,7 +32,7 @@ struct RingsCard: View {
                 Text("This week").labelStyle()
                 Spacer()
                 Text(n == 3 ? "All 3 rings closed" : "\(n) of 3 rings closed")
-                    .font(.system(size: 13, weight: .semibold)).foregroundStyle(n == 3 ? Theme.mint : Theme.muted)
+                    .font(.inter(size: 13, weight: .semibold)).foregroundStyle(n == 3 ? Theme.mint : Theme.muted)
             }
             HStack {
                 cell("m", "Muscle", st.m, st.mt); Spacer(minLength: 0)
@@ -48,8 +48,8 @@ struct RingsCard: View {
     private func cell(_ k: String, _ label: String, _ d: Int, _ t: Int) -> some View {
         VStack(spacing: 4) {
             RingView(kind: k, done: d, target: t)
-            Text(label).font(.system(size: 13, weight: .semibold))
-            Text("\(d)/\(t)").font(.system(size: 14, weight: .bold)).monospacedDigit()
+            Text(label).font(.inter(size: 13, weight: .semibold))
+            Text("\(d)/\(t)").font(.inter(size: 14, weight: .bold)).monospacedDigit()
         }
         .frame(minWidth: 84)
         .accessibilityElement(children: .ignore)

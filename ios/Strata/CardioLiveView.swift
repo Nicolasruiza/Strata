@@ -34,11 +34,11 @@ struct CardioLiveView: View {
             let tot = s.z.dropFirst().reduce(0, +)
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    HStack { HStack(spacing: 8) { LogoMark(); Text("Strata").font(.system(size: 20, weight: .bold)) }; Spacer() }
+                    HStack { HStack(spacing: 8) { LogoMark(); Text("Strata").font(.inter(size: 20, weight: .bold)) }; Spacer() }
                         .frame(minHeight: 44)
                     Text("Cardio\(L.mode != "free" ? " · " + Engine.modeLbl(L.mode) : "")")
-                        .font(.system(size: 17, weight: .bold)).foregroundStyle(Theme.coral).padding(.top, 6)
-                    Text(A.n).font(.system(size: 34, weight: .heavy)).tracking(-0.85).padding(.top, -8)
+                        .font(.inter(size: 17, weight: .bold)).foregroundStyle(Theme.coral).padding(.top, 6)
+                    Text(A.n).font(.inter(size: 34, weight: .heavy)).tracking(-0.85).padding(.top, -8)
                     LivePill().padding(.top, -6)
                     hrCard(e, L: L, s: s, M: M, zc: zc)
                     if L.mode == "4x4" { phaseCard(e, L: L, el: el) }
@@ -50,7 +50,7 @@ struct CardioLiveView: View {
                     }.fixedSize(horizontal: false, vertical: true)
                     HStack(spacing: 8) {
                         IconView(d: Icon.watch, size: 18, color: .white, line: 1.9)
-                        Text(Config.Copy.chipWatchUnsupported).font(.system(size: 14, weight: .semibold))
+                        Text(Config.Copy.chipWatchUnsupported).font(.inter(size: 14, weight: .semibold))
                     }
                     .padding(.horizontal, 16).padding(.vertical, 9)
                     .overlay(Capsule().strokeBorder(Theme.line)).frame(maxWidth: .infinity)
@@ -73,15 +73,15 @@ struct CardioLiveView: View {
         HStack(alignment: .top, spacing: 16) {
             CardioIcon(act: L.act, big: true)
             VStack(alignment: .leading, spacing: 6) {
-                Text("Heart rate").font(.system(size: 15)).foregroundStyle(Theme.muted)
+                Text("Heart rate").font(.inter(size: 15)).foregroundStyle(Theme.muted)
                 if let hr = s.hr {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(jsMinutes(hr)).font(.system(size: 84, weight: .heavy)).tracking(-3.4).monospacedDigit()
-                        Text("bpm").font(.system(size: 24, weight: .semibold)).foregroundStyle(Theme.muted)
+                        Text(jsMinutes(hr)).font(.inter(size: 84, weight: .heavy)).tracking(-3.4).monospacedDigit()
+                        Text("bpm").font(.inter(size: 24, weight: .semibold)).foregroundStyle(Theme.muted)
                     }.frame(height: 84)
                     if let z = zc {
                         HStack(spacing: 10) {
-                            Text("Z\(z)").font(.system(size: 20, weight: .heavy)).foregroundStyle(Theme.coral)
+                            Text("Z\(z)").font(.inter(size: 20, weight: .heavy)).foregroundStyle(Theme.coral)
                                 .padding(.horizontal, 14).padding(.vertical, 6).background(Capsule().fill(Theme.coral.opacity(0.2)))
                             Text("\(Config.zoneNames[z]) zone").metaStyle()
                                 .padding(.leading, 10).overlay(alignment: .leading) { Rectangle().fill(Theme.line).frame(width: 1) }
@@ -93,8 +93,8 @@ struct CardioLiveView: View {
                     }
                 } else {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text("—").font(.system(size: 84, weight: .heavy)).foregroundStyle(Theme.dim)
-                        Text("bpm").font(.system(size: 24, weight: .semibold)).foregroundStyle(Theme.muted)
+                        Text("—").font(.inter(size: 84, weight: .heavy)).foregroundStyle(Theme.dim)
+                        Text("bpm").font(.inter(size: 24, weight: .semibold)).foregroundStyle(Theme.muted)
                     }.frame(height: 84)
                     Text(Config.Copy.noHeartRateNoWatchYet).metaStyle()
                 }
@@ -116,7 +116,7 @@ struct CardioLiveView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text(lbl).labelStyle(hard ? Theme.coral : Theme.muted)
                 Spacer()
-                Text(a.over != nil ? "" : Fmt.mmss(a.left.rounded(.up))).font(.system(size: 24, weight: .bold)).monospacedDigit()
+                Text(a.over != nil ? "" : Fmt.mmss(a.left.rounded(.up))).font(.inter(size: 24, weight: .bold)).monospacedDigit()
             }
             if let hr = hr, hard || a.p.label.hasPrefix("Recover") {
                 Text(hard ? "Target \(hr.hard[0])–\(hr.hard[1]) bpm" : "Recover under \(hr.z2[1]) bpm").smallStyle().padding(.top, 4)
@@ -148,7 +148,7 @@ struct CardioLiveView: View {
     private func zonesCard(s: CardioStats, tot: Double, zc: Int?, el: Double) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
-                Text("Time in zones").font(.system(size: 18, weight: .semibold)); Spacer(); Text("Total \(Fmt.mmss(el))").metaStyle()
+                Text("Time in zones").font(.inter(size: 18, weight: .semibold)); Spacer(); Text("Total \(Fmt.mmss(el))").metaStyle()
             }
             ZoneBar(z: s.z, tot: tot, highlight: zc)
             ZoneLabels(z: s.z, highlight: zc)
@@ -161,7 +161,7 @@ struct CardioLiveView: View {
                 .background(RoundedRectangle(cornerRadius: 14).fill(Theme.coral.opacity(0.16)))
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).metaStyle()
-                Text(value).font(.system(size: 26, weight: .heavy)).monospacedDigit()
+                Text(value).font(.inter(size: 26, weight: .heavy)).monospacedDigit()
                 if let n = note { Text(n).smallStyle() }
             }
             Spacer(minLength: 0)
@@ -178,7 +178,7 @@ struct LivePill: View {
     var body: some View {
         HStack(spacing: 8) {
             Circle().fill(Theme.coral).frame(width: 8, height: 8).opacity(on ? 1 : 0.3)
-            Text("Workout in progress").font(.system(size: 14, weight: .semibold))
+            Text("Workout in progress").font(.inter(size: 14, weight: .semibold))
         }
         .padding(.horizontal, 14).padding(.vertical, 7).overlay(Capsule().strokeBorder(Theme.line))
         .onAppear { withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) { on = false } }
@@ -210,8 +210,8 @@ struct ZoneLabels: View {
         HStack {
             ForEach(1...5, id: \.self) { i in
                 VStack(spacing: 2) {
-                    Text("Z\(i)").font(.system(size: 13)).foregroundStyle(i == highlight ? Theme.coral : Theme.muted)
-                    Text(Fmt.mmss(z[i])).font(.system(size: 16, weight: .bold)).monospacedDigit()
+                    Text("Z\(i)").font(.inter(size: 13)).foregroundStyle(i == highlight ? Theme.coral : Theme.muted)
+                    Text(Fmt.mmss(z[i])).font(.inter(size: 16, weight: .bold)).monospacedDigit()
                 }.frame(maxWidth: .infinity)
             }
         }
