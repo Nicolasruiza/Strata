@@ -205,7 +205,7 @@ struct FocusView: View {
              .background(RoundedRectangle(cornerRadius: 18).fill(Theme.glass))
              .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(Theme.line))
         } else if i == cur {
-            let rv = model.engine!.woReps ?? ((reps.last ?? nil) ?? orig.r.map(Double.init)) ?? 0
+            let rv: Double = Self.currentReps(woReps: model.engine!.woReps, reps: reps, target: orig.r)
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Set \(i + 1)\(i >= (low ? Config.lighterDaySets : orig.setCount) ? " · extra" : "")").nameStyle()
@@ -236,6 +236,13 @@ struct FocusView: View {
              .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(Theme.line))
              .opacity(0.75)
         }
+    }
+
+    /// `rv`: the stepper value: what was typed, else the last logged rep, else the target.
+    private static func currentReps(woReps: Double?, reps: [Double?], target: Int?) -> Double {
+        if let w = woReps { return w }
+        if let last = reps.last, let l = last { return l }
+        return Double(target ?? 0)
     }
 
     private func repButton(_ t: String, _ label: String, _ action: @escaping () -> Void) -> some View {
