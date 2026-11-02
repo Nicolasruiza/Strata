@@ -1,7 +1,7 @@
 import Foundation
 
 /// `Math.round`: halves go up (−2.5 → −2), unlike Swift's `.rounded()`.
-@inline(__always) func jsRound(_ x: Double) -> Double { (x + 0.5).rounded(.down) }
+@inline(__always) public func jsRound(_ x: Double) -> Double { (x + 0.5).rounded(.down) }
 
 /// A JS number printed the way a template literal prints it (`45`, `2.5`).
 func jsNum(_ d: Double) -> String {

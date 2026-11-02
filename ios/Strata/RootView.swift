@@ -10,7 +10,16 @@ struct RootView: View {
             ZStack(alignment: .top) {
                 Theme.bg.ignoresSafeArea()
                 Group {
-                    if model.onboard != nil { OnboardView() } else if model.engine != nil { TodayView() }
+                    if model.onboard != nil { OnboardView() }
+                    else if let e = model.engine {
+                        if e.celebration != nil && e.db.active == nil { CompleteView() }
+                        else {
+                            switch model.screen {
+                            case .today: TodayView()
+                            case .preview(let d): PreviewView(day: d)
+                            }
+                        }
+                    }
                 }
                 .environment(\.safeTop, geo.safeAreaInsets.top)
                 .ignoresSafeArea(edges: .top)
@@ -24,6 +33,9 @@ struct RootView: View {
         }
         .foregroundStyle(Theme.text)
         .preferredColorScheme(.dark)
+        .fullScreenCover(isPresented: Binding(get: { model.engine?.db.active != nil }, set: { _ in })) {
+            WorkoutRoot()
+        }
         .onChange(of: phase) { _, p in if p == .active { model.tick() } }
         .alert("Delete this entry?", isPresented: Binding(get: { model.confirmDelete != nil }, set: { if !$0 { model.confirmDelete = nil } })) {
             Button("Delete", role: .destructive) {
