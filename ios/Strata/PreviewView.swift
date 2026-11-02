@@ -74,7 +74,7 @@ struct PreviewView: View {
             VStack(spacing: 0) {
                 ZStack(alignment: .topLeading) {
                     Hero(eyebrow: Dates.fmtD(e.today, .init(weekday: .short, month: .short, day: true)), title: e.plan[d]?.name ?? "",
-                         sub: legs ? "Glutes, legs and bone" : "Chest, back, shoulders, arms", short: true)
+                         sub: legs ? "Glutes, legs and bone" : "Chest, back, shoulders, arms", short: true, brand: false)
                     GlassButton(action: { model.go(.today) }, accessibility: "Back") {
                         IconView(d: "M15 5l-7 7 7 7", size: 18, color: .white, line: 2.4)
                     }.padding(.leading, 16).padding(.top, 14 + safeTopValue)

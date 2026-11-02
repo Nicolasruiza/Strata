@@ -22,7 +22,7 @@ struct JumpsView: View {
             VStack(spacing: 0) {
                 ZStack(alignment: .topLeading) {
                     Hero(eyebrow: "Bone · \(e.plan[A.day]?.name ?? "")", title: "Jumps warm-up",
-                         sub: "Impact for bone density. Short, sharp, done before you lift.", short: true)
+                         sub: "Impact for bone density. Short, sharp, done before you lift.", short: true, brand: false)
                     GlassButton(action: { model.mutate { $0.skipJumps(); return nil } }, accessibility: "Back") {
                         IconView(d: "M15 5l-7 7 7 7", size: 18, color: .white, line: 2.4)
                     }.padding(.leading, 16).padding(.top, 14 + safeTop)
@@ -33,15 +33,14 @@ struct JumpsView: View {
             }.frame(maxWidth: Theme.maxWidth)
         }
         .safeAreaInset(edge: .bottom) {
-            HStack(spacing: 10) {
+            DockRow {
                 Button("Skip") { model.mutate { $0.skipJumps(); return nil } }.buttonStyle(StrataButtonStyle())
+            } right: {
                 Button(allDone ? "Done · start lifting" : "Mark done · start lifting") {
                     let sets = model.jumpSets
                     model.mutate { $0.completeJumps(sets: sets) }
-                }.buttonStyle(StrataButtonStyle(kind: allDone ? .mint : .plain)).frame(maxWidth: .infinity).layoutPriority(1)
+                }.buttonStyle(StrataButtonStyle(kind: allDone ? .mint : .plain))
             }
-            .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 8)
-            .background(LinearGradient(colors: [Theme.bg.opacity(0), Theme.bg.opacity(0.94)], startPoint: .top, endPoint: .init(x: 0.5, y: 0.35)))
         }
     }
 

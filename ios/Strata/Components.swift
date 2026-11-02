@@ -43,15 +43,16 @@ extension View {
 
 // MARK: buttons (.btn and variants)
 
-enum BtnKind { case plain, primary, violet, coral, mint }
+enum BtnKind { case plain, primary, violet, violetFlat, coral, mint }
 
 struct StrataButtonStyle: ButtonStyle {
     var kind: BtnKind = .plain
     var small = false
     var color: Color?               // explicit solid fill (home sessions use the ring colour)
     var hPad: CGFloat?              // content-width button with this horizontal padding (`padding:0 22px`)
+    var height: CGFloat?            // explicit height (`height:auto` next to a field = the field's height)
     func makeBody(configuration: Configuration) -> some View {
-        let h = small ? Theme.Size.buttonSmallHeight : Theme.Size.buttonHeight
+        let h = height ?? (small ? Theme.Size.buttonSmallHeight : Theme.Size.buttonHeight)
         let r = small ? Theme.Radius.buttonSmall : Theme.Radius.button
         configuration.label
             .font(.system(size: small ? 14 : Theme.Size.button, weight: .bold))
@@ -73,13 +74,14 @@ struct StrataButtonStyle: ButtonStyle {
         case .plain: return AnyShapeStyle(Color.white.opacity(0.08))
         case .primary: return AnyShapeStyle(Color(hex: "#F4F5F8"))
         case .violet: return AnyShapeStyle(LinearGradient(colors: [Color(hex: "#AC9EFF"), Color(hex: "#7C6CF0")], startPoint: .topLeading, endPoint: .bottomTrailing))
+        case .violetFlat: return AnyShapeStyle(Color(hex: "#9C8CFF").opacity(0.85))      // `Machine busy`: inline background
         case .coral: return AnyShapeStyle(LinearGradient(colors: [Color(hex: "#FF8A6E"), Color(hex: "#F0583A")], startPoint: .topLeading, endPoint: .bottomTrailing))
         case .mint: return AnyShapeStyle(LinearGradient(colors: [Color(hex: "#6EE7A0"), Color(hex: "#2FBF68")], startPoint: .topLeading, endPoint: .bottomTrailing))
         }
     }
     private var border: Color { (kind == .plain && color == nil) ? Color.white.opacity(0.16) : .clear }
     private var shadow: Color {
-        switch kind { case .violet: return Color(hex: "#7C6CF0").opacity(0.4); case .coral: return Color(hex: "#F0583A").opacity(0.35); default: return .clear }
+        switch kind { case .violet, .violetFlat: return Color(hex: "#7C6CF0").opacity(0.4); case .coral: return Color(hex: "#F0583A").opacity(0.35); default: return .clear }
     }
 }
 
@@ -103,6 +105,7 @@ struct Hero: View {
     var tall = false
     var short = false
     var image = "mountain"
+    var brand = true              // heroes with a back button replace the logo (`o.left`)
     @Environment(\.safeTop) private var safeTop
 
     var body: some View {
@@ -114,6 +117,7 @@ struct Hero: View {
                            startPoint: .top, endPoint: .bottom)
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 8) { LogoMark(); Text("Strata").font(.system(size: 20, weight: .bold)).tracking(-0.2) }
+                    .opacity(brand ? 1 : 0).frame(minHeight: 44)
                     .padding(.top, 14 + safeTop)
                 Spacer(minLength: 0)
                 if let e = eyebrow {

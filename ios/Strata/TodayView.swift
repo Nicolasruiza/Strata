@@ -123,7 +123,7 @@ struct TodayView: View {
                         Button("Log steps") {
                             model.mutate { $0.logSteps(date: date, input: steps) }
                             steps = ""
-                        }.buttonStyle(StrataButtonStyle(kind: .coral, hPad: 22)).fixedSize()
+                        }.buttonStyle(StrataButtonStyle(kind: .coral, hPad: 22, height: 44)).fixedSize()
                     }.padding(.top, 14)
                 }
             }.card()
@@ -166,7 +166,7 @@ struct TodayView: View {
                         Button("Log \(slot == "z2" ? "Zone 2" : "walk")") {
                             let v = Double(minutes.isEmpty ? (slot == "z2" ? "50" : "60") : minutes) ?? 0
                             model.mutate { $0.logMinutes(slot: slot, min: v) }
-                        }.buttonStyle(StrataButtonStyle(kind: .coral, hPad: 22)).fixedSize()
+                        }.buttonStyle(StrataButtonStyle(kind: .coral, hPad: 22, height: 44)).fixedSize()
                     }.padding(.top, 14)
                 }
             }.card()

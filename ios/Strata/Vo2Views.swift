@@ -12,7 +12,7 @@ struct Vo2InfoView: View {
         ScrollView {
             VStack(spacing: 0) {
                 ZStack(alignment: .topLeading) {
-                    Hero(eyebrow: "Heart · VO2 max", title: "4×4 intervals", sub: e.vo2Ramp(), image: "treadmill")
+                    Hero(eyebrow: "Heart · VO2 max", title: "4×4 intervals", sub: e.vo2Ramp(), image: "treadmill", brand: false)
                     GlassButton(action: { model.go(.today) }, accessibility: "Back") { IconView(d: Icon.back, size: 18, color: .white, line: 2.4) }
                         .padding(.leading, 16).padding(.top, 14 + safeTop)
                 }

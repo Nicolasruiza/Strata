@@ -53,17 +53,32 @@ struct CountdownOverlay: View {
     }
 }
 
-/// Bottom dock with two buttons (Discard + Complete)
+/// Two dock buttons side by side, 1 : 1.5 (`.dock>*{flex:1}` and `.w2{flex:1.5}`).
+struct DockRow<Left: View, Right: View>: View {
+    @ViewBuilder var left: () -> Left
+    @ViewBuilder var right: () -> Right
+    var body: some View {
+        GeometryReader { g in
+            let w = g.size.width - 10
+            HStack(spacing: 10) {
+                left().frame(width: w * 0.4)
+                right().frame(width: w * 0.6)
+            }
+        }
+        .frame(height: Theme.Size.buttonHeight)
+        .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 8)
+        .background(LinearGradient(colors: [Theme.bg.opacity(0), Theme.bg.opacity(0.94)], startPoint: .top, endPoint: .init(x: 0.5, y: 0.35)))
+    }
+}
+
+/// Bottom dock with Discard + a main button
 struct WorkoutDock<Trailing: View>: View {
     let discard: () -> Void
     @ViewBuilder var trailing: () -> Trailing
     var body: some View {
-        HStack(spacing: 10) {
+        DockRow {
             Button("Discard", action: discard).buttonStyle(StrataButtonStyle())
-            trailing().frame(maxWidth: .infinity).layoutPriority(1)
-        }
-        .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 8)
-        .background(LinearGradient(colors: [Theme.bg.opacity(0), Theme.bg.opacity(0.94)], startPoint: .top, endPoint: .init(x: 0.5, y: 0.35)))
+        } right: { trailing() }
     }
 }
 

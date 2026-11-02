@@ -62,12 +62,11 @@ struct CompleteView: View {
                 }.frame(maxWidth: Theme.maxWidth)
             }
             .safeAreaInset(edge: .bottom) {
-                HStack(spacing: 10) {
+                DockRow {
                     Button("Add cardio") { model.navigate(.pickCardio) }.buttonStyle(StrataButtonStyle())
-                    Button("Done") { model.finishCelebration() }.buttonStyle(StrataButtonStyle(kind: .primary)).frame(maxWidth: .infinity).layoutPriority(1)
+                } right: {
+                    Button("Done") { model.finishCelebration() }.buttonStyle(StrataButtonStyle(kind: .primary))
                 }
-                .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 8)
-                .background(LinearGradient(colors: [Theme.bg.opacity(0), Theme.bg.opacity(0.94)], startPoint: .top, endPoint: .init(x: 0.5, y: 0.35)))
             }
         } else {
             Color.clear.onAppear { model.finishCelebration() }
