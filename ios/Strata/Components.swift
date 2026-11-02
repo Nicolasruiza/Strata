@@ -295,3 +295,29 @@ struct WebSwitch: View {
         .accessibilityAddTraits(.isButton).accessibilityValue(isOn ? "on" : "off")
     }
 }
+
+/// The web's accent panels: a radial glow from the bottom-right corner over a diagonal tint
+/// (`radial-gradient(120% 120% at 100% 100%, c .35, transparent 55%), linear-gradient(135deg, c .2, c .05)`).
+struct GlowPanel: ViewModifier {
+    let color: Color
+    var radial = 0.35, from = 0.2, to = 0.05
+    var radius: CGFloat = 24
+    var border: Double = 0.35
+    var ring = false
+    func body(content: Content) -> some View {
+        content
+            .background(
+                ZStack {
+                    LinearGradient(colors: [color.opacity(from), color.opacity(to)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    RadialGradient(colors: [color.opacity(radial), .clear], center: .bottomTrailing, startRadius: 0, endRadius: 230)
+                }.clipShape(RoundedRectangle(cornerRadius: radius))
+            )
+            .overlay(RoundedRectangle(cornerRadius: radius).strokeBorder(color.opacity(ring ? 1 : border), lineWidth: ring ? 1.5 : 1))
+            .overlay { if ring { RoundedRectangle(cornerRadius: radius).stroke(color.opacity(0.15), lineWidth: 4).padding(-4) } }
+    }
+}
+extension View {
+    func glowPanel(_ color: Color, radial: Double = 0.35, from: Double = 0.2, to: Double = 0.05, radius: CGFloat = 24, border: Double = 0.35, ring: Bool = false) -> some View {
+        modifier(GlowPanel(color: color, radial: radial, from: from, to: to, radius: radius, border: border, ring: ring))
+    }
+}

@@ -43,11 +43,11 @@ struct CardioLiveView: View {
                     hrCard(e, L: L, s: s, M: M, zc: zc)
                     if L.mode == "4x4" { phaseCard(e, L: L, el: el) }
                     if s.zonesOK && tot > 0 { zonesCard(s: s, tot: tot, zc: zc, el: el) }
-                    HStack(spacing: 10) {
+                    HStack(alignment: .top, spacing: 10) {
                         stat(icon: Icon.timer, title: "Elapsed", value: Fmt.mmss(el), note: nil)
                         if A.out { stat(icon: Icon.mount, title: "Elevation", value: s.elev.map { "+\($0) m" } ?? "—", note: s.elev == nil ? locationCopy : nil) }
                         else { stat(icon: Icon.heart, title: "Avg heart rate", value: s.avg.map(String.init) ?? "—", note: nil) }
-                    }
+                    }.fixedSize(horizontal: false, vertical: true)
                     HStack(spacing: 8) {
                         IconView(d: Icon.watch, size: 18, color: .white, line: 1.9)
                         Text(Config.Copy.chipWatchUnsupported).font(.system(size: 14, weight: .semibold))
@@ -102,8 +102,7 @@ struct CardioLiveView: View {
             Spacer(minLength: 0)
         }
         .padding(20)
-        .background(RoundedRectangle(cornerRadius: 26).fill(LinearGradient(colors: [Theme.coral.opacity(0.16), Theme.coral.opacity(0.04)], startPoint: .topLeading, endPoint: .bottomTrailing)))
-        .overlay(RoundedRectangle(cornerRadius: 26).strokeBorder(Theme.coral.opacity(0.3)))
+        .glowPanel(Theme.coral, radial: 0.3, from: 0.16, to: 0.04, radius: 26, border: 0.3)
     }
 
     private func phaseCard(_ e: Engine, L: LiveCardio, el: Double) -> some View {
@@ -167,7 +166,7 @@ struct CardioLiveView: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 16).padding(.vertical, 14).frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16).padding(.vertical, 14).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 22).fill(Theme.glass))
         .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(Theme.line))
     }

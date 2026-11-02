@@ -32,8 +32,7 @@ struct PickCardioView: View {
                         Spacer(minLength: 0)
                     }
                     .padding(18).frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 24).fill(LinearGradient(colors: [Theme.coral.opacity(0.2), Theme.coral.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing)))
-                    .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(Theme.coral.opacity(sel == P.act && model.pickAct == nil ? 1 : 0.35), lineWidth: sel == P.act && model.pickAct == nil ? 1.5 : 1))
+                    .glowPanel(Theme.coral, ring: sel == P.act && model.pickAct == nil)
                 }.buttonStyle(.plain)
 
                 if !recent.isEmpty {
