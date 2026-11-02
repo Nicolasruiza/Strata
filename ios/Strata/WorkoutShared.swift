@@ -15,8 +15,8 @@ struct RestBanner: View {
                         if let n = r.next { Text(n).metaStyle() }
                     }
                     Spacer(minLength: 0)
-                    Button("+30 s") { model.extendRest() }.buttonStyle(StrataButtonStyle(small: true)).fixedSize()
-                    Button("Skip") { model.skipRest() }.buttonStyle(StrataButtonStyle(small: true)).fixedSize()
+                    Button("+30 s") { model.extendRest() }.buttonStyle(StrataButtonStyle(small: true, hPad: 14)).fixedSize()
+                    Button("Skip") { model.skipRest() }.buttonStyle(StrataButtonStyle(small: true, hPad: 14)).fixedSize()
                 }
                 .padding(.horizontal, 16).padding(.vertical, 14)
                 .background(RoundedRectangle(cornerRadius: 22).fill(Theme.glass))

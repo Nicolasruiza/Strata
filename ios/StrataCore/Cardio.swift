@@ -253,3 +253,45 @@ extension Engine {
     /// `cdiscard`: nothing is saved.
     public mutating func discardCardio() { db.live = nil }
 }
+
+/// `vo2Done`: the block logged from the 4×4 info screen.
+public struct Vo2Done: Codable, Equatable {
+    public var intervals: Int
+    public var min: Int
+    public var date: String
+}
+
+extension Engine {
+    /// "Already did it? Log without the timer" on the 4×4 screen. `n` is the chosen count.
+    @discardableResult
+    public mutating func logVo2(n: Int?) -> Vo2Done {
+        let n = n ?? rcDefaultIntervals()
+        logCardio("4x4", CardioEntry(date: "", type: "", min: Double(rcMinutes(n)), intervals: Double(n)))
+        let v = Vo2Done(intervals: n, min: rcMinutes(n), date: today)
+        vo2Done = v
+        return v
+    }
+
+    /// The ramp-up line on the 4×4 info screen.
+    public func vo2Ramp() -> String {
+        let c = rc4x4Count()
+        return c < Config.Intervals.rampSessions
+            ? "Ramp-up session \(c + 1) of \(Config.Intervals.rampSessions): \(Config.Intervals.rampCount) intervals at the low end of the range."
+            : "Full 4×4. Add speed or incline when the last interval feels easier than the first."
+    }
+
+    /// Texts on the 4×4 complete screen (`vo2DoneView`), for the block `v` (or the default one).
+    public func vo2DoneView(_ v: Vo2Done?) -> (v: Vo2Done, st: WeekStats, sub: String, ringsLine: String, note: String) {
+        let d = v ?? Vo2Done(intervals: Config.Intervals.fullCount, min: rcMinutes(Config.Intervals.fullCount), date: today)
+        let st = weekStats(Dates.mondayOf(d.date))
+        let sub = st.all ? "All 3 rings closed this week." : st.closed[1] ? "Heart ring closed for the week." : "Heart work logged."
+        let line = st.all ? "Muscle, heart and bone: the full week is in." : ringsLine(st)
+        let note = rc4x4Count() < Config.Intervals.rampSessions
+            ? "Ramp-up phase: keep it at 3 intervals until you have 3 sessions in."
+            : "Next time, add a little speed or incline if the last interval felt easier than the first."
+        return (d, st, sub, line, note)
+    }
+
+    /// "Heart ring closed for the week." sub-line of the cardio complete screen.
+    public func cardioDoneSub(_ st: WeekStats) -> String { st.closed[1] ? "Heart ring closed for the week." : "Heart work logged." }
+}

@@ -56,6 +56,7 @@ public struct Engine {
     public var woReps: Double?
     public var preLow = false
     public var wLast: WLast?
+    public var vo2Done: Vo2Done?
     public var view = 1
 
     public init(profile: Profile, db: AppData, nowMs: Double, tz: TimeZone) {

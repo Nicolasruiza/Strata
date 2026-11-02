@@ -44,6 +44,7 @@ final class LogicFixtureTests: XCTestCase {
                 if let r = pre["rest"] { e.rest = try JSONCompare.decode(RestState.self, from: r) }
                 if let r = pre["celebration"] { e.celebration = try JSONCompare.decode(Celebration.self, from: r) }
                 if let w = pre["wLast"] { e.wLast = try JSONCompare.decode(WLast.self, from: w) }
+                if let v = pre["vo2Done"] { e.vo2Done = try JSONCompare.decode(Vo2Done.self, from: v) }
                 e.woReps = (pre["woReps"] as? NSNumber)?.doubleValue
                 e.preLow = (pre["preLow"] as? Bool) ?? false
 
@@ -61,7 +62,7 @@ final class LogicFixtureTests: XCTestCase {
                     var mine: [String: Any] = [
                         "db": JSONCompare.object(e.db) ?? NSNull(), "rest": JSONCompare.object(e.rest) ?? NSNull(),
                         "celebration": JSONCompare.object(e.celebration) ?? NSNull(), "woReps": e.woReps ?? NSNull(),
-                        "preLow": e.preLow, "wLast": JSONCompare.object(e.wLast) ?? NSNull(), "profile": JSONCompare.object(e.profile) ?? NSNull()]
+                        "preLow": e.preLow, "wLast": JSONCompare.object(e.wLast) ?? NSNull(), "vo2Done": JSONCompare.object(e.vo2Done) ?? NSNull(), "profile": JSONCompare.object(e.profile) ?? NSNull()]
                     if let p = out.ret, c["click"] != nil { mine["payload"] = p }
                     var theirs = after
                     theirs["view"] = nil
@@ -140,6 +141,10 @@ final class LogicFixtureTests: XCTestCase {
         case "isLegs": o.ret = e.isLegs(int(a, 0))
         case "ringsLine": o.ret = e.ringsLine(e.weekStats(str(a, 0)))
         case "weekHeadline": o.ret = e.weekHeadline(e.weekStats(str(a, 0)))
+        case "vo2Ramp": o.ret = e.vo2Ramp()
+        case "vo2DoneView":
+            let r = e.vo2DoneView(e.vo2Done)
+            o.ret = ["v": obj(r.v) ?? NSNull(), "st": obj(r.st) ?? NSNull(), "sub": r.sub, "ringsLine": r.ringsLine, "note": r.note]
         case "weekStrip": o.ret = obj(e.weekStrip())
         case "greet": o.ret = e.greet()
         case "nextCard": o.ret = obj(e.nextCard(from: str(a, 0)))
@@ -291,6 +296,7 @@ final class LogicFixtureTests: XCTestCase {
                     case .confirm(let m): if ask(m) { e.begin(day: day) }
                     case .ok: e.begin(day: day)
                     }
+                case "logVo2": e.logVo2(n: (pre["vo2N"] as? NSNumber)?.intValue)
                 case "homeDone": toast(e.homeDone(ds["d"]!))
                 case "undoSkip": toast(e.undoSkip(ds["d"]!))
                 case "detJumps": e.toggleSessionJumps((pre["detailIdx"] as! NSNumber).intValue)

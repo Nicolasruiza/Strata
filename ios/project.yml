@@ -36,6 +36,7 @@ targets:
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         ITSAppUsesNonExemptEncryption: false
+        NSLocationWhenInUseUsageDescription: Strata uses your location during outdoor workouts to measure elevation gain.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: net.nicolasruiz.strata

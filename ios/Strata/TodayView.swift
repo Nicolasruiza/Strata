@@ -123,7 +123,7 @@ struct TodayView: View {
                         Button("Log steps") {
                             model.mutate { $0.logSteps(date: date, input: steps) }
                             steps = ""
-                        }.buttonStyle(StrataButtonStyle(kind: .coral)).fixedSize()
+                        }.buttonStyle(StrataButtonStyle(kind: .coral, hPad: 22)).fixedSize()
                     }.padding(.top, 14)
                 }
             }.card()
@@ -166,7 +166,7 @@ struct TodayView: View {
                         Button("Log \(slot == "z2" ? "Zone 2" : "walk")") {
                             let v = Double(minutes.isEmpty ? (slot == "z2" ? "50" : "60") : minutes) ?? 0
                             model.mutate { $0.logMinutes(slot: slot, min: v) }
-                        }.buttonStyle(StrataButtonStyle(kind: .coral)).fixedSize()
+                        }.buttonStyle(StrataButtonStyle(kind: .coral, hPad: 22)).fixedSize()
                     }.padding(.top, 14)
                 }
             }.card()
@@ -241,7 +241,7 @@ struct TodayView: View {
                 }
                 Spacer(minLength: 0)
                 Button(e.liftedOn(t) != nil ? "Preview" : "Open") { model.go(.preview(day: nd)) }
-                    .buttonStyle(StrataButtonStyle(small: true)).fixedSize().padding(.horizontal, 0)
+                    .buttonStyle(StrataButtonStyle(small: true, hPad: 16)).fixedSize()
             }
             .padding(.horizontal, 14).padding(.vertical, 12)
             .background(RoundedRectangle(cornerRadius: Theme.Radius.card).fill(Theme.glass))

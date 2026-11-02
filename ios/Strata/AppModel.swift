@@ -23,6 +23,10 @@ final class AppModel: ObservableObject {
     @Published var pending: PendingRoute?
     @Published var pendingEnd: Prompt?
     @Published var celebrationShown = false
+    @Published var pickAct: String?
+    @Published var vo2N: Int?
+    @Published var location: LocationState = .waiting
+    @Published var blockSheetOpen = false
     @Published var jumpSets: [String: Int] = [:]
     @Published var swapOpen = false
     @Published var warmOpen = false
@@ -39,11 +43,15 @@ final class AppModel: ObservableObject {
     }
 
     private let store = LocalStore()
+    let sensors = AppSensors()
+    var liveTicker: Task<Void, Never>?
     private var toastTask: Task<Void, Never>?
 
     init() {
+        sensors.onStateChange = { [weak self] s in Task { @MainActor in self?.location = s } }
         if let p = store.loadProfile() {
             engine = Engine(profile: p, db: store.loadData(), nowMs: Self.nowMs(), tz: .current)
+            if let L = engine?.db.live { sensors.start(L); ensureLiveTicker() }     // reopened mid-workout
         } else {
             onboard = OnboardState()
         }
@@ -122,16 +130,27 @@ final class AppModel: ObservableObject {
 enum Screen: Equatable {
     case today
     case preview(day: Int)
+    case pick
+    case cdone
+    case vo2
+    case vo2done
 }
 
 /// Buttons whose destination is built in a later PR record the request here and nothing opens
 /// (PARITY.md marks them).
 enum PendingRoute: Equatable {
-    case detail(historyIndex: Int), pickCardio, howTheFourByFourWorks
+    case detail(historyIndex: Int)
+    case pickCardio, howTheFourByFourWorks      // handled now: they open the picker / the 4×4 screen
 }
 
 extension AppModel {
-    func navigate(_ r: PendingRoute) { pending = r }
+    func navigate(_ r: PendingRoute) {
+        switch r {
+        case .pickCardio: pickAct = nil; go(.pick)
+        case .howTheFourByFourWorks: vo2N = nil; go(.vo2)
+        default: pending = r
+        }
+    }
     func go(_ s: Screen) { screen = s }
 }
 
@@ -176,19 +195,84 @@ extension AppModel {
     func skipRest() { engine?.rest = nil }
 
     /// The 3-2-1 before a workout (`countdown()`); the watch is started here in phase 4.
-    func runCountdown(label: String) {
+    func runCountdown(label: String, then: (@MainActor () -> Void)? = nil) {
         countdown = CountdownState(label: label, n: Config.workout.countdownSec)
         Task { [weak self] in
             for n in stride(from: Config.workout.countdownSec, to: 0, by: -1) {
                 await MainActor.run { self?.countdown?.n = n }
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
             }
-            await MainActor.run { self?.countdown = nil; self?.cue() }
+            await MainActor.run { self?.countdown = nil; self?.cue(); then?() }
         }
     }
 
     func openFormVideo(id: String, name: String) {
         guard let e = engine, let url = URL(string: Fmt.formVideoURL(id: id, name: name, qmapKey: e.ap.qmap)) else { return }
         UIApplication.shared.open(url)
+    }
+}
+
+
+// MARK: cardio (workout.js startCardio / takeSample / completeCardio)
+
+extension AppModel {
+    /// "Start · <activity>": the 3-2-1, then the live session.
+    func startCardio() {
+        guard let e = engine else { return }
+        let P = e.cardioPlan(), act = pickAct ?? P.act
+        let name = e.catalog.cardioActs[act]?.n ?? act
+        runCountdown(label: name + (P.mode != "free" ? " · " + Engine.modeLbl(P.mode) : "")) { [weak self] in
+            guard let self = self else { return }
+            let reading = SensorReading(hr: nil, alt: nil)
+            self.mutate { $0.startCardio(act: act, reading: reading); return nil }
+            self.pickAct = nil
+            if let L = self.engine?.db.live { self.sensors.start(L) }
+            self.ensureLiveTicker()
+            self.screen = .today
+        }
+    }
+
+    /// One reading every `sampleEverySec`, stored on the live session.
+    func ensureLiveTicker() {
+        guard liveTicker == nil else { return }
+        UIApplication.shared.isIdleTimerDisabled = true
+        liveTicker = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                guard let self = self else { return }
+                guard let e = self.engine, let L = e.db.live else { self.liveTicker = nil; UIApplication.shared.isIdleTimerDisabled = false; return }
+                let r = self.sensors.read(e.liveElapsed(L))
+                self.mutate { $0.takeSample(reading: r); return nil }
+            }
+        }
+    }
+
+    func completeCardio() {
+        guard var e = engine, let L = e.db.live else { return }
+        e.nowMs = Self.nowMs()
+        let payload = e.endCardio(reading: sensors.read(e.liveElapsed(L)))
+        // Apple Health is phase 3: nothing is saved there, and the screen says so.
+        _ = payload
+        e.recordHealthResult(saved: false)
+        engine = e
+        persist()
+        sensors.stop()
+        liveTicker?.cancel(); liveTicker = nil
+        UIApplication.shared.isIdleTimerDisabled = false
+        screen = .cdone
+        blockSheetOpen = true
+    }
+
+    func discardCardio() {
+        mutate { $0.discardCardio(); return nil }
+        sensors.stop()
+        liveTicker?.cancel(); liveTicker = nil
+        UIApplication.shared.isIdleTimerDisabled = false
+        screen = .today
+    }
+
+    func logVo2Block() {
+        mutate { $0.logVo2(n: self.vo2N); return nil }
+        screen = .vo2done
     }
 }

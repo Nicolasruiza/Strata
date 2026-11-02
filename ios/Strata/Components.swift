@@ -49,13 +49,15 @@ struct StrataButtonStyle: ButtonStyle {
     var kind: BtnKind = .plain
     var small = false
     var color: Color?               // explicit solid fill (home sessions use the ring colour)
+    var hPad: CGFloat?              // content-width button with this horizontal padding (`padding:0 22px`)
     func makeBody(configuration: Configuration) -> some View {
         let h = small ? Theme.Size.buttonSmallHeight : Theme.Size.buttonHeight
         let r = small ? Theme.Radius.buttonSmall : Theme.Radius.button
         configuration.label
             .font(.system(size: small ? 14 : Theme.Size.button, weight: .bold))
             .foregroundStyle(fg)
-            .frame(maxWidth: .infinity, minHeight: h, maxHeight: h)
+            .padding(.horizontal, hPad ?? 0)
+            .frame(maxWidth: hPad == nil ? .infinity : nil, minHeight: h, maxHeight: h)
             .background(RoundedRectangle(cornerRadius: r).fill(fill))
             .overlay(RoundedRectangle(cornerRadius: r).strokeBorder(border, lineWidth: 1))
             .shadow(color: shadow, radius: 14, y: 10)
@@ -100,13 +102,14 @@ struct Hero: View {
     var sub: String?
     var tall = false
     var short = false
+    var image = "mountain"
     @Environment(\.safeTop) private var safeTop
 
     var body: some View {
         let h: CGFloat = (tall ? 310 : short ? 200 : 250)
         ZStack(alignment: .bottomLeading) {
             Theme.bg2
-            BundleImage(name: "mountain").frame(maxWidth: .infinity).frame(height: h + safeTop).clipped()
+            Color.clear.frame(height: h + safeTop).overlay(BundleImage(name: image)).clipped()
             LinearGradient(stops: [.init(color: Theme.bg.opacity(0.25), location: 0), .init(color: Theme.bg.opacity(0.35), location: 0.45), .init(color: Theme.bg, location: 1)],
                            startPoint: .top, endPoint: .bottom)
             VStack(alignment: .leading, spacing: 0) {

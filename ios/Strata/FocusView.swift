@@ -27,8 +27,8 @@ struct FocusView: View {
                 ZStack(alignment: .top) {
                     Color(hex: "#1b1e28")
                     if let img = e.catalog.imageName(of: ex.id) {
-                        BundleImage(name: ((img as NSString).lastPathComponent as NSString).deletingPathExtension)
-                            .frame(maxWidth: .infinity).frame(height: 330 + safeTop).clipped()
+                        Color.clear.frame(height: 330 + safeTop)
+                            .overlay(BundleImage(name: ((img as NSString).lastPathComponent as NSString).deletingPathExtension)).clipped()
                     }
                     LinearGradient(stops: [.init(color: Theme.bg.opacity(0.35), location: 0), .init(color: Theme.bg.opacity(0), location: 0.35), .init(color: Theme.bg, location: 1)], startPoint: .top, endPoint: .bottom)
                     HStack {
@@ -39,7 +39,7 @@ struct FocusView: View {
                         HStack(spacing: 8) { LogoMark(); Text("Strata").font(.system(size: 20, weight: .bold)) }
                         Spacer()
                         HStack(spacing: 6) {
-                            IconView(d: "M12 5a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 9v4l2.5 2M10 2h4", size: 18, color: .white, line: 1.9)
+                            IconView(d: Icon.timer, size: 18, color: .white, line: 1.9)
                             ElapsedText(since: exT).font(.system(size: 15, weight: .bold)).monospacedDigit()
                         }
                         .padding(.horizontal, 14).frame(height: 44)
