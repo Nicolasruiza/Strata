@@ -253,3 +253,6 @@ h1{margin:6px 0 4px;font-size:34px;font-weight:800;letter-spacing:-.02em;line-he
 .wlog{height:44px;padding:0 16px;border-radius:14px;border:0;background:var(--violet);color:#0E1018;font-weight:800}
 .wo .btn svg{width:18px;height:18px}
 .wtile .wic svg{width:32px;height:32px}
+
+.wedit{background:none;border:0;border-bottom:2px dashed rgba(255,255,255,.2);border-radius:0;color:inherit;font-family:inherit;letter-spacing:inherit;line-height:1;padding:0;margin:0;outline:0;min-width:0;box-sizing:content-box}
+.wedit:focus{border-bottom-color:var(--violet)}
