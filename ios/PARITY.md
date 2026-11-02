@@ -118,10 +118,32 @@ system font for now (the font files in `fonts.css` are WOFF2, which iOS can't lo
 - [x] Logged: minutes, hard intervals, hard minutes, rings, ramp-up note, next-session card, "Done"
 - Not ported: the standalone timer (`timerView`), unreachable on `main`.
 
-## Not built yet (later PRs)
-Tab bar, history and detail, progress, settings (the other three tabs).
+## Tab bar — `TabBar.swift`
+- [x] Floating bar: Today, Progress, History, Settings; selected tab lighter; hidden on preview, detail, cardio and every workout screen, like the web
 
-## Not checked visually
-Today and the screens above compile and share their data logic with the golden-tested core, but they have not yet
-been looked at in a simulator (the simulator was unusable on the build machine). Compare on a device
-or simulator before relying on spacing.
+## History (`historyView`, `histRow`) — `HistoryView.swift`
+- [x] Hero "History" / "Your sessions, week by week."; empty state "Nothing logged yet. Your first workout will show up here."
+- [x] One card per week: "Oct 26 – Nov 1", the three ring dots, "N of M" this week or "N session(s)"
+- [x] Rows: weekday + date, icon (lift / heart / walk / home), name, meta (jumps in mint, "lighter"), right text (min, steps, "N × 4 min"), chevron; a lift opens the detail, cardio opens the entry editor
+
+## Session detail (`detailView`) — `DetailView.swift`
+- [x] Hero: full date, plan name, "N min · N lb moved[ · lighter day]", back to History
+- [x] "Jumps warm-up" switch (legs or when jumps were logged); "Main lifts" with editable weight and reps; "Bonus & extras" or the dashed "Bonus … Skipped" card; "Delete this session" (confirm)
+- [x] Editing a number recalculates "lb moved" like the web; merely opening a session never changes it
+
+## Progress (`progressView`) — `ProgressView.swift`
+- [x] Top-set card: lift name, "Top set, lb", change % and "a → b lb", lift pills, line chart (same 340 × 150 geometry and rounding as `lineSVG`), 8W / 6M / 1Y
+- [x] "Weekly rings" (8 weeks, W1…W8, Now); "Cardio sessions / week" and "Steps avg / office day" bar charts (`barSVG`)
+- [x] "Waist" with the line chart, the note until there are two points, the cm field + "Add measurement"
+- [x] "Current streak" with the eight-week check circles
+
+## Settings (`settingsView`) — `SettingsView.swift`
+- [x] You: name (saved on submit / leaving the field), Male / Female (confirm), note
+- [x] Injury flags: Shoulder, Knee, Lower back, Elbow / wrist, "Since … · N lifts on hold", confirm with the volume cost
+- [x] Office days chips and both notes; Heart zones: age −/+, Zone 2 and 4×4 ranges, "Estimated max N bpm."
+- [x] Data: Export data (the web's JSON, same file name), Import (Strata or Lift Log file, with the web's replace confirmations), Reset <name> (confirm)
+- Not on iOS: "Import from Lift Log on this device" (browser `localStorage`)
+- [x] Footer: "Strata · data stays on this phone. Export it now and then as a backup."
+
+## Compared against the web in the simulator
+Today, onboarding, workout preview, jumps, strength overview, exercise focus, live cardio, History, session detail, Progress and Settings were run next to the web app with the same data. Not yet compared one by one: the cardio picker, cardio complete, 4×4 screens, workout complete, the sheets and alerts, and the empty states.
