@@ -50,14 +50,16 @@ final class LogicFixtureTests: XCTestCase {
 
                 let confirm = (c["confirm"] as? Bool) ?? true
                 let out: Outcome
-                if let click = c["click"] as? [String: Any] {
+                if let change = c["change"] as? [String: Any] {
+                    out = runChange(&e, change)
+                } else if let click = c["click"] as? [String: Any] {
                     out = try runClick(&e, click, pre: pre, confirm: confirm)
                 } else {
                     out = try runFn(&e, c["fn"] as! String, (c["args"] as? [Any]) ?? [], pre: pre, confirm: confirm)
                 }
                 byFn[c["fn"] as! String, default: 0] += 1
 
-                if c["click"] == nil, let d = JSONCompare.diff(c["ret"], out.ret) { failures.append("\(id): ret \(d)") }
+                if c["click"] == nil, c["change"] == nil, let d = JSONCompare.diff(c["ret"], out.ret) { failures.append("\(id): ret \(d)") }
                 if let after = c["after"] as? [String: Any] {
                     var mine: [String: Any] = [
                         "db": JSONCompare.object(e.db) ?? NSNull(), "rest": JSONCompare.object(e.rest) ?? NSNull(),
@@ -66,7 +68,7 @@ final class LogicFixtureTests: XCTestCase {
                     if let p = out.ret, c["click"] != nil { mine["payload"] = p }
                     var theirs = after
                     theirs["view"] = nil
-                    if c["click"] == nil { theirs["payload"] = nil }
+                    if c["click"] == nil, c["change"] == nil { theirs["payload"] = nil }
                     if let d = JSONCompare.diff(theirs, mine) { failures.append("\(id): state \(d)") }
                     if (c["toasts"] as? [String] ?? []) != out.toasts { failures.append("\(id): toasts \(out.toasts) != \(c["toasts"] ?? [])") }
                     if (c["confirms"] as? [String] ?? []) != out.confirms { failures.append("\(id): confirms \(out.confirms) != \(c["confirms"] ?? [])") }
@@ -211,6 +213,13 @@ final class LogicFixtureTests: XCTestCase {
         default: throw NSError(domain: "fixture", code: 1, userInfo: [NSLocalizedDescriptionKey: "unknown fn \(fn)"])
         }
         return o
+    }
+
+    func runChange(_ e: inout Engine, _ change: [String: Any]) -> Outcome {
+        var out = Outcome()
+        guard change["id"] as? String == "wIn", let value = change["value"] as? String else { return out }
+        if let toast = e.setWeight(value) { out.toasts.append(toast) }
+        return out
     }
 
     // MARK: click handlers: the controller each web button maps to

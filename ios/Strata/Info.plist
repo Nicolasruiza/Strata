@@ -23,9 +23,9 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Strata reads your steps to fill in your office-day walks.</string>
+	<string>Strata reads your steps to show your daily activity alongside your training.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>Strata saves your cardio workouts and heart rate to Apple Health.</string>
+	<string>Strata saves your strength and cardio workouts and heart rate to Apple Health.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Strata uses your location during outdoor workouts to measure elevation gain.</string>
 	<key>UIAppFonts</key>

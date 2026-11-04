@@ -317,6 +317,14 @@ async function click(w, btn) {
   await new Promise(r => setImmediate(r));
 }
 
+async function change(w, field) {
+  const el = w.getEl(`#${field.id}`);
+  el.id = field.id;
+  el.value = field.value;
+  for (const fn of w.docListeners.change || []) await fn({target: el});
+  await new Promise(r => setImmediate(r));
+}
+
 async function runCase(w, c, scenarios) {
   const sc = scenarios[c.scenario];
   w.state.now = T(c.now);
@@ -330,10 +338,11 @@ async function runCase(w, c, scenarios) {
     Health.saveWorkout=async(e)=>{__payload=e;return {saved:!!__pre.saved}}; setActivePlan(); })()`);
   for (const [sel, val] of Object.entries((c.pre || {}).inputs || {})) w.getEl(sel).value = val;
   let ret;
-  if (c.click) { await click(w, c.click); ret = c.click.ret ? clone(w.run(c.click.ret)) : undefined; }
+  if (c.change) { await change(w, c.change); }
+  else if (c.click) { await click(w, c.click); ret = c.click.ret ? clone(w.run(c.click.ret)) : undefined; }
   else { const code = Q[c.fn] || M_SNAP[c.fn]; ret = clone(await w.run(code)); }
   const out = {...c, ret: ret === undefined ? undefined : ret};
-  if (c.snap || c.click) {
+  if (c.snap || c.click || c.change) {
     out.after = JSON.parse(w.run('JSON.stringify({db:DB,rest,celebration,woReps,preLow,wLast:W_last,vo2Done,view,profile,payload:__payload})'));
     out.toasts = [...w.toasts]; out.confirms = [...w.confirms];
   }
@@ -348,6 +357,8 @@ function buildCases(S) {
     cases.push({id: `${fn}#${n++}`, fn, scenario, now: NOWS[nowKey] || nowKey, args, ...extra});
   const addClick = (name, scenario, nowKey, btn, pre = {}, extra = {}) =>
     cases.push({id: `click:${name}#${n++}`, fn: 'click', scenario, now: NOWS[nowKey] || nowKey, args: [], pre, click: btn, ...extra});
+  const addChange = (name, scenario, nowKey, value) =>
+    cases.push({id: `change:${name}#${n++}`, fn: 'change', scenario, now: NOWS[nowKey] || nowKey, args: [], change: {id: 'wIn', value}});
 
   const all = Object.keys(S);
   const nrish = all.filter(k => S[k].profile.plan === 'nr');
@@ -489,6 +500,11 @@ function buildCases(S) {
     for (const sc of ['nr_active', 'nr_active_low', 'sa_active']) for (const pre of [{}, {woReps: 7}, {woReps: 0}]) addClick(`rep${dir}`, sc, 'mon', {dataset: {wo: 'rep', i: dir}}, pre);
     for (const sc of ['nr_active', 'nr_active_low', 'sa_active', 'nr_active_swapped']) addClick(`w${dir}`, sc, 'mon', {dataset: {wo: 'w', i: dir}});
   }
+  addChange('weight-valid', 'nr_active', 'mon', '87.5');
+  addChange('weight-comma', 'nr_active', 'mon', '92,5');
+  addChange('weight-invalid', 'nr_active', 'mon', 'abc');
+  addChange('weight-out-of-range', 'nr_active', 'mon', '2001');
+  addChange('weight-low-energy', 'nr_active_low', 'mon', '87.5');
   for (const sc of ['nr_active', 'nr_active_low', 'nr_active_fresh', 'nr_active_swapped', 'sa_active']) {
     for (const i of [0, 1, 2, 3, 4, 5, 6]) addClick(`open${i}`, sc, 'mon', {dataset: {wo: 'open', i: String(i)}});
     for (const pre of [{}, {woReps: 9}, {woReps: 5}]) addClick('log', sc, 'mon', {dataset: {wo: 'log'}}, pre);

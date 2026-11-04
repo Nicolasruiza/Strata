@@ -151,6 +151,7 @@ public struct Session: Codable, Equatable {
 public struct Prog: Codable, Equatable {
     public var w: Double
     public var reps: [Double?]
+    public init(w: Double, reps: [Double?]) { self.w = w; self.reps = reps }
 }
 
 public struct WarmSet: Codable, Equatable {

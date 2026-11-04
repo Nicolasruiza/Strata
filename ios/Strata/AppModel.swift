@@ -52,6 +52,10 @@ final class AppModel: ObservableObject {
     let health = HealthKitService()
     private var watchSub: AnyCancellable?
     @Published var watchConnected = false
+    @Published private(set) var healthAccess = HealthAccessSummary.checking
+    @Published private(set) var healthAccessChecking = false
+    private var watchRevision = 0
+    private var handledWatchCommands: Set<UUID> = []
     var liveTicker: Task<Void, Never>?
     private var toastTask: Task<Void, Never>?
 
@@ -59,15 +63,27 @@ final class AppModel: ObservableObject {
         sensors.onStateChange = { [weak self] s in Task { @MainActor in self?.location = s } }
         sensors.bridge = health.bridge
         watchSub = health.bridge.$connected.receive(on: DispatchQueue.main).sink { [weak self] c in self?.watchConnected = c }
+        health.bridge.onMessage = { [weak self] message in self?.handleWatchMessage(message) }
         if let p = store.loadProfile() {
             engine = Engine(profile: p, db: store.loadData(), nowMs: Self.nowMs(), tz: .current)
             if let L = engine?.db.live { sensors.start(L); ensureLiveTicker() }     // reopened mid-workout
         } else {
             onboard = OnboardState()
         }
+        sendWatchState()
     }
 
     static func nowMs() -> Double { Date().timeIntervalSince1970 * 1000 }
+
+    func refreshHealthAccess(requestAuthorization: Bool = false) {
+        guard !healthAccessChecking else { return }
+        healthAccessChecking = true
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.healthAccess = await self.health.accessSummary(requestAuthorization: requestAuthorization)
+            self.healthAccessChecking = false
+        }
+    }
 
     /// Bring the clock up to date (call when a screen appears or a minute passes).
     func tick() { engine?.nowMs = Self.nowMs(); objectWillChange.send() }
@@ -75,17 +91,168 @@ final class AppModel: ObservableObject {
     /// Run a change on the engine, save, and show the toast it returned.
     func mutate(_ change: (inout Engine) -> String?) {
         guard var e = engine else { return }
+        let wasStrengthRunning = e.db.active != nil
         e.nowMs = Self.nowMs()
         let t = change(&e)
         engine = e
         persist()
         if e.rest != nil { ensureRestTicker() }
         if let t = t, !t.isEmpty { show(t) }
+        sendWatchState()
+        if !wasStrengthRunning, e.db.active != nil {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if await self.health.startStrengthWatch() { self.show("Apple Watch · Strength started") }
+                self.sendWatchState()
+            }
+        }
     }
 
     func persist() {
         guard let e = engine else { return }
         saveFailed = !store.save(profile: e.profile, data: e.db)
+    }
+
+    private func sendWatchState() {
+        guard var e = engine else { return }
+        watchRevision += 1
+        let snapshot: WatchStateSnapshot
+        if let live = e.db.live {
+            let name = e.catalog.cardioActs[live.act]?.n ?? live.act
+            let cardio = WatchCardioSnapshot(
+                activityName: name,
+                startedAt: Date(timeIntervalSince1970: live.started / 1000)
+            )
+            snapshot = WatchStateSnapshot(revision: watchRevision, mode: .cardio, cardio: cardio)
+        } else if let active = e.db.active {
+            let planName = e.plan[active.day]?.name ?? "Strength"
+            let list = e.liftList()
+            var exercise: WatchExerciseSnapshot?
+            if !list.isEmpty {
+                let index = min(max(0, e.curIdx()), list.count - 1)
+                let original = list[index]
+                let shown = e.shownEx(original)
+                let progress = e.progOf(original)
+                let setIndex = min((progress?.reps.count ?? 0) + 1, e.setsOf(original))
+                let load = progress?.w ?? ((active.lowEnergy ?? false) ? e.loEnergyW(e.wOf(shown)) : e.wOf(shown))
+                let previous = e.db.history.reversed().compactMap { $0.entries[shown.id] }.first
+                let last = previous.map { entry in
+                    let reps = entry.reps.map { value in value.map(watchNumber) ?? "—" }.joined(separator: " · ")
+                    return "Last: \(reps) at \(watchNumber(entry.w))"
+                }
+                let timed = Fmt.isSec(shown)
+                exercise = WatchExerciseSnapshot(
+                    id: shown.id,
+                    name: Fmt.cleanN(shown.n),
+                    imageName: e.catalog.imageName(of: shown.id).map { ($0 as NSString).deletingPathExtension },
+                    setIndex: setIndex,
+                    setCount: e.setsOf(original),
+                    targetReps: e.woReps ?? Double(shown.r ?? 0),
+                    load: load,
+                    loadUnit: "lb",
+                    loadIncrement: (shown.inc ?? 0) == 0 ? 5 : shown.inc!,
+                    lastSummary: last,
+                    durationSeconds: timed ? shown.r : nil,
+                    restSeconds: Int(e.restFor(original))
+                )
+            }
+            let rest = e.rest.map { value -> WatchRestSnapshot in
+                let next = e.nextUp().map { e.shownEx($0) }
+                let nextTarget = next.map { "\($0.r ?? 0) \(Fmt.isSec($0) ? "sec" : "reps") · \(watchNumber(e.wOf($0))) lb" }
+                return WatchRestSnapshot(endsAt: Date(timeIntervalSince1970: value.endAt / 1000),
+                                         nextName: next.map { Fmt.cleanN($0.n) }, nextTarget: nextTarget)
+            }
+            snapshot = WatchStateSnapshot(revision: watchRevision, mode: .strength,
+                                           plan: WatchPlanSnapshot(name: "Strength · \(planName)", detail: "\(list.count) exercises"),
+                                           exercise: exercise, rest: rest)
+        } else {
+            let weekday = Dates.weekday(e.today)
+            let monday = Dates.mondayOf(e.today)
+            let lift = e.liftSlots(monday)[weekday]
+            let plan = lift?.day.flatMap { day -> WatchPlanSnapshot? in
+                guard let name = e.plan[day]?.name else { return nil }
+                return WatchPlanSnapshot(name: "Strength · \(name)", detail: "\(e.requiredItems(day).count) exercises")
+            }
+            snapshot = WatchStateSnapshot(revision: watchRevision, mode: .idle, plan: plan)
+        }
+        health.bridge.send(.state(snapshot))
+    }
+
+    private func handleWatchMessage(_ message: WatchMessage) {
+        switch message {
+        case .requestState:
+            sendWatchState()
+        case .startWorkout(let commandID):
+            guard handledWatchCommands.insert(commandID).inserted else {
+                health.bridge.send(.acknowledgement(commandID: commandID, accepted: true, message: nil)); return
+            }
+            guard var e = engine else { return }
+            let weekday = Dates.weekday(e.today)
+            let monday = Dates.mondayOf(e.today)
+            guard let day = e.liftSlots(monday)[weekday]?.day else {
+                health.bridge.send(.acknowledgement(commandID: commandID, accepted: false, message: "No strength plan today")); return
+            }
+            e.begin(day: day)
+            engine = e; persist(); sendWatchState()
+            health.bridge.send(.acknowledgement(commandID: commandID, accepted: true, message: nil))
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                _ = await self.health.startStrengthWatch()
+                self.sendWatchState()
+            }
+        case .setDone(let command):
+            completeSetFromWatch(command)
+        case .skipRest(let commandID):
+            guard handledWatchCommands.insert(commandID).inserted else {
+                health.bridge.send(.acknowledgement(commandID: commandID, accepted: true, message: nil)); return
+            }
+            skipRest()
+            health.bridge.send(.acknowledgement(commandID: commandID, accepted: true, message: nil))
+        case .navigateExercise(let direction, let commandID):
+            guard handledWatchCommands.insert(commandID).inserted else {
+                health.bridge.send(.acknowledgement(commandID: commandID, accepted: true, message: nil)); return
+            }
+            guard var e = engine, e.db.active != nil, !e.liftList().isEmpty else {
+                health.bridge.send(.acknowledgement(commandID: commandID, accepted: false, message: "Workout unavailable")); return
+            }
+            let next = min(max(0, e.curIdx() + direction), e.liftList().count - 1)
+            _ = e.openEx(next)
+            engine = e; persist(); sendWatchState()
+            health.bridge.send(.acknowledgement(commandID: commandID, accepted: true, message: nil))
+        default:
+            break
+        }
+    }
+
+    private func completeSetFromWatch(_ command: WatchSetDone) {
+        if handledWatchCommands.contains(command.commandID) {
+            health.bridge.send(.acknowledgement(commandID: command.commandID, accepted: true, message: nil)); return
+        }
+        guard var e = engine, e.db.active != nil, !e.liftList().isEmpty else {
+            health.bridge.send(.acknowledgement(commandID: command.commandID, accepted: false, message: "Workout unavailable")); return
+        }
+        let original = e.liftList()[e.curIdx()]
+        let shown = e.shownEx(original)
+        let expectedSet = (e.progOf(original)?.reps.count ?? 0) + 1
+        guard shown.id == command.exerciseID, expectedSet == command.setIndex else {
+            health.bridge.send(.acknowledgement(commandID: command.commandID, accepted: false, message: "Set changed on iPhone"))
+            sendWatchState()
+            return
+        }
+        var progress = e.progOf(original) ?? Prog(w: command.actualLoad, reps: [])
+        progress.w = max(0, command.actualLoad)
+        e.db.active!.prog[shown.id] = progress
+        e.woReps = max(0, command.actualReps)
+        _ = e.logWoSet()
+        handledWatchCommands.insert(command.commandID)
+        engine = e; persist()
+        if e.rest != nil { ensureRestTicker() }
+        health.bridge.send(.acknowledgement(commandID: command.commandID, accepted: true, message: nil))
+        sendWatchState()
+    }
+
+    private func watchNumber(_ value: Double) -> String {
+        value.rounded() == value ? String(Int(value)) : String(format: "%.1f", value)
     }
 
     func show(_ message: String) {
@@ -206,7 +373,7 @@ extension AppModel {
         r.beeped = false
         e.rest = r; engine = e
     }
-    func skipRest() { engine?.rest = nil }
+    func skipRest() { engine?.rest = nil; persist(); sendWatchState() }
 
     /// The 3-2-1 before a workout (`countdown()`); the watch is started here in phase 4.
     func runCountdown(label: String, then: (@MainActor () -> Void)? = nil) {

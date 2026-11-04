@@ -93,6 +93,34 @@ struct SettingsView: View {
                     }.card()
 
                     VStack(alignment: .leading, spacing: 0) {
+                        Text("Apple Health").labelStyle()
+                        Text("Strata saves workouts to Health and reads steps when you allow access.")
+                            .font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 6).padding(.bottom, 6)
+                        line("HealthKit", model.healthAccess.isAvailable ? "Available" : "Unavailable",
+                             model.healthAccess.isAvailable ? Theme.mint : Color(hex: "#FF8A70"))
+                        line("Save workouts", model.healthAccess.workoutAccess,
+                             model.healthAccess.workoutAccess == "Allowed" ? Theme.mint : Theme.soft)
+                        line("Read steps", model.healthAccess.stepsAccess, Theme.soft)
+                        line("Watch workout", model.watchConnected ? "Active" : "Not active",
+                             model.watchConnected ? Theme.mint : Theme.soft)
+                        Button {
+                            model.refreshHealthAccess(requestAuthorization: true)
+                        } label: {
+                            HStack {
+                                Text(model.healthAccessChecking ? "Checking…" : "Request or recheck access")
+                                    .font(.inter(size: 15, weight: .bold))
+                                Spacer()
+                                if model.healthAccessChecking { ProgressView().tint(Theme.text) }
+                                else { IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4) }
+                            }
+                            .padding(.vertical, 14)
+                            .overlay(alignment: .top) { Rectangle().fill(Theme.line).frame(height: 1) }
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(model.healthAccessChecking || !model.healthAccess.isAvailable)
+                    }.card()
+
+                    VStack(alignment: .leading, spacing: 0) {
                         Text("Data").labelStyle()
                         dataRow(Icon.dl, "Export data", .white, first: true) { export() }
                         dataRow(Icon.ul, "Import (Strata or Lift Log file)", .white) { importing = true }
@@ -103,7 +131,10 @@ struct SettingsView: View {
                 }.padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 110)
             }.frame(maxWidth: Theme.maxWidth)
         }
-        .onAppear { if !seeded { name = e.profile.name; seeded = true } }
+        .onAppear {
+            if !seeded { name = e.profile.name; seeded = true }
+            model.refreshHealthAccess()
+        }
         .onChange(of: nameFocus) { _, f in if !f { commitName() } }
         .alert(genderPrompt ?? "", isPresented: Binding(get: { genderPrompt != nil }, set: { if !$0 { genderPrompt = nil } })) {
             Button("Switch") { if let g = pendingGender { model.mutate { $0.setGender(g) } }; genderPrompt = nil }

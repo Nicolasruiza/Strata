@@ -39,8 +39,8 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         UIAppFonts: [Inter-Regular.ttf, Inter-Medium.ttf, Inter-SemiBold.ttf, Inter-Bold.ttf, Inter-ExtraBold.ttf]
         NSLocationWhenInUseUsageDescription: Strata uses your location during outdoor workouts to measure elevation gain.
-        NSHealthShareUsageDescription: Strata reads your steps to fill in your office-day walks.
-        NSHealthUpdateUsageDescription: Strata saves your cardio workouts and heart rate to Apple Health.
+        NSHealthShareUsageDescription: Strata reads your steps to show your daily activity alongside your training.
+        NSHealthUpdateUsageDescription: Strata saves your strength and cardio workouts and heart rate to Apple Health.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: net.nicolasruiz.strata
@@ -53,6 +53,9 @@ targets:
     platform: watchOS
     sources:
       - path: StrataWatch
+      - path: ../img
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: StrataCore
     info:
@@ -78,6 +81,7 @@ schemes:
         StrataWatch: all
     run:
       config: Debug
+      debugEnabled: false
     test:
       config: Debug
   StrataWatch:

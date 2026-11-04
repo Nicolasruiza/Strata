@@ -1,6 +1,18 @@
 import HealthKit
 import StrataCore
 
+struct HealthAccessSummary: Equatable {
+    var isAvailable: Bool
+    var workoutAccess: String
+    var stepsAccess: String
+
+    static let checking = HealthAccessSummary(
+        isAvailable: true,
+        workoutAccess: "Checking…",
+        stepsAccess: "Checking…"
+    )
+}
+
 /// workout.js `Health` on iPhone, implemented for real with HealthKit. Both calls return what
 /// actually happened: `saved` is true only when the workout was written to Apple Health.
 /// Only the types Strata uses are requested: workouts and heart rate (write), steps (read).
@@ -21,6 +33,20 @@ final class HealthKitService: HealthService {
             try await store.startWatchApp(toHandle: configuration(act: cfg.activity, type: nil))
             return true
         } catch { return false }
+    }
+
+    func startStrengthWatch() async -> Bool {
+        guard available else { return false }
+        _ = bridge
+        let cfg = HKWorkoutConfiguration()
+        cfg.activityType = .traditionalStrengthTraining
+        cfg.locationType = .indoor
+        do {
+            try await store.startWatchApp(toHandle: cfg)
+            return true
+        } catch {
+            return false
+        }
     }
 
     private func configuration(act: String, type: String?) -> HKWorkoutConfiguration {
@@ -44,6 +70,43 @@ final class HealthKitService: HealthService {
             try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType], read: [stepType])
             return store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized
         } catch { return false }
+    }
+
+    /// A user-visible check of the Health permissions Strata currently uses.
+    /// HealthKit intentionally does not reveal denied read permission, so a nil step result is
+    /// reported as no readable data rather than incorrectly claiming access was denied.
+    func accessSummary(requestAuthorization: Bool) async -> HealthAccessSummary {
+        guard available else {
+            return HealthAccessSummary(
+                isAvailable: false,
+                workoutAccess: "Unavailable",
+                stepsAccess: "Unavailable"
+            )
+        }
+
+        if requestAuthorization {
+            _ = await authorize()
+        }
+
+        let workoutAccess: String
+        switch store.authorizationStatus(for: HKObjectType.workoutType()) {
+        case .sharingAuthorized:
+            workoutAccess = "Allowed"
+        case .sharingDenied:
+            workoutAccess = "Not allowed"
+        case .notDetermined:
+            workoutAccess = "Not requested"
+        @unknown default:
+            workoutAccess = "Unknown"
+        }
+
+        let todaySteps = await steps(on: Date())
+        let stepsAccess = todaySteps.map { "\($0.formatted()) today" } ?? "No readable data today"
+        return HealthAccessSummary(
+            isAvailable: true,
+            workoutAccess: workoutAccess,
+            stepsAccess: stepsAccess
+        )
     }
 
     func saveWorkout(_ entry: HealthPayload) async -> Bool {
