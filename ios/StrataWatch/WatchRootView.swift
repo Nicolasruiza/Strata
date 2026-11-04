@@ -65,6 +65,11 @@ struct WatchRootView: View {
     }
 }
 
+/// WATCH_DESIGN.md sizes are given for 41 mm and 49 mm; 49 mm screens are about 205 pt wide.
+private enum WatchSize {
+    static let scale: CGFloat = WKInterfaceDevice.current().screenBounds.width >= 200 ? 1.14 : 1
+}
+
 private struct WatchIdleView: View {
     let plan: WatchPlanSnapshot?
     let pending: Bool
@@ -180,32 +185,43 @@ private struct WatchStrengthView: View {
                     if !isLuminanceReduced { TimerButton(action: openTimer) }
                 }
                 Spacer(minLength: 1)
-                HStack(spacing: 7) {
-                    if !isLuminanceReduced {
-                        StepButton(symbol: "minus") { changeReps(-1) }
-                    }
-                    Text("\(watchNumber(actualReps)) reps")
-                        .font(.system(size: isLuminanceReduced ? 38 : 40, weight: .heavy, design: .rounded))
+                if let seconds = exercise.durationSeconds {
+                    // Timed work (farmer carry, plank): the target is a duration, so the timer is the action.
+                    Text("\(seconds) s")
+                        .font(.system(size: (isLuminanceReduced ? 38 : 42) * WatchSize.scale, weight: .heavy, design: .rounded))
                         .monospacedDigit()
-                        .minimumScaleFactor(0.7)
                         .lineLimit(1)
                         .frame(maxWidth: .infinity)
-                    if !isLuminanceReduced {
-                        StepButton(symbol: "plus") { changeReps(1) }
+                } else {
+                    HStack(spacing: 7) {
+                        if !isLuminanceReduced {
+                            StepButton(symbol: "minus") { changeReps(-1) }
+                        }
+                        Text("\(watchNumber(actualReps)) reps")
+                            .font(.system(size: (isLuminanceReduced ? 38 : 40) * WatchSize.scale, weight: .heavy, design: .rounded))
+                            .monospacedDigit()
+                            .minimumScaleFactor(0.7)
+                            .lineLimit(1)
+                            .frame(maxWidth: .infinity)
+                        if !isLuminanceReduced {
+                            StepButton(symbol: "plus") { changeReps(1) }
+                        }
                     }
                 }
-                Button {
-                    editingLoad = true
-                    crownValue = actualLoad
-                } label: {
-                    Text("\(watchNumber(actualLoad)) \(exercise.loadUnit)")
-                        .font(.system(size: 25, weight: .heavy, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundStyle(editingLoad && !isLuminanceReduced ? WatchTheme.violet : WatchTheme.text)
-                        .frame(maxWidth: .infinity)
+                if !(exercise.durationSeconds != nil && exercise.load == 0) {
+                    Button {
+                        editingLoad = true
+                        crownValue = actualLoad
+                    } label: {
+                        Text("\(watchNumber(actualLoad)) \(exercise.loadUnit)")
+                            .font(.system(size: 25 * WatchSize.scale, weight: .heavy, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(editingLoad && !isLuminanceReduced ? WatchTheme.violet : WatchTheme.text)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isLuminanceReduced)
                 }
-                .buttonStyle(.plain)
-                .disabled(isLuminanceReduced)
                 if !isLuminanceReduced {
                     if let last = exercise.lastSummary {
                         Text(last).font(.system(size: 10, weight: .medium)).foregroundStyle(WatchTheme.muted)
@@ -216,10 +232,10 @@ private struct WatchStrengthView: View {
                             .lineLimit(1).frame(maxWidth: .infinity)
                     }
                     Button {
-                        done(actualReps, actualLoad)
+                        if exercise.durationSeconds != nil { openTimer() } else { done(actualReps, actualLoad) }
                     } label: {
                         if pending { ProgressView().tint(WatchTheme.background) }
-                        else { Text("Done") }
+                        else { Text(exercise.durationSeconds != nil ? "Start timer" : "Done") }
                     }
                     .buttonStyle(PrimaryButtonStyle(color: WatchTheme.violet))
                     .disabled(pending)
@@ -317,11 +333,18 @@ private struct WatchCardioView: View {
     let isLuminanceReduced: Bool
     let openTimer: () -> Void
 
+    /// "HARD · 2 OF 4" for intervals, otherwise the activity name.
+    private var cardioHeader: String {
+        guard let phase = cardio?.phaseName?.uppercased() else { return cardio?.activityName.uppercased() ?? "RUNNING" }
+        if let index = cardio?.phaseIndex, let count = cardio?.phaseCount { return "\(phase) · \(index) OF \(count)" }
+        return phase
+    }
+
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
             VStack(spacing: 5) {
                 HStack {
-                    Text(cardio?.phaseName?.uppercased() ?? "RUNNING")
+                    Text(cardioHeader)
                         .font(.system(size: 10, weight: .bold)).tracking(1.2)
                         .foregroundStyle(isLuminanceReduced ? WatchTheme.dim : WatchTheme.coral)
                     Spacer()
@@ -330,7 +353,7 @@ private struct WatchCardioView: View {
                 Spacer(minLength: 0)
                 HStack(alignment: .lastTextBaseline, spacing: 4) {
                     Text(heartRate.map { String(Int($0.rounded())) } ?? "—")
-                        .font(.system(size: 58, weight: .heavy, design: .rounded))
+                        .font(.system(size: 56 * WatchSize.scale, weight: .heavy, design: .rounded))
                         .monospacedDigit()
                         .foregroundStyle(isLuminanceReduced ? WatchTheme.text.opacity(0.6) : WatchTheme.coral)
                     Text("bpm").font(.system(size: 16, weight: .medium)).foregroundStyle(WatchTheme.muted)
@@ -418,6 +441,7 @@ private struct WatchTimerView: View {
     @State private var endAt: Date?
     @State private var pausedSeconds = 0
     @State private var timerTask: Task<Void, Never>?
+    @State private var confirmCancel = false
 
     init(exercise: WatchExerciseSnapshot?, logTimedSet: @escaping (Int) -> Void) {
         self.exercise = exercise
@@ -437,6 +461,10 @@ private struct WatchTimerView: View {
         .foregroundStyle(WatchTheme.text)
         .containerBackground(WatchTheme.background.gradient, for: .navigation)
         .onDisappear { timerTask?.cancel() }
+        .confirmationDialog("Cancel timer?", isPresented: $confirmCancel) {
+            Button("Cancel timer", role: .destructive) { phase = .picker }
+            Button("Keep going", role: .cancel) {}
+        }
     }
 
     private var picker: some View {
@@ -487,7 +515,7 @@ private struct WatchTimerView: View {
                 if phase == .paused {
                     HStack {
                         Button("Resume", action: resume).buttonStyle(PrimaryButtonStyle(color: WatchTheme.violet))
-                        Button("Cancel") { phase = .picker }.buttonStyle(GlassButtonStyle())
+                        Button("Cancel") { confirmCancel = true }.buttonStyle(GlassButtonStyle())
                     }
                 } else {
                     Button("Pause", action: pause).buttonStyle(GlassButtonStyle())
@@ -555,6 +583,9 @@ private struct WatchTimerView: View {
             try? await Task.sleep(nanoseconds: UInt64(max(0, seconds)) * 1_000_000_000)
             guard !Task.isCancelled else { return }
             phase = .finished
+            // Strong double alert (WATCH_DESIGN.md haptic map).
+            WKInterfaceDevice.current().play(.notification)
+            try? await Task.sleep(nanoseconds: 220_000_000)
             WKInterfaceDevice.current().play(.notification)
         }
     }
