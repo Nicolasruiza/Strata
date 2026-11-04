@@ -1,10 +1,11 @@
 import HealthKit
 import StrataCore
+import WatchConnectivity
 
 /// The phone's end of the Strata watch app's workout: the watch runs the `HKWorkoutSession`
 /// (heart rate, saving to Health) and mirrors it here. Nothing is simulated: with no watch
 /// session, `connected` is false and heart rate stays "—".
-final class WatchBridge: NSObject, ObservableObject, HKWorkoutSessionDelegate {
+final class WatchBridge: NSObject, ObservableObject, HKWorkoutSessionDelegate, WCSessionDelegate {
     /// For the UI (set on the main queue).
     @Published private(set) var connected = false
     // Everything below is read from the sensor ticker and written by HealthKit callbacks.
@@ -20,11 +21,15 @@ final class WatchBridge: NSObject, ObservableObject, HKWorkoutSessionDelegate {
         DispatchQueue.main.async { self.connected = c }
     }
     private let store: HKHealthStore
+    @MainActor var onMessage: ((WatchMessage) -> Void)?
+    private var connectivity: WCSession? { WCSession.isSupported() ? .default : nil }
 
     init(store: HKHealthStore) {
         self.store = store
         super.init()
         store.workoutSessionMirroringStartHandler = { [weak self] session in self?.attach(session) }
+        connectivity?.delegate = self
+        connectivity?.activate()
     }
 
     private func attach(_ s: HKWorkoutSession) {
@@ -42,10 +47,17 @@ final class WatchBridge: NSObject, ObservableObject, HKWorkoutSessionDelegate {
 
     func sendCue() { send(.cue) }
 
-    private func send(_ m: WatchMessage) {
+    func send(_ m: WatchMessage) {
         lock.lock(); let s = session; lock.unlock()
-        guard let s = s, let d = m.encoded() else { return }
-        Task { try? await s.sendToRemoteWorkoutSession(data: d) }
+        guard let d = m.encoded() else { return }
+        if let s {
+            Task { try? await s.sendToRemoteWorkoutSession(data: d) }
+        }
+        if m.isStateSnapshot {
+            try? connectivity?.updateApplicationContext(["message": d])
+        } else if connectivity?.isReachable == true {
+            connectivity?.sendMessageData(d, replyHandler: nil)
+        }
     }
 
     /// Ends the watch session and returns what the watch's save really returned
@@ -88,8 +100,32 @@ final class WatchBridge: NSObject, ObservableObject, HKWorkoutSessionDelegate {
             switch m {
             case .hr(let v): lock.lock(); hr = v; hrAt = Date(); lock.unlock()
             case .ended(let saved): finish(saved)
-            case .cue, .end: break
+            default: deliver(m)
             }
         }
+    }
+
+    private nonisolated func deliver(_ message: WatchMessage) {
+        Task { @MainActor [weak self] in self?.onMessage?(message) }
+    }
+
+    nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState,
+                             error: Error?) {}
+    nonisolated func sessionDidBecomeInactive(_ session: WCSession) {}
+    nonisolated func sessionDidDeactivate(_ session: WCSession) { session.activate() }
+    nonisolated func session(_ session: WCSession, didReceiveMessageData messageData: Data) {
+        guard let message = WatchMessage.decode(messageData) else { return }
+        deliver(message)
+    }
+    nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
+        guard let data = applicationContext["message"] as? Data, let message = WatchMessage.decode(data) else { return }
+        deliver(message)
+    }
+}
+
+private extension WatchMessage {
+    var isStateSnapshot: Bool {
+        if case .state = self { return true }
+        return false
     }
 }

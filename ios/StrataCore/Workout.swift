@@ -58,6 +58,9 @@ public struct EndResult: Codable, Equatable {
 }
 
 extension Engine {
+    /// Upper bound mirrored from the `#wIn` change listener in workout.js.
+    private static let maximumTypedWeight = 2_000.0
+
     // MARK: the lift list (app.js liftList … progOf, workout.js exState, nextUp)
 
     public func liftList() -> [Ex] {
@@ -257,6 +260,20 @@ extension Engine {
         p.w = max(0, p.w + Double(dir) * ((ex.inc ?? 0) != 0 ? ex.inc! : 5))
         db.active!.prog[ex.id] = p
         if db.active!.entries[ex.id] != nil { db.active!.entries[ex.id]!.w = p.w }
+    }
+
+    public mutating func setWeight(_ input: String) -> String? {
+        let normalized = input.replacingOccurrences(of: ",", with: ".")
+        guard let value = Double(normalized), value >= 0, value <= Self.maximumTypedWeight else {
+            return "Type a weight in lb"
+        }
+
+        let orig = liftList()[curIdx()], ex = shownEx(orig)
+        var p = progOf(orig) ?? Prog(w: baseWeight(ex), reps: [])
+        p.w = (value * 100).rounded() / 100
+        db.active!.prog[ex.id] = p
+        if db.active!.entries[ex.id] != nil { db.active!.entries[ex.id]!.w = p.w }
+        return nil
     }
 
     /// "+ Set". Returns the toast.

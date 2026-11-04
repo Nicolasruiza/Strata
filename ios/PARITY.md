@@ -1,5 +1,8 @@
 # Screen parity checklist
 
+- Dumbbell shoulder press uses the refreshed seated-bench photo in exercise heroes and thumbnails (`db_ohp`, `sa_db_ohp`).
+- Today's working weight is directly editable with decimal/comma input, web-matched validation, and commit-on-blur/return behavior.
+
 For every screen: the elements in the web HTML, top to bottom, with copy, ticked off when built in
 SwiftUI. `[x]` built, `[~]` built but its destination arrives in a later PR (the button is there,
 and records the request in `AppModel.route`, but nothing opens yet), `[ ]` not built.

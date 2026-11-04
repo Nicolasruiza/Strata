@@ -152,7 +152,16 @@ struct FocusView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Today's weight").metaStyle()
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(jsMinutes(w)).font(.inter(size: 64, weight: .heavy)).tracking(-1.9).monospacedDigit()
+                    WeightField(value: w) { input in
+                        var committedWeight = w
+                        model.mutate { engine in
+                            let toast = engine.setWeight(input)
+                            let original = engine.liftList()[engine.curIdx()]
+                            committedWeight = engine.progOf(original)?.w ?? w
+                            return toast
+                        }
+                        return committedWeight
+                    }
                     Text("lb").font(.inter(size: 20, weight: .semibold)).foregroundStyle(Theme.muted)
                 }
                 if !plate.isEmpty { Text(plate).metaStyle() }
@@ -253,5 +262,58 @@ struct FocusView: View {
                 .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.08)))
                 .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.line))
         }.buttonStyle(.plain).accessibilityLabel(label)
+    }
+}
+
+private struct WeightField: View {
+    let value: Double
+    let commit: (String) -> Double
+
+    @State private var text: String
+    @FocusState private var isFocused: Bool
+
+    init(value: Double, commit: @escaping (String) -> Double) {
+        self.value = value
+        self.commit = commit
+        _text = State(initialValue: jsMinutes(value))
+    }
+
+    var body: some View {
+        Text(text.isEmpty ? "00" : text)
+            .font(.inter(size: 64, weight: .heavy))
+            .tracking(-1.9)
+            .monospacedDigit()
+            .hidden()
+            .overlay(alignment: .leading) {
+                TextField("Today's weight", text: $text)
+                    .font(.inter(size: 64, weight: .heavy))
+                    .tracking(-1.9)
+                    .monospacedDigit()
+                    .keyboardType(.decimalPad)
+                    .textFieldStyle(.plain)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .focused($isFocused)
+                    .accessibilityLabel("Today's weight in pounds")
+                    .onSubmit { isFocused = false }
+            }
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .stroke(
+                        isFocused ? Theme.violet : Color.white.opacity(0.2),
+                        style: StrokeStyle(lineWidth: 2, dash: [5, 4])
+                    )
+                    .frame(height: 2)
+                    .offset(y: 2)
+            }
+            .onChange(of: isFocused) { wasFocused, focused in
+                if wasFocused && !focused {
+                    text = jsMinutes(commit(text))
+                }
+            }
+            .onChange(of: value) { _, newValue in
+                if !isFocused {
+                    text = jsMinutes(newValue)
+                }
+            }
     }
 }
