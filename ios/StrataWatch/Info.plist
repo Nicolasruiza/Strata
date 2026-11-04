@@ -26,6 +26,14 @@
 	<string>Strata reads your heart rate during workouts.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Strata saves your workouts and heart rate to Apple Health.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Inter-Regular.ttf</string>
+		<string>Inter-Medium.ttf</string>
+		<string>Inter-SemiBold.ttf</string>
+		<string>Inter-Bold.ttf</string>
+		<string>Inter-ExtraBold.ttf</string>
+	</array>
 	<key>WKApplication</key>
 	<true/>
 	<key>WKBackgroundModes</key>

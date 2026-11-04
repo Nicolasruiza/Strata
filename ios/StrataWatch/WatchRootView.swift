@@ -81,7 +81,7 @@ private struct WatchIdleView: View {
             HStack {
                 if plan != nil {
                     Circle().fill(WatchTheme.violet).frame(width: 7, height: 7)
-                    Text("TODAY").font(.system(size: 10, weight: .bold)).tracking(1)
+                    Text("TODAY").font(.inter(size: 10, weight: .bold)).tracking(1)
                         .foregroundStyle(WatchTheme.violet)
                 }
                 Spacer()
@@ -90,10 +90,10 @@ private struct WatchIdleView: View {
             Spacer(minLength: 0)
             if let plan {
                 Text(plan.name)
-                    .font(.system(size: 24, weight: .heavy, design: .rounded))
+                    .font(.inter(size: 24, weight: .heavy))
                     .lineLimit(1).minimumScaleFactor(0.75)
                 Text(plan.detail)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.inter(size: 13, weight: .medium))
                     .foregroundStyle(WatchTheme.muted)
                 Button(action: start) {
                     Group {
@@ -110,10 +110,10 @@ private struct WatchIdleView: View {
                     .foregroundStyle(WatchTheme.violet.opacity(0.7))
                     .frame(maxWidth: .infinity)
                 Text("No plan yet")
-                    .font(.system(size: 21, weight: .bold, design: .rounded))
+                    .font(.inter(size: 21, weight: .bold))
                     .frame(maxWidth: .infinity)
                 Text("Open Strata on your iPhone")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.inter(size: 12, weight: .medium))
                     .foregroundStyle(WatchTheme.muted)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
@@ -132,10 +132,10 @@ private struct WatchEmptyView: View {
             HStack { Spacer(); TimerButton(action: openTimer) }
             Spacer()
             Text("Open Strata on your iPhone")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.inter(size: 15, weight: .semibold))
                 .multilineTextAlignment(.center)
             Text("Waiting for workout details")
-                .font(.system(size: 11))
+                .font(.inter(size: 11))
                 .foregroundStyle(WatchTheme.muted)
             Spacer()
         }
@@ -174,10 +174,10 @@ private struct WatchStrengthView: View {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(exercise.name)
-                            .font(.system(size: 17, weight: .bold, design: .rounded))
+                            .font(.inter(size: 17, weight: .bold))
                             .lineLimit(2)
                         Text("SET \(exercise.setIndex) OF \(exercise.setCount)")
-                            .font(.system(size: 9, weight: .bold))
+                            .font(.inter(size: 9, weight: .bold))
                             .tracking(1)
                             .foregroundStyle(isLuminanceReduced ? WatchTheme.dim : WatchTheme.muted)
                     }
@@ -188,7 +188,7 @@ private struct WatchStrengthView: View {
                 if let seconds = exercise.durationSeconds {
                     // Timed work (farmer carry, plank): the target is a duration, so the timer is the action.
                     Text("\(seconds) s")
-                        .font(.system(size: (isLuminanceReduced ? 38 : 42) * WatchSize.scale, weight: .heavy, design: .rounded))
+                        .font(.inter(size: (isLuminanceReduced ? 38 : 42) * WatchSize.scale, weight: .heavy))
                         .monospacedDigit()
                         .lineLimit(1)
                         .frame(maxWidth: .infinity)
@@ -198,7 +198,7 @@ private struct WatchStrengthView: View {
                             StepButton(symbol: "minus") { changeReps(-1) }
                         }
                         Text("\(watchNumber(actualReps)) reps")
-                            .font(.system(size: (isLuminanceReduced ? 38 : 40) * WatchSize.scale, weight: .heavy, design: .rounded))
+                            .font(.inter(size: (isLuminanceReduced ? 38 : 40) * WatchSize.scale, weight: .heavy))
                             .monospacedDigit()
                             .minimumScaleFactor(0.7)
                             .lineLimit(1)
@@ -214,7 +214,7 @@ private struct WatchStrengthView: View {
                         crownValue = actualLoad
                     } label: {
                         Text("\(watchNumber(actualLoad)) \(exercise.loadUnit)")
-                            .font(.system(size: 25 * WatchSize.scale, weight: .heavy, design: .rounded))
+                            .font(.inter(size: 25 * WatchSize.scale, weight: .heavy))
                             .monospacedDigit()
                             .foregroundStyle(editingLoad && !isLuminanceReduced ? WatchTheme.violet : WatchTheme.text)
                             .frame(maxWidth: .infinity)
@@ -224,11 +224,11 @@ private struct WatchStrengthView: View {
                 }
                 if !isLuminanceReduced {
                     if let last = exercise.lastSummary {
-                        Text(last).font(.system(size: 10, weight: .medium)).foregroundStyle(WatchTheme.muted)
+                        Text(last).font(.inter(size: 10, weight: .medium)).foregroundStyle(WatchTheme.muted)
                             .lineLimit(1).minimumScaleFactor(0.75).frame(maxWidth: .infinity)
                     }
                     if let error {
-                        Text(error).font(.system(size: 10, weight: .semibold)).foregroundStyle(WatchTheme.coral)
+                        Text(error).font(.inter(size: 10, weight: .semibold)).foregroundStyle(WatchTheme.coral)
                             .lineLimit(1).frame(maxWidth: .infinity)
                     }
                     Button {
@@ -292,7 +292,7 @@ private struct WatchRestView: View {
             let remaining = max(0, Int(ceil(rest.endsAt.timeIntervalSince(context.date))))
             VStack(spacing: 6) {
                 HStack {
-                    Text("REST").font(.system(size: 10, weight: .bold)).tracking(1.2)
+                    Text("REST").font(.inter(size: 10, weight: .bold)).tracking(1.2)
                         .foregroundStyle(isLuminanceReduced ? WatchTheme.dim : WatchTheme.violet)
                     Spacer()
                     if !isLuminanceReduced { TimerButton(action: openTimer) }
@@ -304,17 +304,17 @@ private struct WatchRestView: View {
                                 style: StrokeStyle(lineWidth: 6, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                     Text(watchClock(remaining))
-                        .font(.system(size: 32, weight: .heavy, design: .rounded))
+                        .font(.inter(size: 32, weight: .heavy))
                         .monospacedDigit()
                 }
                 .frame(height: 92)
                 if !isLuminanceReduced {
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("NEXT").font(.system(size: 9, weight: .bold)).tracking(1)
+                        Text("NEXT").font(.inter(size: 9, weight: .bold)).tracking(1)
                             .foregroundStyle(WatchTheme.muted)
-                        Text(rest.nextName ?? "Next set").font(.system(size: 14, weight: .bold)).lineLimit(1)
+                        Text(rest.nextName ?? "Next set").font(.inter(size: 14, weight: .bold)).lineLimit(1)
                         if let target = rest.nextTarget {
-                            Text(target).font(.system(size: 11, weight: .medium)).foregroundStyle(WatchTheme.muted)
+                            Text(target).font(.inter(size: 11, weight: .medium)).foregroundStyle(WatchTheme.muted)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -345,7 +345,7 @@ private struct WatchCardioView: View {
             VStack(spacing: 5) {
                 HStack {
                     Text(cardioHeader)
-                        .font(.system(size: 10, weight: .bold)).tracking(1.2)
+                        .font(.inter(size: 10, weight: .bold)).tracking(1.2)
                         .foregroundStyle(isLuminanceReduced ? WatchTheme.dim : WatchTheme.coral)
                     Spacer()
                     if !isLuminanceReduced { TimerButton(action: openTimer) }
@@ -353,25 +353,25 @@ private struct WatchCardioView: View {
                 Spacer(minLength: 0)
                 HStack(alignment: .lastTextBaseline, spacing: 4) {
                     Text(heartRate.map { String(Int($0.rounded())) } ?? "—")
-                        .font(.system(size: 56 * WatchSize.scale, weight: .heavy, design: .rounded))
+                        .font(.inter(size: 56 * WatchSize.scale, weight: .heavy))
                         .monospacedDigit()
                         .foregroundStyle(isLuminanceReduced ? WatchTheme.text.opacity(0.6) : WatchTheme.coral)
-                    Text("bpm").font(.system(size: 16, weight: .medium)).foregroundStyle(WatchTheme.muted)
+                    Text("bpm").font(.inter(size: 16, weight: .medium)).foregroundStyle(WatchTheme.muted)
                 }
                 if let phaseEndsAt = cardio?.phaseEndsAt {
                     Text("\(watchClock(Int(ceil(phaseEndsAt.timeIntervalSince(context.date))))) left")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .font(.inter(size: 15, weight: .bold))
                 } else if let zone = cardio?.zoneName {
-                    Text(zone.uppercased()).font(.system(size: 11, weight: .bold))
+                    Text(zone.uppercased()).font(.inter(size: 11, weight: .bold))
                         .padding(.horizontal, 10).padding(.vertical, 5)
                         .background(WatchTheme.coral.opacity(0.28), in: Capsule())
                 } else if heartRate == nil {
-                    Text("HEART RATE UNAVAILABLE").font(.system(size: 9, weight: .bold))
+                    Text("HEART RATE UNAVAILABLE").font(.inter(size: 9, weight: .bold))
                         .foregroundStyle(WatchTheme.muted)
                 }
                 let origin = cardio?.startedAt ?? started
                 Text(watchClock(Int(context.date.timeIntervalSince(origin ?? context.date))))
-                    .font(.system(size: 29, weight: .heavy, design: .rounded))
+                    .font(.inter(size: 29, weight: .heavy))
                     .monospacedDigit()
                 Spacer(minLength: 0)
             }
@@ -409,7 +409,7 @@ private struct PrimaryButtonStyle: ButtonStyle {
     let color: Color
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 16, weight: .bold, design: .rounded))
+            .font(.inter(size: 16, weight: .bold))
             .foregroundStyle(WatchTheme.background)
             .frame(maxWidth: .infinity, minHeight: 44)
             .background(color.gradient, in: RoundedRectangle(cornerRadius: 14))
@@ -420,7 +420,7 @@ private struct PrimaryButtonStyle: ButtonStyle {
 private struct GlassButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 14, weight: .semibold))
+            .font(.inter(size: 14, weight: .semibold))
             .frame(maxWidth: .infinity, minHeight: 42)
             .background(WatchTheme.surface, in: RoundedRectangle(cornerRadius: 13))
             .overlay(RoundedRectangle(cornerRadius: 13).stroke(WatchTheme.line))
@@ -470,12 +470,12 @@ private struct WatchTimerView: View {
     private var picker: some View {
         VStack(spacing: 8) {
             HStack {
-                Text("Timer").font(.system(size: 17, weight: .bold))
+                Text("Timer").font(.inter(size: 17, weight: .bold))
                 Spacer()
                 Button { dismiss() } label: { Image(systemName: "xmark") }.buttonStyle(.plain)
             }
             Text(watchClock(Int(selectedSeconds)))
-                .font(.system(size: 43, weight: .heavy, design: .rounded)).monospacedDigit()
+                .font(.inter(size: 43, weight: .heavy)).monospacedDigit()
                 .focusable()
                 .digitalCrownRotation($selectedSeconds, from: 5, through: 5_940, by: 5,
                                       sensitivity: .medium, isContinuous: false, isHapticFeedbackEnabled: true)
@@ -489,9 +489,9 @@ private struct WatchTimerView: View {
     private var countInView: some View {
         VStack(spacing: 4) {
             Text("\(countIn)")
-                .font(.system(size: 84, weight: .heavy, design: .rounded))
+                .font(.inter(size: 84, weight: .heavy))
                 .foregroundStyle(WatchTheme.violet)
-            Text("GET READY").font(.system(size: 10, weight: .bold)).tracking(1.2)
+            Text("GET READY").font(.inter(size: 10, weight: .bold)).tracking(1.2)
                 .foregroundStyle(WatchTheme.muted)
         }
     }
@@ -501,7 +501,7 @@ private struct WatchTimerView: View {
             let remaining = phase == .paused ? pausedSeconds : max(0, Int(ceil(endAt?.timeIntervalSince(context.date) ?? 0)))
             VStack(spacing: 7) {
                 Text(phase == .paused ? "PAUSED" : (exercise?.name.uppercased() ?? "TIMER"))
-                    .font(.system(size: 10, weight: .bold)).tracking(1)
+                    .font(.inter(size: 10, weight: .bold)).tracking(1)
                     .foregroundStyle(WatchTheme.muted).lineLimit(1)
                 ZStack {
                     Circle().stroke(WatchTheme.surface, lineWidth: 6)
@@ -509,7 +509,7 @@ private struct WatchTimerView: View {
                         .stroke(WatchTheme.violet, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                     Text(watchClock(remaining))
-                        .font(.system(size: 37, weight: .heavy, design: .rounded)).monospacedDigit()
+                        .font(.inter(size: 37, weight: .heavy)).monospacedDigit()
                 }
                 .frame(height: 116)
                 if phase == .paused {
@@ -529,9 +529,9 @@ private struct WatchTimerView: View {
             Image(systemName: "checkmark").font(.system(size: 27, weight: .bold))
                 .frame(width: 52, height: 52).background(WatchTheme.violet, in: Circle())
                 .foregroundStyle(WatchTheme.background)
-            Text("Done").font(.system(size: 27, weight: .heavy, design: .rounded))
+            Text("Done").font(.inter(size: 27, weight: .heavy))
             Text("\(watchClock(Int(selectedSeconds))) complete")
-                .font(.system(size: 12, weight: .medium)).foregroundStyle(WatchTheme.muted)
+                .font(.inter(size: 12, weight: .medium)).foregroundStyle(WatchTheme.muted)
             Button(exercise == nil ? "Done" : "Log set") {
                 if exercise != nil { logTimedSet(Int(selectedSeconds)) }
                 dismiss()
@@ -542,7 +542,7 @@ private struct WatchTimerView: View {
 
     private func preset(_ seconds: Int) -> some View {
         Button(watchClock(seconds)) { selectedSeconds = Double(seconds) }
-            .font(.system(size: 11, weight: .semibold))
+            .font(.inter(size: 11, weight: .semibold))
             .buttonStyle(.bordered)
             .tint(Int(selectedSeconds) == seconds ? WatchTheme.violet : WatchTheme.surface)
     }
@@ -597,4 +597,19 @@ private func watchNumber(_ value: Double) -> String {
 
 private func watchClock(_ seconds: Int) -> String {
     String(format: "%02d:%02d", max(0, seconds) / 60, max(0, seconds) % 60)
+}
+
+/// Same Inter faces as the iPhone app (bundled through project.yml); SwiftUI falls back to the system font if one fails to load.
+private extension Font {
+    static func inter(size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        let face: String
+        switch weight {
+        case .heavy, .black: face = "ExtraBold"
+        case .bold: face = "Bold"
+        case .semibold: face = "SemiBold"
+        case .medium: face = "Medium"
+        default: face = "Regular"
+        }
+        return .custom("Inter-" + face, fixedSize: size)
+    }
 }

@@ -53,6 +53,7 @@ targets:
     platform: watchOS
     sources:
       - path: StrataWatch
+      - path: Strata/Fonts
       - path: ../img
         type: folder
         buildPhase: resources
@@ -62,6 +63,7 @@ targets:
       path: StrataWatch/Info.plist
       properties:
         CFBundleDisplayName: Strata
+        UIAppFonts: [Inter-Regular.ttf, Inter-Medium.ttf, Inter-SemiBold.ttf, Inter-Bold.ttf, Inter-ExtraBold.ttf]
         WKApplication: true
         WKCompanionAppBundleIdentifier: net.nicolasruiz.strata
         ITSAppUsesNonExemptEncryption: false
