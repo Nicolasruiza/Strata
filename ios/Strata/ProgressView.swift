@@ -78,12 +78,14 @@ struct ProgressScreen: View {
         let ex = e.exById(lift), first = pts.first, last = pts.last
         let pct = (first != nil && last != nil && first!.y != 0) ? jsRound((last!.y - first!.y) / first!.y * 100) : 0
         let pw = e.progressWeeks(), wl = (1...8).map { "W\($0)" }
-        let lastSteps = pw.steps.reversed().first { $0 != 0 } ?? 0
+        let healthStepWeeks = healthStepAverages(ending: e.today)
+        let stepValues = healthStepWeeks.contains(where: { $0 != 0 }) ? healthStepWeeks : pw.steps
+        let lastSteps = stepValues.reversed().first { $0 != 0 } ?? 0
         let waistPts = (e.db.waist ?? []).suffix(8)
         let sk = e.streak()
         ScrollView {
             VStack(spacing: 0) {
-                Hero(eyebrow: nil, title: "Progress", sub: "What the last weeks added up to.")
+                Hero(eyebrow: nil, title: "Progress", sub: "What the last weeks added up to.", settingsAction: { model.go(.settings) })
                 VStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 0) {
                         HStack(alignment: .top) {
@@ -134,9 +136,32 @@ struct ProgressScreen: View {
                             BarChart(vals: pw.cardio.map(Double.init), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { jsMinutes($0) }
                         }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
                         VStack(alignment: .leading, spacing: 0) {
-                            Text("Steps").nameStyle(15); Text("avg / office day").metaStyle()
+                            Text("Steps").nameStyle(15)
+                            Text(healthStepWeeks.contains(where: { $0 != 0 }) ? "daily average" : "avg / office day").metaStyle()
                             Text(lastSteps != 0 ? Fmt.nf(Double(lastSteps)) : "—").font(.inter(size: 20, weight: .heavy)).monospacedDigit().padding(.top, 4)
-                            BarChart(vals: pw.steps.map(Double.init), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { Fmt.fmtFixed($0 / 1000, 1) + "k" }
+                            BarChart(vals: stepValues.map(Double.init), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { Fmt.fmtFixed($0 / 1000, 1) + "k" }
+                            Text(healthStepWeeks.contains(where: { $0 != 0 }) ? "Apple Health" : "Manual office logs").smallStyle()
+                        }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
+                    }.fixedSize(horizontal: false, vertical: true)
+
+                    HStack(alignment: .top, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            HStack { IconView(d: Icon.timer, size: 17, color: Theme.amber); Text("Sleep").nameStyle(15) }
+                            Text("weekly average").metaStyle()
+                            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                                Text("—").font(.inter(size: 24, weight: .heavy)).monospacedDigit()
+                                Text("of 8h").metaStyle()
+                            }.padding(.top, 10)
+                            Capsule().fill(Color.white.opacity(0.12)).frame(height: 7).padding(.top, 8)
+                            Text("No sleep data yet").smallStyle().padding(.top, 10)
+                        }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
+
+                        VStack(alignment: .leading, spacing: 0) {
+                            HStack { IconView(d: Icon.dumbbell, size: 17, color: Theme.violet); Text("Strength").nameStyle(15) }
+                            Text("sessions / week").metaStyle()
+                            Text("\(pw.stats.last?.m ?? 0)").font(.inter(size: 24, weight: .heavy)).monospacedDigit().padding(.top, 10)
+                            BarChart(vals: pw.stats.map { Double($0.m) }, labels: wl.map { String($0.dropFirst()) }, color: Theme.violet) { jsMinutes($0) }
+                            Text("Strata workouts").smallStyle()
                         }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
                     }.fixedSize(horizontal: false, vertical: true)
 
@@ -187,6 +212,16 @@ struct ProgressScreen: View {
                     }.card()
                 }.padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 110)
             }.frame(maxWidth: Theme.maxWidth)
+        }
+    }
+
+    private func healthStepAverages(ending today: String) -> [Int] {
+        let monday = Dates.mondayOf(today)
+        return (0..<8).map { index in
+            let week = Dates.weekDates(Dates.addDays(monday, -7 * (7 - index)))
+            let values = week.compactMap { model.syncedSteps(on: $0) }
+            guard !values.isEmpty else { return 0 }
+            return Int((Double(values.reduce(0, +)) / Double(values.count)).rounded())
         }
     }
 }

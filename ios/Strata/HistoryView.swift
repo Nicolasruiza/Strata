@@ -10,7 +10,7 @@ struct HistoryView: View {
         let items = e.historyItems()
         ScrollView {
             VStack(spacing: 0) {
-                Hero(eyebrow: nil, title: "History", sub: "Your sessions, week by week.")
+                Hero(eyebrow: nil, title: "History", sub: "Your sessions, week by week.", settingsAction: { model.go(.settings) })
                 VStack(spacing: 12) {
                     if items.isEmpty {
                         Text("Nothing logged yet. Your first workout will show up here.")

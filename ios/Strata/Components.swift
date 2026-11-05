@@ -108,6 +108,7 @@ struct Hero: View {
     var short = false
     var image = "mountain"
     var brand = true              // heroes with a back button replace the logo (`o.left`)
+    var settingsAction: (() -> Void)?
     @Environment(\.safeTop) private var safeTop
 
     var body: some View {
@@ -118,8 +119,17 @@ struct Hero: View {
             LinearGradient(stops: [.init(color: Theme.bg.opacity(0.25), location: 0), .init(color: Theme.bg.opacity(0.35), location: 0.45), .init(color: Theme.bg, location: 1)],
                            startPoint: .top, endPoint: .bottom)
             VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 8) { LogoMark(); Text("Strata").font(.inter(size: 20, weight: .bold)).tracking(-0.2) }
-                    .opacity(brand ? 1 : 0).frame(minHeight: 44)
+                HStack(spacing: 8) {
+                    HStack(spacing: 8) { LogoMark(); Text("Strata").font(.inter(size: 20, weight: .bold)).tracking(-0.2) }
+                        .opacity(brand ? 1 : 0)
+                    Spacer(minLength: 0)
+                    if let settingsAction {
+                        GlassButton(action: settingsAction, accessibility: "Settings") {
+                            IconView(d: Icon.gear, size: 20, color: .white, line: 1.9)
+                        }
+                    }
+                }
+                    .frame(minHeight: 44)
                     .padding(.top, 14 + safeTop)
                 Spacer(minLength: 0)
                 if let e = eyebrow {

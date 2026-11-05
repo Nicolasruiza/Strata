@@ -17,7 +17,8 @@ struct TodayView: View {
             VStack(spacing: 0) {
                 Hero(eyebrow: Dates.fmtD(t, .init(weekday: .long, month: .long, day: true)),
                      title: "\(e.greet()), \(e.profile.name)",
-                     sub: streak > 0 ? "\(streak)-week streak. Keep the layers stacking." : "Build it in layers: muscle, heart, bone.")
+                     sub: streak > 0 ? "\(streak)-week streak. Keep the layers stacking." : "Build it in layers: muscle, heart, bone.",
+                     settingsAction: { model.go(.settings) })
                 VStack(spacing: 12) {
                     mainCard(e, slot: slot, selDate: selDate, isToday: isToday, lp: slots[sel], st: st, mon: mon)
                     rotationCard(e, slot: slot, lp: slots[sel], t: t)

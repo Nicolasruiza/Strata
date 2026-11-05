@@ -33,7 +33,7 @@ struct RootView: View {
                 .ignoresSafeArea(edges: .top)
                 .frame(maxWidth: .infinity)
                 if model.onboard == nil, model.engine != nil, model.engine?.db.active == nil, model.engine?.db.live == nil,
-                   [Screen.today, .progress, .history, .settings].contains(model.screen), !(model.engine?.celebration != nil) {
+                   [Screen.today, .progress, .history].contains(model.screen), !(model.engine?.celebration != nil) {
                     TabBar(current: model.screen).frame(maxHeight: .infinity, alignment: .bottom)
                 }
                 if let t = model.toast {

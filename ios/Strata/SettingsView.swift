@@ -14,6 +14,7 @@ struct ExportDocument: FileDocument {
 /// Settings (app.js `settingsView`).
 struct SettingsView: View {
     @EnvironmentObject var model: AppModel
+    @Environment(\.safeTop) private var safeTop
     @State private var name = ""
     @State private var seeded = false
     @State private var genderPrompt: String?
@@ -31,7 +32,13 @@ struct SettingsView: View {
         let hr = e.rcHR(), off = e.officeDays()
         ScrollView {
             VStack(spacing: 0) {
-                Hero(eyebrow: nil, title: "Settings", sub: "Profile, injuries, schedule and data.")
+                ZStack(alignment: .topLeading) {
+                    Hero(eyebrow: nil, title: "Settings", sub: "Profile, injuries, schedule and data.", brand: false)
+                    GlassButton(action: { model.go(.today) }, accessibility: "Back") {
+                        IconView(d: Icon.back, size: 18, color: .white, line: 2.4)
+                    }
+                    .padding(.leading, 16).padding(.top, 14 + safeTop)
+                }
                 VStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("You").labelStyle()
