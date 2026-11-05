@@ -67,4 +67,27 @@ final class DataTests: XCTestCase {
         let d = AppData.fresh()
         XCTAssertTrue(d.history.isEmpty && d.cardio.isEmpty && d.live == nil && d.active == nil)
     }
+
+    func testHealthStepsSyncOnlyUpdatesPlannedOfficeDays() {
+        let profile = Profile(name: "Nico", initials: "NI", gender: "male", plan: "nr", bw: 194, exp: "trained")
+        var data = AppData.fresh()
+        data.officeDays = [2, 4]
+        data.cardio = [
+            CardioEntry(date: "2026-11-03", type: "office", steps: 1_000),
+            CardioEntry(date: "2026-11-02", type: "z2", min: 50)
+        ]
+        let now = ISO8601DateFormatter().date(from: "2026-11-04T12:00:00Z")!.timeIntervalSince1970 * 1_000
+        var engine = Engine(profile: profile, db: data, nowMs: now, tz: TimeZone(secondsFromGMT: 0)!)
+
+        XCTAssertTrue(engine.syncHealthSteps([
+            "2026-11-02": 8_000,
+            "2026-11-03": 12_345,
+            "2026-11-04": 9_876,
+            "2026-11-05": 7_654
+        ]))
+        XCTAssertEqual(engine.cardioOn("2026-11-03", "office")?.steps, 12_345)
+        XCTAssertEqual(engine.cardioOn("2026-11-05", "office")?.steps, nil, "future totals are not imported")
+        XCTAssertNil(engine.cardioOn("2026-11-02", "office"), "non-office weekdays stay untouched")
+        XCTAssertEqual(engine.cardioOn("2026-11-02", "z2")?.min, 50)
+    }
 }

@@ -54,10 +54,13 @@ final class AppModel: ObservableObject {
     @Published var watchConnected = false
     @Published private(set) var healthAccess = HealthAccessSummary.checking
     @Published private(set) var healthAccessChecking = false
+    @Published private(set) var healthSteps: [String: Int] = [:]
+    @Published private(set) var stepsLastUpdated: Date?
     private var watchRevision = 0
     private var handledWatchCommands: Set<UUID> = []
     var liveTicker: Task<Void, Never>?
     private var toastTask: Task<Void, Never>?
+    private var lastStepsSync: Date?
 
     init() {
         sensors.onStateChange = { [weak self] s in Task { @MainActor in self?.location = s } }
@@ -71,6 +74,7 @@ final class AppModel: ObservableObject {
             onboard = OnboardState()
         }
         sendWatchState()
+        refreshStepsIfNeeded(force: true)
     }
 
     static func nowMs() -> Double { Date().timeIntervalSince1970 * 1000 }
@@ -81,12 +85,40 @@ final class AppModel: ObservableObject {
         Task { @MainActor [weak self] in
             guard let self else { return }
             self.healthAccess = await self.health.accessSummary(requestAuthorization: requestAuthorization)
+            await self.syncSteps()
             self.healthAccessChecking = false
         }
     }
 
     /// Bring the clock up to date (call when a screen appears or a minute passes).
-    func tick() { engine?.nowMs = Self.nowMs(); objectWillChange.send() }
+    func tick() {
+        engine?.nowMs = Self.nowMs()
+        objectWillChange.send()
+        refreshStepsIfNeeded()
+    }
+
+    private func refreshStepsIfNeeded(force: Bool = false) {
+        if !force, let lastStepsSync, Date().timeIntervalSince(lastStepsSync) < 15 * 60 { return }
+        lastStepsSync = Date()
+        Task { @MainActor [weak self] in await self?.syncSteps() }
+    }
+
+    private func syncSteps() async {
+        guard engine != nil else { return }
+        let calendar = Calendar.current
+        let today = Date()
+        guard let start = calendar.date(byAdding: .day, value: -55, to: today),
+              let totals = await health.dailySteps(from: start, through: today),
+              !totals.isEmpty else { return }
+        healthSteps = totals
+        stepsLastUpdated = Date()
+        if var updated = engine, updated.syncHealthSteps(totals) {
+            engine = updated
+            persist()
+        }
+    }
+
+    func syncedSteps(on date: String) -> Int? { healthSteps[date] }
 
     /// Run a change on the engine, save, and show the toast it returned.
     func mutate(_ change: (inout Engine) -> String?) {
