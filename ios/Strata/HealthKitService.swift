@@ -144,4 +144,46 @@ final class HealthKitService: HealthService {
             store.execute(q)
         }
     }
+
+    /// Daily totals over a date range. `HKStatisticsCollectionQuery` lets HealthKit merge
+    /// overlapping phone/watch sources instead of Strata adding raw samples itself.
+    func dailySteps(from start: Date, through end: Date) async -> [String: Int]? {
+        guard available else { return nil }
+        let calendar = Calendar.current
+        let from = calendar.startOfDay(for: start)
+        let endDay = calendar.startOfDay(for: end)
+        guard let to = calendar.date(byAdding: .day, value: 1, to: endDay) else { return nil }
+        let predicate = HKQuery.predicateForSamples(withStart: from, end: to)
+        var interval = DateComponents()
+        interval.day = 1
+
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsCollectionQuery(
+                quantityType: stepType,
+                quantitySamplePredicate: predicate,
+                options: .cumulativeSum,
+                anchorDate: from,
+                intervalComponents: interval
+            )
+            query.initialResultsHandler = { _, collection, error in
+                guard error == nil, let collection else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                let formatter = DateFormatter()
+                formatter.calendar = calendar
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.timeZone = calendar.timeZone
+                formatter.dateFormat = "yyyy-MM-dd"
+                var totals: [String: Int] = [:]
+                collection.enumerateStatistics(from: from, to: endDay) { statistics, _ in
+                    if let quantity = statistics.sumQuantity() {
+                        totals[formatter.string(from: statistics.startDate)] = Int(quantity.doubleValue(for: .count()))
+                    }
+                }
+                continuation.resume(returning: totals)
+            }
+            store.execute(query)
+        }
+    }
 }

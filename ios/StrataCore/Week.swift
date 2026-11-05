@@ -68,6 +68,27 @@ extension Engine {
     public func liftedOn(_ date: String) -> Session? { db.history.first { $0.date == date } }
     public func skipOn(_ date: String) -> Skip? { db.skips?[date] }
 
+    /// Applies HealthKit daily totals to the existing office-day step records.
+    /// Other weekdays are deliberately ignored because an `office` entry also closes a heart slot.
+    @discardableResult
+    public mutating func syncHealthSteps(_ totals: [String: Int]) -> Bool {
+        let plan = weekPlan()
+        var changed = false
+        for (date, steps) in totals where date <= today && steps > 0 && plan[Dates.weekday(date)] == "office" {
+            if let index = db.cardio.firstIndex(where: { $0.date == date && $0.type == "office" }) {
+                let value = Double(steps)
+                if db.cardio[index].steps != value {
+                    db.cardio[index].steps = value
+                    changed = true
+                }
+            } else {
+                logCardio("office", CardioEntry(date: "", type: "", steps: Double(steps)), date: date)
+                changed = true
+            }
+        }
+        return changed
+    }
+
     // MARK: rings
 
     public func weekStats(_ mon: String) -> WeekStats {
