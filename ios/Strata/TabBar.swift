@@ -1,13 +1,13 @@
 import SwiftUI
 import StrataCore
 
-/// The floating tab bar (`#tabs`): Today, Progress, History, Settings. Only on those four screens.
+/// Primary navigation. Settings lives in the Today header instead of competing with destinations.
 struct TabBar: View {
     @EnvironmentObject var model: AppModel
     let current: Screen
 
     private let tabs: [(Screen, String, String)] = [
-        (.today, "Today", Icon.home), (.progress, "Progress", Icon.chart), (.history, "History", Icon.cal), (.settings, "Settings", Icon.gear)]
+        (.today, "Today", Icon.home), (.progress, "Progress", Icon.chart), (.history, "History", Icon.cal)]
 
     var body: some View {
         HStack(spacing: 0) {
@@ -19,7 +19,7 @@ struct TabBar: View {
                     model.go(s)
                 } label: {
                     VStack(spacing: 3) {
-                        IconView(d: icon, size: 22, color: on ? .white : Theme.muted, line: s == .today || s == .history || s == .settings ? 2 : 2.2)
+                        IconView(d: icon, size: 22, color: on ? .white : Theme.muted, line: s == .today || s == .history ? 2 : 2.2)
                         Text(label).font(.inter(size: 11, weight: .semibold)).foregroundStyle(on ? .white : Theme.muted)
                     }
                     .frame(maxWidth: .infinity).frame(height: 56)
@@ -32,7 +32,12 @@ struct TabBar: View {
         .padding(6).frame(height: 68).frame(maxWidth: Theme.maxWidth - 24)
         .background(Capsule().fill(Color(hex: "#161924").opacity(0.82)).background(.ultraThinMaterial, in: Capsule()))
         .overlay(Capsule().strokeBorder(Theme.line))
-        .padding(.horizontal, 12).padding(.bottom, 10)
+        .padding(.horizontal, 12).padding(.top, 8).padding(.bottom, 10)
+        .frame(maxWidth: .infinity)
+        .background(
+            LinearGradient(colors: [Theme.bg.opacity(0), Theme.bg, Theme.bg], startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea(edges: .bottom)
+        )
     }
     private var isDetail: Bool { if case .detail = current { return true } else { return false } }
 }
