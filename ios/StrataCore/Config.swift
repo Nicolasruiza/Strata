@@ -82,6 +82,19 @@ public enum Config {
 
     /// Weekly ring targets that are not derived from the plan.
     public static let boneDaysPerWeek = 2
+
+    /// Thresholds for the Move-tab insight card. Not in the web app: these are new.
+    public enum Insights {
+        /// Muscle is built during sleep: under this average is "short".
+        public static let sleepMinHours = 7.0
+        /// Nights/days of data needed before a health insight is trusted.
+        public static let minSleepNights = 3
+        public static let minStepDays = 3
+        /// Daily steps where the longevity benefit levels off (roughly 7-8k).
+        public static let stepsMinDaily = 7_000.0
+        /// A ring left open this many completed weeks in a row triggers an insight.
+        public static let ringMissedWeeks = 2
+    }
     public static let landingsPerJumpDay = 45
     public static let landingsHomeLegs = 30
 

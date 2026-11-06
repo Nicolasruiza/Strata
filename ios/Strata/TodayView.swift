@@ -21,6 +21,7 @@ struct TodayView: View {
                      settingsAction: { model.go(.settings) })
                 VStack(spacing: 12) {
                     CompactRings(st: st)
+                    InsightCard(insights: e.insights(health: healthSignals(today: t)))
                     mainCard(e, slot: slot, selDate: selDate, isToday: isToday, lp: slots[sel], st: st, mon: mon)
                     rotationCard(e, slot: slot, lp: slots[sel], t: t)
                     if isToday && e.db.active == nil { otherOptions(slot) }
@@ -271,6 +272,13 @@ struct TodayView: View {
                 if showWalk { Button("Log a walk") { model.sheet = .walk }.buttonStyle(StrataButtonStyle(small: true)) }
             }
         }
+    }
+
+    /// Recent sleep (last 7 nights) and steps (last 7 complete days) from Apple Health, if any.
+    private func healthSignals(today t: String) -> HealthSignals {
+        HealthSignals(
+            sleepHours: (0..<7).compactMap { model.syncedSleep(on: Dates.addDays(t, -$0)) }.filter { $0 > 0 },
+            steps: (1...7).compactMap { model.syncedSteps(on: Dates.addDays(t, -$0)) }.filter { $0 > 0 }.map(Double.init))
     }
 
     // MARK: what happened today
