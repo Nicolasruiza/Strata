@@ -5,22 +5,25 @@ struct HealthAccessSummary: Equatable {
     var isAvailable: Bool
     var workoutAccess: String
     var stepsAccess: String
+    var sleepAccess: String
 
     static let checking = HealthAccessSummary(
         isAvailable: true,
         workoutAccess: "Checking…",
-        stepsAccess: "Checking…"
+        stepsAccess: "Checking…",
+        sleepAccess: "Checking…"
     )
 }
 
 /// workout.js `Health` on iPhone, implemented for real with HealthKit. Both calls return what
 /// actually happened: `saved` is true only when the workout was written to Apple Health.
-/// Only the types Strata uses are requested: workouts and heart rate (write), steps (read).
+/// Only the types Strata uses are requested: workouts and heart rate (write), steps and sleep (read).
 final class HealthKitService: HealthService {
     let store = HKHealthStore()
     private(set) lazy var bridge = WatchBridge(store: store)
     private let hrType = HKQuantityType(.heartRate)
     private let stepType = HKQuantityType(.stepCount)
+    private let sleepType = HKCategoryType(.sleepAnalysis)
 
     var available: Bool { HKHealthStore.isHealthDataAvailable() }
 
@@ -67,7 +70,7 @@ final class HealthKitService: HealthService {
     private func authorize() async -> Bool {
         guard available else { return false }
         do {
-            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType], read: [stepType])
+            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType], read: [stepType, sleepType])
             return store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized
         } catch { return false }
     }
@@ -80,7 +83,8 @@ final class HealthKitService: HealthService {
             return HealthAccessSummary(
                 isAvailable: false,
                 workoutAccess: "Unavailable",
-                stepsAccess: "Unavailable"
+                stepsAccess: "Unavailable",
+                sleepAccess: "Unavailable"
             )
         }
 
@@ -102,10 +106,14 @@ final class HealthKitService: HealthService {
 
         let todaySteps = await steps(on: Date())
         let stepsAccess = todaySteps.map { "\($0.formatted()) today" } ?? "No readable data today"
+        let lastNight = await dailySleep(from: Date().addingTimeInterval(-3 * 86_400), through: Date())?
+            .sorted { $0.key < $1.key }.last
+        let sleepAccess = lastNight.map { "\(String(format: "%.1f", $0.value)) h last night" } ?? "No readable data"
         return HealthAccessSummary(
             isAvailable: true,
             workoutAccess: workoutAccess,
-            stepsAccess: stepsAccess
+            stepsAccess: stepsAccess,
+            sleepAccess: sleepAccess
         )
     }
 
@@ -182,6 +190,47 @@ final class HealthKitService: HealthService {
                     }
                 }
                 continuation.resume(returning: totals)
+            }
+            store.execute(query)
+        }
+    }
+
+    /// Hours asleep per night, keyed by the day the sleep ended (the morning you woke up).
+    /// Overlapping samples from several sources (watch, phone, apps) are merged so nothing is
+    /// counted twice. Nil when Health has nothing readable.
+    func dailySleep(from start: Date, through end: Date) async -> [String: Double]? {
+        guard available else { return nil }
+        let calendar = Calendar.current
+        let from = calendar.startOfDay(for: start)
+        guard let to = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: end)) else { return nil }
+        let predicate = HKQuery.predicateForSamples(withStart: from, end: to)
+        let asleep: Set<Int> = [
+            HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue,
+            HKCategoryValueSleepAnalysis.asleepCore.rawValue,
+            HKCategoryValueSleepAnalysis.asleepDeep.rawValue,
+            HKCategoryValueSleepAnalysis.asleepREM.rawValue
+        ]
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: sleepType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                guard error == nil, let samples = samples as? [HKCategorySample] else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                let spans = samples.filter { asleep.contains($0.value) }
+                    .map { ($0.startDate, $0.endDate) }.sorted { $0.0 < $1.0 }
+                var merged: [(Date, Date)] = []
+                for span in spans {
+                    if let last = merged.last, span.0 <= last.1 { merged[merged.count - 1].1 = max(last.1, span.1) }
+                    else { merged.append(span) }
+                }
+                let formatter = DateFormatter()
+                formatter.calendar = calendar
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.timeZone = calendar.timeZone
+                formatter.dateFormat = "yyyy-MM-dd"
+                var hours: [String: Double] = [:]
+                for span in merged { hours[formatter.string(from: span.1), default: 0] += span.1.timeIntervalSince(span.0) / 3600 }
+                continuation.resume(returning: hours)
             }
             store.execute(query)
         }
