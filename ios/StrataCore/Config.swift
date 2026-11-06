@@ -112,6 +112,9 @@ public enum Config {
         public static let vo2RecentDays = 30
         public static let vo2PriorDays = 60
         public static let vo2DropMin = 1.0
+        /// The Move card has a fixed size: a title on one line, a body on up to three. Every message must fit.
+        public static let maxTitleChars = 30
+        public static let maxBodyChars = 100
     }
     public static let landingsPerJumpDay = 45
     public static let landingsHomeLegs = 30

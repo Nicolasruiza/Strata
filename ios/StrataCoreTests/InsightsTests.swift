@@ -15,6 +15,19 @@ final class InsightsTests: XCTestCase {
         XCTAssertEqual(found.map(\.kind), [.sleep, .steps, .remaining])
     }
 
+    func testEveryMessageFitsTheFixedCard() {
+        // Worst case: every insight at once (old history, nothing closed, all health signals bad).
+        let cardio = [CardioEntry(date: "2026-09-01", type: "z2", min: 45)]
+        let signals = HealthSignals(sleepHours: [4, 5, 4.5], steps: [1_000, 2_000, 3_000],
+                                    vo2Recent: [30], vo2Prior: [45])
+        let found = engine(cardio: cardio).insights(health: signals)
+        XCTAssertGreaterThanOrEqual(found.count, 5)
+        for i in found {
+            XCTAssertLessThanOrEqual(i.title.count, Config.Insights.maxTitleChars, i.title)
+            XCTAssertLessThanOrEqual(i.body.count, Config.Insights.maxBodyChars, i.body)
+        }
+    }
+
     func testEnoughSleepAndStepsAreQuiet() {
         let found = engine().insights(health: HealthSignals(sleepHours: [7.5, 8, 7.2], steps: [9_000, 10_000, 8_000]))
         XCTAssertEqual(found.map(\.kind), [.remaining])
