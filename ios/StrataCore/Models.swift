@@ -292,10 +292,12 @@ public struct AppData: Codable, Equatable {
     public var waist: [Waist]?
     public var skips: [String: Skip]?
     public var live: LiveCardio?
+    /// Daily Mobility check-offs (iOS only; the web ignores it).
+    public var mobility: [MobilityDone]?
 
     enum CodingKeys: String, CodingKey {
         case next, history, active, holds, cycleStarts, focus, injuries, cycleAnchor, cardio, age
-        case officeDays, rcOffice, waist, skips, live
+        case officeDays, rcOffice, waist, skips, live, mobility
     }
 
     public init() {}
@@ -327,6 +329,16 @@ public struct AppData: Codable, Equatable {
         waist = try c.decodeIfPresent([Waist].self, forKey: .waist)
         skips = try c.decodeIfPresent([String: Skip].self, forKey: .skips)
         live = try c.decodeIfPresent(LiveCardio.self, forKey: .live)
+        mobility = try c.decodeIfPresent([MobilityDone].self, forKey: .mobility)
         // `demoSensors` is a web testing switch: read nothing, write nothing.
     }
+}
+
+
+/// One exercise checked off in one Daily Mobility session on one local date.
+public struct MobilityDone: Codable, Equatable {
+    public var date: String
+    public var session: String
+    public var ex: String
+    public init(date: String, session: String, ex: String) { self.date = date; self.session = session; self.ex = ex }
 }

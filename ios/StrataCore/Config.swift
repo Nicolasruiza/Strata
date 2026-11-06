@@ -157,3 +157,63 @@ public enum Config {
         public static let preciseLocationOff = "Precise location off"
     }
 }
+
+extension Config {
+    /// Daily Mobility: a routine from a home exercise handout. It sits beside the rings, never inside them:
+    /// nothing here changes ring targets or streaks, and a missed session is never flagged.
+    public enum Mobility {
+        public struct Session: Equatable, Identifiable { public let id: String; public let label: String }
+        public struct Exercise: Equatable, Identifiable {
+            public let id: String
+            public let name: String
+            public let category: String
+            public let purpose: String
+            public let sets: Int
+            public let reps: Int
+            /// Seconds held on every rep, nil when the handout gives no timed hold.
+            public let holdSeconds: Int?
+            public let equipment: String?
+            public let steps: [String]
+            public let cue: String
+            public let startImage: String
+            public let finishImage: String
+            public var prescription: String {
+                "\(sets) set\(sets > 1 ? "s" : "") × \(reps) rep\(reps > 1 ? "s" : "")" + (holdSeconds.map { " · hold \($0) s each" } ?? "")
+            }
+        }
+
+        /// Morning and evening each repeat the same exercises.
+        public static let sessions = [Session(id: "morning", label: "Morning"), Session(id: "evening", label: "Evening")]
+
+        public static let exercises: [Exercise] = [
+            Exercise(id: "glide", name: "Sciatic nerve glide", category: "Nerve mobility",
+                     purpose: "Controlled knee and ankle movement that lets the sciatic nerve glide as the leg moves.",
+                     sets: 4, reps: 10, holdSeconds: nil, equipment: nil,
+                     steps: ["Lie on your back. Support the working leg with both hands behind the thigh and bring the knee just above the hip.",
+                             "Keep the other leg straight, flat and still.",
+                             "Straighten the working knee until you first feel tension, then draw your toes toward your shin.",
+                             "Relax the foot, bend the knee back to the start and repeat."],
+                     cue: "Keep the other leg flat. Stop straightening at the first point of tension.",
+                     startImage: "mob_glide_start", finishImage: "mob_glide_finish"),
+            Exercise(id: "pressup", name: "Prone press-up", category: "Lower-back mobility",
+                     purpose: "Moves the lower back into extension as you lift your chest, supported on your forearms.",
+                     sets: 2, reps: 10, holdSeconds: 10, equipment: nil,
+                     steps: ["Lie face down with elbows bent and forearms on the mat.",
+                             "Lift your chest and prop yourself on your elbows and forearms.",
+                             "Keep your hips down and your head in line with your upper body.",
+                             "Hold, then lower back to the start."],
+                     cue: "Stay on your forearms the whole time, elbows bent.",
+                     startImage: "mob_press_start", finishImage: "mob_press_finish"),
+            Exercise(id: "itband", name: "IT band stretch with belt", category: "Outer-thigh flexibility",
+                     purpose: "A belt guides the raised leg across the body for a gentle stretch along the outside of the thigh.",
+                     sets: 1, reps: 5, holdSeconds: 10, equipment: "Belt or stretching strap",
+                     steps: ["Lie on your back and loop the belt around the working foot.",
+                             "Raise that leg with the knee straight.",
+                             "Use the belt to guide the leg gently across the midline of your body until you feel a stretch along the outer thigh.",
+                             "Hold, then release and return to the start."],
+                     cue: "Keep the raised knee straight and make a small, controlled movement across the body.",
+                     startImage: "mob_belt_start", finishImage: "mob_belt_finish"),
+        ]
+        public static let safetyNote = "Move gently. If pain increases or spreads, stop and check with your clinician."
+    }
+}
