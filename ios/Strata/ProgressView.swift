@@ -190,6 +190,8 @@ struct ProgressScreen: View {
                         }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
                     }.fixedSize(horizontal: false, vertical: true)
 
+                    mobilityCard(e, labels: wl)
+
                     VStack(alignment: .leading, spacing: 0) {
                         HStack(alignment: .top) {
                             VStack(alignment: .leading, spacing: 2) { Text("Waist").nameStyle(); Text("cm · the honest recomp number").metaStyle() }
@@ -240,6 +242,42 @@ struct ProgressScreen: View {
 
     /// The last 7 days ending today, oldest first, so the chart always has recent nights
     /// (a Monday-to-Sunday week would be empty every Monday). 0 where Health has nothing.
+    /// Days of Daily Mobility (at least one full session). A bonus count: no target, nothing is ever "missed".
+    private func mobilityCard(_ e: Engine, labels wl: [String]) -> some View {
+        let monday = Dates.mondayOf(e.today)
+        let weeks = (0..<8).map { Dates.weekDates(Dates.addDays(monday, -7 * (7 - $0))) }
+        let days = weeks.map { w in w.map { e.mobilitySessionsDone(date: $0) } }
+        let thisWeek = days[7].filter { $0 > 0 }.count
+        let all = days.joined().filter { $0 > 0 }.count
+        return VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) { IconView(d: Icon.walk, size: 17, color: Theme.mint); Text("Mobility").nameStyle() }
+                    Text("days with a full session").metaStyle()
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("\(thisWeek) day\(thisWeek == 1 ? "" : "s")").font(.inter(size: 24, weight: .heavy))
+                    Text("this week · \(all) in 8 weeks").smallStyle()
+                }
+            }
+            HStack(spacing: 4) {
+                ForEach(0..<8, id: \.self) { i in
+                    VStack(spacing: 6) {
+                        VStack(spacing: 3) {
+                            ForEach(0..<7, id: \.self) { j in
+                                Circle().fill(days[i][j] == 2 ? Theme.mint : days[i][j] == 1 ? Theme.mint.opacity(0.5) : Color.white.opacity(0.12))
+                                    .frame(width: 9, height: 9)
+                            }
+                        }
+                        Text(i == 7 ? "Now" : wl[i]).font(.inter(size: 12, weight: i == 7 ? .bold : .regular)).foregroundStyle(i == 7 ? .white : Theme.muted)
+                    }.frame(maxWidth: .infinity)
+                }
+            }.padding(.top, 14)
+            Text("Brighter dot: both Morning and Evening. Dots run Monday (top) to Sunday.").smallStyle().padding(.top, 10)
+        }.card()
+    }
+
     private func lastSevenDays(ending today: String) -> [String] { (0..<7).map { Dates.addDays(today, $0 - 6) } }
 
     private func sleepDaily(ending today: String) -> [Double] {

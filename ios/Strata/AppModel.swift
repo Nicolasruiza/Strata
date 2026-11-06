@@ -351,6 +351,7 @@ enum Screen: Equatable {
     case history
     case detail(index: Int)
     case activity(date: String, type: String)
+    case mobility(session: String)
     case settings
     case preview(day: Int)
     case pick

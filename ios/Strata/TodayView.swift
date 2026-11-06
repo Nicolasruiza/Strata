@@ -24,6 +24,7 @@ struct TodayView: View {
                     InsightCard(insights: e.insights(health: healthSignals(today: t)))
                     mainCard(e, slot: slot, selDate: selDate, isToday: isToday, lp: slots[sel], st: st, mon: mon)
                     rotationCard(e, slot: slot, lp: slots[sel], t: t)
+                    if isToday && e.db.active == nil { MobilityCard(e: e) }
                     if isToday && e.db.active == nil { otherOptions(slot) }
                     if isToday { todayLog(e, t: t) }
                     weekCard(e)
