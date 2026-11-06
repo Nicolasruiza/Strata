@@ -1,13 +1,13 @@
 import SwiftUI
 import StrataCore
 
-/// Primary navigation. Settings lives in the Today header instead of competing with destinations.
+/// Primary navigation. Settings lives in the Move header instead of competing with destinations.
 struct TabBar: View {
     @EnvironmentObject var model: AppModel
     let current: Screen
 
     private let tabs: [(Screen, String, String)] = [
-        (.today, "Today", Icon.home), (.progress, "Progress", Icon.chart), (.history, "History", Icon.cal)]
+        (.today, "Move", Icon.home), (.progress, "Progress", Icon.chart), (.history, "History", Icon.cal)]
 
     var body: some View {
         HStack(spacing: 0) {

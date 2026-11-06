@@ -58,6 +58,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var stepsLastUpdated: Date?
     @Published private(set) var healthSleep: [String: Double] = [:]
     @Published private(set) var healthWorkoutMinutes: [String: Double] = [:]
+    @Published private(set) var todayWorkouts: [HealthWorkoutRow] = []
     private var watchRevision = 0
     private var handledWatchCommands: Set<UUID> = []
     var liveTicker: Task<Void, Never>?
@@ -110,6 +111,7 @@ final class AppModel: ObservableObject {
         let calendar = Calendar.current
         let today = Date()
         guard let start = calendar.date(byAdding: .day, value: -55, to: today) else { return }
+        if let rows = await health.workouts(on: today) { todayWorkouts = rows }
         if let workouts = await health.dailyWorkoutMinutes(from: start, through: today) { healthWorkoutMinutes = workouts }
         if let sleep = await health.dailySleep(from: start, through: today), !sleep.isEmpty { healthSleep = sleep }
         guard let totals = await health.dailySteps(from: start, through: today), !totals.isEmpty else { return }
