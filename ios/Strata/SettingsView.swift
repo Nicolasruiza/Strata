@@ -101,30 +101,33 @@ struct SettingsView: View {
 
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Apple Health").labelStyle()
-                        Text("Strata saves workouts to Health and reads steps when you allow access.")
+                        Text("Strata saves workouts to Health and reads steps and sleep when you allow access.")
                             .font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 6).padding(.bottom, 6)
                         line("HealthKit", model.healthAccess.isAvailable ? "Available" : "Unavailable",
                              model.healthAccess.isAvailable ? Theme.mint : Color(hex: "#FF8A70"))
                         line("Save workouts", model.healthAccess.workoutAccess,
                              model.healthAccess.workoutAccess == "Allowed" ? Theme.mint : Theme.soft)
                         line("Read steps", model.healthAccess.stepsAccess, Theme.soft)
+                        line("Read sleep", model.healthAccess.sleepAccess, Theme.soft)
                         line("Watch workout", model.watchConnected ? "Active" : "Not active",
                              model.watchConnected ? Theme.mint : Theme.soft)
                         Button {
                             model.refreshHealthAccess(requestAuthorization: true)
                         } label: {
-                            HStack {
-                                Text(model.healthAccessChecking ? "Checking…" : "Request or recheck access")
-                                    .font(.inter(size: 15, weight: .bold))
-                                Spacer()
-                                if model.healthAccessChecking { ProgressView().tint(Theme.text) }
-                                else { IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4) }
+                            HStack(spacing: 8) {
+                                Image(systemName: "applelogo").font(.system(size: 17, weight: .semibold))
+                                Text(model.healthAccessChecking ? "Checking…" : "Connect Apple Health")
+                                    .font(.inter(size: 16, weight: .bold))
+                                if model.healthAccessChecking { ProgressView().tint(Color(hex: "#0E1018")) }
                             }
-                            .padding(.vertical, 14)
-                            .overlay(alignment: .top) { Rectangle().fill(Theme.line).frame(height: 1) }
+                            .foregroundStyle(Color(hex: "#0E1018"))
+                            .frame(maxWidth: .infinity).padding(.vertical, 14)
+                            .background(Capsule().fill(Color(hex: "#F4F5F8")))
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.plain).padding(.top, 14)
                         .disabled(model.healthAccessChecking || !model.healthAccess.isAvailable)
+                        Text("If a type is missing in Settings › Privacy › Health › Strata, tap again: iOS only lists what the app has asked for.")
+                            .font(.inter(size: 12)).foregroundStyle(Theme.muted).padding(.top, 8)
                     }.card()
 
                     VStack(alignment: .leading, spacing: 0) {

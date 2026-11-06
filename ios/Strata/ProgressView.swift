@@ -83,6 +83,7 @@ struct ProgressScreen: View {
         let lastSteps = stepValues.reversed().first { $0 != 0 } ?? 0
         let waistPts = (e.db.waist ?? []).suffix(8)
         let sk = e.streak()
+        let sleepAvg = sleepAverage(ending: e.today)
         ScrollView {
             VStack(spacing: 0) {
                 Hero(eyebrow: nil, title: "Progress", sub: "What the last weeks added up to.", settingsAction: { model.go(.settings) })
@@ -115,7 +116,14 @@ struct ProgressScreen: View {
                     }.card()
 
                     VStack(alignment: .leading, spacing: 0) {
-                        VStack(alignment: .leading, spacing: 2) { Text("Weekly rings").nameStyle(); Text("Muscle, Heart, Bone").metaStyle() }
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: 2) { Text("Weekly rings").nameStyle(); Text("Muscle, Heart, Bone").metaStyle() }
+                            Spacer()
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text("\(sk) week\(sk == 1 ? "" : "s")").font(.inter(size: 24, weight: .heavy))
+                                Text("in a row, all 3 closed").smallStyle()
+                            }
+                        }
                         HStack(spacing: 4) {
                             ForEach(0..<8, id: \.self) { i in
                                 VStack(spacing: 6) {
@@ -132,14 +140,14 @@ struct ProgressScreen: View {
 
                     HStack(alignment: .top, spacing: 10) {         // .grid2: both cards stretch to the taller one
                         VStack(alignment: .leading, spacing: 0) {
-                            Text("Cardio").nameStyle(15); Text("sessions / week").metaStyle()
-                            BarChart(vals: pw.cardio.map(Double.init), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { jsMinutes($0) }
+                            Text("Cardio").nameStyle(15); Text("minutes / week").metaStyle()
+                            BarChart(vals: cardioMinutes(ending: e.today), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { jsMinutes($0) }
                         }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Steps").nameStyle(15)
-                            Text(healthStepWeeks.contains(where: { $0 != 0 }) ? "daily average" : "avg / office day").metaStyle()
+                            Text((healthStepWeeks.contains(where: { $0 != 0 }) ? "daily avg" : "avg / office day") + " · thousands").metaStyle()
                             Text(lastSteps != 0 ? Fmt.nf(Double(lastSteps)) : "—").font(.inter(size: 20, weight: .heavy)).monospacedDigit().padding(.top, 4)
-                            BarChart(vals: stepValues.map(Double.init), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { Fmt.fmtFixed($0 / 1000, 1) + "k" }
+                            BarChart(vals: stepValues.map(Double.init), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { Fmt.fmtFixed($0 / 1000, 1) }
                             Text(healthStepWeeks.contains(where: { $0 != 0 }) ? "Apple Health" : "Manual office logs").smallStyle()
                         }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
                     }.fixedSize(horizontal: false, vertical: true)
@@ -147,13 +155,18 @@ struct ProgressScreen: View {
                     HStack(alignment: .top, spacing: 10) {
                         VStack(alignment: .leading, spacing: 0) {
                             HStack { IconView(d: Icon.timer, size: 17, color: Theme.amber); Text("Sleep").nameStyle(15) }
-                            Text("weekly average").metaStyle()
+                            Text("last 7 nights avg").metaStyle()
                             HStack(alignment: .firstTextBaseline, spacing: 4) {
-                                Text("—").font(.inter(size: 24, weight: .heavy)).monospacedDigit()
+                                Text(sleepAvg.map { Fmt.fmtFixed($0, 1) } ?? "—").font(.inter(size: 24, weight: .heavy)).monospacedDigit()
                                 Text("of 8h").metaStyle()
                             }.padding(.top, 10)
-                            Capsule().fill(Color.white.opacity(0.12)).frame(height: 7).padding(.top, 8)
-                            Text("No sleep data yet").smallStyle().padding(.top, 10)
+                            GeometryReader { g in
+                                ZStack(alignment: .leading) {
+                                    Capsule().fill(Color.white.opacity(0.12))
+                                    Capsule().fill(Theme.amber).frame(width: g.size.width * min(1, (sleepAvg ?? 0) / 8))
+                                }
+                            }.frame(height: 7).padding(.top, 8)
+                            Text(sleepAvg == nil ? "No sleep data in Apple Health" : "Apple Health").smallStyle().padding(.top, 10)
                         }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
 
                         VStack(alignment: .leading, spacing: 0) {
@@ -185,31 +198,6 @@ struct ProgressScreen: View {
                             }.buttonStyle(StrataButtonStyle(small: true, hPad: 18)).fixedSize()
                         }.padding(.top, 12)
                     }.card()
-
-                    VStack(alignment: .leading, spacing: 0) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) { Text("Current streak").nameStyle(); Text("Weeks with all 3 rings closed").metaStyle() }
-                            Spacer()
-                            Text("\(sk) week\(sk == 1 ? "" : "s")").font(.inter(size: 24, weight: .heavy))
-                        }
-                        HStack {
-                            ForEach(0..<8, id: \.self) { i in
-                                Group {
-                                    if i == 7 { Circle().strokeBorder(Color.white.opacity(0.4), style: StrokeStyle(lineWidth: 2, dash: [3, 3])) }
-                                    else if pw.stats[i].all { ZStack { Circle().fill(Color(hex: "#F4F5F8")); IconView(d: Icon.check, size: 14, color: Color(hex: "#0E1018"), line: 3) } }
-                                    else { Circle().strokeBorder(Color.white.opacity(0.15), lineWidth: 2) }
-                                }.frame(width: 26, height: 26)
-                                if i < 7 { Spacer(minLength: 0) }
-                            }
-                        }.padding(.top, 14)
-                        HStack {
-                            ForEach(0..<8, id: \.self) { i in
-                                Text(i == 7 ? "Now" : wl[i]).font(.inter(size: 12)).foregroundStyle(Theme.muted).frame(width: 26)
-                                    .fixedSize()
-                                if i < 7 { Spacer(minLength: 0) }
-                            }
-                        }.padding(.top, 6)
-                    }.card()
                 }.padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 110)
             }.frame(maxWidth: Theme.maxWidth)
         }
@@ -223,5 +211,22 @@ struct ProgressScreen: View {
             guard !values.isEmpty else { return 0 }
             return Int((Double(values.reduce(0, +)) / Double(values.count)).rounded())
         }
+    }
+
+    /// Total cardio minutes per week (strength and jumps excluded; office steps have no minutes).
+    private func cardioMinutes(ending today: String) -> [Double] {
+        let monday = Dates.mondayOf(today)
+        let cardio = model.engine?.db.cardio ?? []
+        return (0..<8).map { index in
+            let week = Dates.weekDates(Dates.addDays(monday, -7 * (7 - index)))
+            return cardio.filter { week.contains($0.date) && $0.type != "jumps" && $0.type != "office" }
+                .reduce(0) { $0 + ($1.min ?? 0) }
+        }
+    }
+
+    /// Average hours asleep over the last 7 nights that have data.
+    private func sleepAverage(ending today: String) -> Double? {
+        let nights = (0..<7).compactMap { model.syncedSleep(on: Dates.addDays(today, -$0)) }.filter { $0 > 0 }
+        return nights.isEmpty ? nil : nights.reduce(0, +) / Double(nights.count)
     }
 }
