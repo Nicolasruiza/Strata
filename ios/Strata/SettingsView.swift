@@ -109,6 +109,7 @@ struct SettingsView: View {
                              model.healthAccess.workoutAccess == "Allowed" ? Theme.mint : Theme.soft)
                         line("Read steps", model.healthAccess.stepsAccess, Theme.soft)
                         line("Read sleep", model.healthAccess.sleepAccess, Theme.soft)
+                        line("Other workouts", model.healthAccess.workoutsRead, Theme.soft)
                         line("Watch workout", model.watchConnected ? "Active" : "Not active",
                              model.watchConnected ? Theme.mint : Theme.soft)
                         Button {

@@ -159,18 +159,16 @@ struct ProgressScreen: View {
 
                     HStack(alignment: .top, spacing: 10) {
                         VStack(alignment: .leading, spacing: 0) {
-                            HStack { IconView(d: Icon.timer, size: 17, color: Theme.amber); Text("Sleep").nameStyle(15) }
-                            Text(sleepWeekly ? "avg per night, 8 weeks" : "this week, per night").metaStyle()
-                            Seg(items: [(false, "Days"), (true, "Weeks")], selected: sleepWeekly) { sleepWeekly = $0 }.padding(.top, 8)
-                            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                                Text(sleepHeadline.map { Fmt.fmtFixed($0, 1) } ?? "—").font(.inter(size: 24, weight: .heavy)).monospacedDigit()
-                                Text("h avg").metaStyle()
-                            }.padding(.top, 10)
-                            if sleepHeadline != nil {
-                                BarChart(vals: sleepVals, labels: sleepLabels, color: Theme.amber, fmt: { Fmt.fmtFixed($0, 1) },
-                                         lightIndex: sleepWeekly ? 7 : nil)
+                            HStack {
+                                IconView(d: Icon.timer, size: 17, color: Theme.amber); Text("Sleep").nameStyle(15)
+                                Spacer(minLength: 4)
+                                miniToggle
                             }
-                            Text(sleepHeadline == nil ? "No sleep data in Apple Health" : "Apple Health").smallStyle().padding(.top, 6)
+                            Text(sleepWeekly ? "avg / night · 8 wks" : "this week").metaStyle()
+                            Text(sleepHeadline.map { Fmt.fmtFixed($0, 1) } ?? "—").font(.inter(size: 24, weight: .heavy)).monospacedDigit().padding(.top, 10)
+                            BarChart(vals: sleepVals, labels: sleepLabels, color: Theme.amber, fmt: { Fmt.fmtFixed($0, 1) },
+                                     lightIndex: sleepWeekly ? 7 : nil)
+                            Text(sleepHeadline == nil ? "No sleep in Health" : "Apple Health").smallStyle()
                         }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
 
                         VStack(alignment: .leading, spacing: 0) {
@@ -242,5 +240,19 @@ struct ProgressScreen: View {
             let nights = Dates.weekDates(Dates.addDays(monday, -7 * (7 - index))).compactMap { model.syncedSleep(on: $0) }.filter { $0 > 0 }
             return nights.isEmpty ? 0 : nights.reduce(0, +) / Double(nights.count)
         }
+    }
+
+    /// Compact Days / Weeks switch that fits the card header without making it taller.
+    private var miniToggle: some View {
+        HStack(spacing: 0) {
+            ForEach([(false, "D"), (true, "W")], id: \.1) { weekly, label in
+                Button { sleepWeekly = weekly } label: {
+                    Text(label).font(.inter(size: 11, weight: .bold))
+                        .foregroundStyle(sleepWeekly == weekly ? Color.white : Theme.muted)
+                        .frame(width: 22, height: 20)
+                        .background(Capsule().fill(sleepWeekly == weekly ? Color.white.opacity(0.18) : .clear))
+                }.buttonStyle(.plain)
+            }
+        }.padding(2).background(Capsule().fill(Color.white.opacity(0.07)))
     }
 }
