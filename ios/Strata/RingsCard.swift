@@ -126,7 +126,7 @@ struct InsightCard: View {
     private static func tint(_ k: Insight.Kind) -> Color {
         switch k {
         case .muscle: return Theme.ring("m")
-        case .heart, .steps: return Theme.ring("h")
+        case .heart, .steps, .vo2: return Theme.ring("h")
         case .bone: return Theme.ring("b")
         case .sleep: return Theme.amber
         case .onTrack: return Theme.mint
@@ -137,7 +137,7 @@ struct InsightCard: View {
     private static func icon(_ k: Insight.Kind) -> String {
         switch k {
         case .muscle: return Icon.dumbbell
-        case .heart: return Icon.heart
+        case .heart, .vo2: return Icon.heart
         case .bone: return Icon.bone
         case .steps: return Icon.walk
         case .sleep: return Icon.timer

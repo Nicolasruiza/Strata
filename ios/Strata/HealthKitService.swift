@@ -17,6 +17,12 @@ struct HealthAccessSummary: Equatable {
     )
 }
 
+/// One VO2 max estimate (mL/kg/min) from Apple Health, usually made by the Watch.
+struct Vo2Reading: Equatable {
+    let date: Date
+    let value: Double
+}
+
 /// One workout Apple Health has for a day (recorded on the Watch or by another app).
 struct HealthWorkoutRow: Identifiable, Equatable {
     let id: UUID
@@ -35,6 +41,7 @@ final class HealthKitService: HealthService {
     private let hrType = HKQuantityType(.heartRate)
     private let stepType = HKQuantityType(.stepCount)
     private let sleepType = HKCategoryType(.sleepAnalysis)
+    private let vo2Type = HKQuantityType(.vo2Max)
 
     var available: Bool { HKHealthStore.isHealthDataAvailable() }
 
@@ -81,7 +88,7 @@ final class HealthKitService: HealthService {
     private func authorize() async -> Bool {
         guard available else { return false }
         do {
-            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType], read: [stepType, sleepType, HKObjectType.workoutType()])
+            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType], read: [stepType, sleepType, vo2Type, HKObjectType.workoutType()])
             return store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized
         } catch { return false }
     }
@@ -325,6 +332,24 @@ final class HealthKitService: HealthService {
         case .yoga: return "Yoga"
         case .stairClimbing: return "Stairs"
         default: return "Workout"
+        }
+    }
+
+    /// VO2 max estimates in a date range, oldest first. Nil when Health has nothing readable.
+    func vo2Readings(from start: Date, through end: Date) async -> [Vo2Reading]? {
+        guard available else { return nil }
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
+        let sort = [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
+        let unit = HKUnit(from: "ml/(kg*min)")
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: vo2Type, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: sort) { _, samples, error in
+                guard error == nil, let samples = samples as? [HKQuantitySample] else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                continuation.resume(returning: samples.map { Vo2Reading(date: $0.startDate, value: $0.quantity.doubleValue(for: unit)) })
+            }
+            store.execute(query)
         }
     }
 }

@@ -94,6 +94,11 @@ public enum Config {
         public static let stepsMinDaily = 7_000.0
         /// A ring left open this many completed weeks in a row triggers an insight.
         public static let ringMissedWeeks = 2
+        /// VO2 max: compare the last `vo2RecentDays` with the `vo2PriorDays` before that; a drop of
+        /// at least `vo2DropMin` mL/kg/min is worth saying out loud.
+        public static let vo2RecentDays = 30
+        public static let vo2PriorDays = 60
+        public static let vo2DropMin = 1.0
     }
     public static let landingsPerJumpDay = 45
     public static let landingsHomeLegs = 30

@@ -157,6 +157,8 @@ struct ProgressScreen: View {
                         }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
                     }.fixedSize(horizontal: false, vertical: true)
 
+                    vo2Card(e.today)
+
                     HStack(alignment: .top, spacing: 10) {
                         VStack(alignment: .leading, spacing: 0) {
                             HStack {
@@ -257,5 +259,40 @@ struct ProgressScreen: View {
                 }.buttonStyle(.plain)
             }
         }.padding(2).background(Capsule().fill(Color.white.opacity(0.07)))
+    }
+
+    /// VO2 max over time, one point per week that has a reading (Apple Watch estimate).
+    private func vo2Card(_ today: String) -> some View {
+        let pts = vo2Points()
+        let last = pts.last?.y, first = pts.first?.y
+        let change = (last != nil && first != nil && pts.count > 1) ? last! - first! : nil
+        return VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) { Text("VO2 max").nameStyle(); Text("mL/kg/min · Apple Watch estimate").metaStyle() }
+                Spacer()
+                if let last {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(Fmt.fmtFixed(last, 1)).font(.inter(size: 24, weight: .heavy)).foregroundStyle(Theme.coral)
+                        if let change { Text("\(change >= 0 ? "+" : "")\(Fmt.fmtFixed(change, 1)) since \(pts[0].l)").smallStyle() }
+                    }
+                }
+            }
+            if pts.count > 1 {
+                LineChart(pts: pts, color: Theme.coral)
+            } else {
+                Text(pts.isEmpty ? "No VO2 max in Apple Health yet. The Watch estimates it after outdoor walks, runs and hikes."
+                                 : "One reading so far. The trend appears after the next estimate.")
+                    .font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 10)
+            }
+        }.card()
+    }
+
+    private func vo2Points() -> [ProgressPoint] {
+        let calendar = Calendar.current
+        let groups = Dictionary(grouping: model.vo2) { calendar.dateInterval(of: .weekOfYear, for: $0.date)?.start ?? $0.date }
+        return groups.keys.sorted().suffix(12).map { week in
+            let values = groups[week]!.map(\.value)
+            return ProgressPoint(l: week.formatted(.dateTime.month(.abbreviated).day()), y: values.reduce(0, +) / Double(values.count))
+        }
     }
 }
