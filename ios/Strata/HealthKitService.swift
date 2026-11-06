@@ -17,7 +17,7 @@ struct HealthAccessSummary: Equatable {
 
 /// workout.js `Health` on iPhone, implemented for real with HealthKit. Both calls return what
 /// actually happened: `saved` is true only when the workout was written to Apple Health.
-/// Only the types Strata uses are requested: workouts and heart rate (write), steps and sleep (read).
+/// Only the types Strata uses are requested: workouts and heart rate (write), steps, sleep and workouts (read).
 final class HealthKitService: HealthService {
     let store = HKHealthStore()
     private(set) lazy var bridge = WatchBridge(store: store)
@@ -70,7 +70,7 @@ final class HealthKitService: HealthService {
     private func authorize() async -> Bool {
         guard available else { return false }
         do {
-            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType], read: [stepType, sleepType])
+            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType], read: [stepType, sleepType, HKObjectType.workoutType()])
             return store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized
         } catch { return false }
     }
@@ -231,6 +231,38 @@ final class HealthKitService: HealthService {
                 var hours: [String: Double] = [:]
                 for span in merged { hours[formatter.string(from: span.1), default: 0] += span.1.timeIntervalSince(span.0) / 3600 }
                 continuation.resume(returning: hours)
+            }
+            store.execute(query)
+        }
+    }
+
+    /// Minutes of cardio workouts per day from Apple Health (Fitness, other apps, third-party watches).
+    /// Strength workouts are skipped, and so is anything Strata itself saved: those minutes are
+    /// already in Strata's own log, so counting them again would double them.
+    func dailyWorkoutMinutes(from start: Date, through end: Date) async -> [String: Double]? {
+        guard available else { return nil }
+        let calendar = Calendar.current
+        let from = calendar.startOfDay(for: start)
+        guard let to = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: end)) else { return nil }
+        let predicate = HKQuery.predicateForSamples(withStart: from, end: to)
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: HKObjectType.workoutType(), predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                guard error == nil, let workouts = samples as? [HKWorkout] else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                let formatter = DateFormatter()
+                formatter.calendar = calendar
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.timeZone = calendar.timeZone
+                formatter.dateFormat = "yyyy-MM-dd"
+                var minutes: [String: Double] = [:]
+                for workout in workouts {
+                    if workout.workoutActivityType == .traditionalStrengthTraining || workout.workoutActivityType == .functionalStrengthTraining { continue }
+                    if workout.sourceRevision.source.bundleIdentifier.hasPrefix("net.nicolasruiza.strata") { continue }
+                    minutes[formatter.string(from: workout.startDate), default: 0] += workout.duration / 60
+                }
+                continuation.resume(returning: minutes)
             }
             store.execute(query)
         }
