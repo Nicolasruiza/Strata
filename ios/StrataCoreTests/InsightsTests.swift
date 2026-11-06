@@ -35,4 +35,13 @@ final class InsightsTests: XCTestCase {
         let found = engine(cardio: [CardioEntry(date: "2026-11-02", type: "z2", min: 45)]).insights(health: HealthSignals())
         XCTAssertFalse(found.contains { $0.kind == .bone })
     }
+
+    func testVo2DropIsFlaggedButSmallChangeIsNot() {
+        let drop = engine().insights(health: HealthSignals(vo2Recent: [42.0, 42.4], vo2Prior: [44.0, 44.4]))
+        XCTAssertTrue(drop.contains { $0.kind == .vo2 })
+        let flat = engine().insights(health: HealthSignals(vo2Recent: [43.8], vo2Prior: [44.0]))
+        XCTAssertFalse(flat.contains { $0.kind == .vo2 })
+        let noPrior = engine().insights(health: HealthSignals(vo2Recent: [40]))
+        XCTAssertFalse(noPrior.contains { $0.kind == .vo2 })
+    }
 }

@@ -278,7 +278,17 @@ struct TodayView: View {
     private func healthSignals(today t: String) -> HealthSignals {
         HealthSignals(
             sleepHours: (0..<7).compactMap { model.syncedSleep(on: Dates.addDays(t, -$0)) }.filter { $0 > 0 },
-            steps: (1...7).compactMap { model.syncedSteps(on: Dates.addDays(t, -$0)) }.filter { $0 > 0 }.map(Double.init))
+            steps: (1...7).compactMap { model.syncedSteps(on: Dates.addDays(t, -$0)) }.filter { $0 > 0 }.map(Double.init),
+            vo2Recent: vo2Values(daysAgo: 0..<Config.Insights.vo2RecentDays),
+            vo2Prior: vo2Values(daysAgo: Config.Insights.vo2RecentDays..<(Config.Insights.vo2RecentDays + Config.Insights.vo2PriorDays)))
+    }
+
+    private func vo2Values(daysAgo range: Range<Int>) -> [Double] {
+        let now = Date()
+        return model.vo2.filter {
+            let days = Int(now.timeIntervalSince($0.date) / 86_400)
+            return range.contains(days)
+        }.map(\.value)
     }
 
     // MARK: what happened today

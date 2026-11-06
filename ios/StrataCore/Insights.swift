@@ -6,13 +6,16 @@ public struct HealthSignals: Equatable {
     public var sleepHours: [Double]
     /// Step totals for recent *complete* days that have data.
     public var steps: [Double]
-    public init(sleepHours: [Double] = [], steps: [Double] = []) {
-        self.sleepHours = sleepHours; self.steps = steps
+    /// VO2 max readings (mL/kg/min) from the last `vo2RecentDays`, and from the `vo2PriorDays` before them.
+    public var vo2Recent: [Double]
+    public var vo2Prior: [Double]
+    public init(sleepHours: [Double] = [], steps: [Double] = [], vo2Recent: [Double] = [], vo2Prior: [Double] = []) {
+        self.sleepHours = sleepHours; self.steps = steps; self.vo2Recent = vo2Recent; self.vo2Prior = vo2Prior
     }
 }
 
 public struct Insight: Equatable, Identifiable {
-    public enum Kind: String { case sleep, steps, muscle, heart, bone, onTrack, remaining }
+    public enum Kind: String { case sleep, steps, vo2, muscle, heart, bone, onTrack, remaining }
     public var kind: Kind
     public var title: String
     public var body: String
@@ -60,6 +63,15 @@ extension Engine {
             if avg < Config.Insights.stepsMinDaily {
                 out.append(Insight(kind: .steps, title: "Steps are low for longevity",
                                    body: "Averaging \(Fmt.nf(avg.rounded())) a day. Around \(Fmt.nf(Config.Insights.stepsMinDaily)) is where the benefit levels off."))
+            }
+        }
+
+        if !health.vo2Recent.isEmpty, !health.vo2Prior.isEmpty {
+            let recent = health.vo2Recent.reduce(0, +) / Double(health.vo2Recent.count)
+            let prior = health.vo2Prior.reduce(0, +) / Double(health.vo2Prior.count)
+            if prior - recent >= Config.Insights.vo2DropMin {
+                out.append(Insight(kind: .vo2, title: "Your VO2 max is dropping",
+                                   body: "Down \(String(format: "%.1f", prior - recent)) to \(String(format: "%.1f", recent)) lately. More Zone 2 and 4×4 will bring it back."))
             }
         }
 
