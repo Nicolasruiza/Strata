@@ -89,10 +89,18 @@ struct TodayView: View {
                         Text("\(w) · Muscle\(legs ? " + Bone" : "")").labelStyle(Theme.violet)
                         Text(e.plan[d]?.name ?? "").title2Style().padding(.top, 4).padding(.bottom, 2)
                         Text("\(req.count) main lifts · ~\(jsMinutes(e.minutesFor(d))) min\(legs ? " · jumps first" : "")").metaStyle()
-                        HStack(spacing: 6) {
-                            ForEach(req, id: \.id) { ex in
-                                if let img = e.catalog.imageName(of: ex.id) { Thumb(path: img, size: 44, radius: 12).accessibilityLabel(Fmt.cleanN(ex.n)) }
+                        // Photos share the full card width in equal squares (at least 4 slots, so
+                        // two exercises don't blow up into huge pictures).
+                        let shown = req.compactMap { ex in e.catalog.imageName(of: ex.id).map { (ex, $0) } }
+                        HStack(spacing: 8) {
+                            ForEach(shown, id: \.0.id) { ex, img in
+                                Color.clear.aspectRatio(1, contentMode: .fit)
+                                    .overlay(BundleImage(name: ((img as NSString).lastPathComponent as NSString).deletingPathExtension))
+                                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                                    .frame(maxWidth: .infinity)
+                                    .accessibilityLabel(Fmt.cleanN(ex.n))
                             }
+                            ForEach(0..<max(0, 4 - shown.count), id: \.self) { _ in Color.clear.frame(maxWidth: .infinity).frame(height: 1) }
                         }.padding(.top, 12)
                         if let g = g, !g.ok { WarnBox(markdown: g.msg).padding(.top, 12) }
                         Button(isToday ? "See workout" : "Preview") { model.go(.preview(day: d)) }
