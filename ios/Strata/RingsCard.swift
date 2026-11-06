@@ -95,13 +95,16 @@ struct InsightCard: View {
             } label: {
                 HStack(spacing: 12) {
                     ZStack {
-                        Circle().fill(tint.opacity(0.18))
+                        Circle().fill(tint.opacity(0.28))
                         IconView(d: Self.icon(it.kind), size: 20, color: tint, line: 2.2)
                     }.frame(width: 40, height: 40)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(it.title).nameStyle(15)
-                        Text(it.body).font(.inter(size: 13)).foregroundStyle(Theme.muted)
-                            .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(it.title).nameStyle(15).lineLimit(1)
+                        // Fixed size: always reserves three lines so the card never changes height.
+                        ZStack(alignment: .topLeading) {
+                            Text("1\n2\n3").font(.inter(size: 13)).hidden()
+                            Text(it.body).font(.inter(size: 13)).foregroundStyle(Theme.text.opacity(0.78)).lineLimit(3)
+                        }
                     }
                     Spacer(minLength: 0)
                     if insights.count > 1 {
@@ -115,8 +118,9 @@ struct InsightCard: View {
                 }
                 .padding(.horizontal, 14).padding(.vertical, 12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: Theme.Radius.card).fill(Theme.glass))
-                .overlay(RoundedRectangle(cornerRadius: Theme.Radius.card).strokeBorder(tint.opacity(0.35)))
+                .background(RoundedRectangle(cornerRadius: Theme.Radius.card)
+                    .fill(LinearGradient(colors: [tint.opacity(0.22), tint.opacity(0.07)], startPoint: .topLeading, endPoint: .bottomTrailing)))
+                .overlay(RoundedRectangle(cornerRadius: Theme.Radius.card).strokeBorder(tint.opacity(0.55), lineWidth: 1.2))
             }
             .buttonStyle(.plain)
             .accessibilityHint(insights.count > 1 ? "Shows the next insight" : "")
