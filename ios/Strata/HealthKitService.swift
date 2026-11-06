@@ -6,12 +6,14 @@ struct HealthAccessSummary: Equatable {
     var workoutAccess: String
     var stepsAccess: String
     var sleepAccess: String
+    var workoutsRead: String
 
     static let checking = HealthAccessSummary(
         isAvailable: true,
         workoutAccess: "Checking…",
         stepsAccess: "Checking…",
-        sleepAccess: "Checking…"
+        sleepAccess: "Checking…",
+        workoutsRead: "Checking…"
     )
 }
 
@@ -84,7 +86,8 @@ final class HealthKitService: HealthService {
                 isAvailable: false,
                 workoutAccess: "Unavailable",
                 stepsAccess: "Unavailable",
-                sleepAccess: "Unavailable"
+                sleepAccess: "Unavailable",
+                workoutsRead: "Unavailable"
             )
         }
 
@@ -109,11 +112,14 @@ final class HealthKitService: HealthService {
         let lastNight = await dailySleep(from: Date().addingTimeInterval(-3 * 86_400), through: Date())?
             .sorted { $0.key < $1.key }.last
         let sleepAccess = lastNight.map { "\(String(format: "%.1f", $0.value)) h last night" } ?? "No readable data"
+        let minutes = await dailyWorkoutMinutes(from: Date().addingTimeInterval(-56 * 86_400), through: Date())?.values.reduce(0, +) ?? 0
+        let workoutsRead = minutes > 0 ? "\(Int(minutes.rounded())) min in 8 wks" : "No readable data"
         return HealthAccessSummary(
             isAvailable: true,
             workoutAccess: workoutAccess,
             stepsAccess: stepsAccess,
-            sleepAccess: sleepAccess
+            sleepAccess: sleepAccess,
+            workoutsRead: workoutsRead
         )
     }
 
