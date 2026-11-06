@@ -20,10 +20,11 @@ struct TodayView: View {
                      sub: streak > 0 ? "\(streak)-week streak. Keep the layers stacking." : "Build it in layers: muscle, heart, bone.",
                      settingsAction: { model.go(.settings) })
                 VStack(spacing: 12) {
+                    CompactRings(st: st)
                     mainCard(e, slot: slot, selDate: selDate, isToday: isToday, lp: slots[sel], st: st, mon: mon)
                     rotationCard(e, slot: slot, lp: slots[sel], t: t)
                     if isToday && e.db.active == nil { otherOptions(slot) }
-                    RingsCard(st: st, headline: e.weekHeadline(st))
+                    if isToday { todayLog(e, t: t) }
                     weekCard(e)
                 }
                 .padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 110)
@@ -270,6 +271,61 @@ struct TodayView: View {
                 if showWalk { Button("Log a walk") { model.sheet = .walk }.buttonStyle(StrataButtonStyle(small: true)) }
             }
         }
+    }
+
+    // MARK: what happened today
+
+    /// Strata's own entries for today (workouts, cardio, walks) plus workouts Apple Health has
+    /// from the Watch or other apps.
+    private func todayLog(_ e: Engine, t: String) -> some View {
+        let own = e.historyItems().filter { $0.date == t }
+        let health = model.todayWorkouts
+        return VStack(spacing: 0) {
+            HStack {
+                Text("Today").labelStyle(); Spacer()
+                if !own.isEmpty || !health.isEmpty { Text("\(own.count + health.count) logged").smallStyle() }
+            }.padding(.horizontal, 4).padding(.bottom, 6)
+            if own.isEmpty && health.isEmpty {
+                Text("Nothing logged yet today.").font(.inter(size: 14)).foregroundStyle(Theme.muted)
+                    .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 4).padding(.vertical, 8)
+            }
+            ForEach(own.indices, id: \.self) { i in ownRow(e, own[i], first: i == 0) }
+            ForEach(health.indices, id: \.self) { i in healthRow(health[i], first: own.isEmpty && i == 0) }
+        }.card(tight: true)
+    }
+
+    private func logRow(icon: String, tint: Color, name: String, meta: String, right: String, first: Bool, chevron: Bool) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle().fill(tint.opacity(0.18))
+                IconView(d: icon, size: 20, color: tint, line: 2.2)
+            }.frame(width: 40, height: 40)
+            VStack(alignment: .leading, spacing: 2) { Text(name).nameStyle(); Text(meta).metaStyle() }
+            Spacer(minLength: 0)
+            Text(right).font(.inter(size: 15, weight: .semibold))
+            if chevron { IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4) }
+        }
+        .padding(.vertical, 10).padding(.horizontal, 4)
+        .overlay(alignment: .top) { if !first { Rectangle().fill(Theme.line).frame(height: 1) } }
+        .contentShape(Rectangle())
+    }
+
+    private func ownRow(_ e: Engine, _ it: HistoryItem, first: Bool) -> some View {
+        let r = e.historyRow(it)
+        let lift = r.icon == "lift" || r.icon == "home"
+        return Button {
+            if it.kind == "lift" { model.go(.detail(index: it.index)) }
+            else { model.sheet = .editCardio(date: it.date, type: it.kind) }
+        } label: {
+            logRow(icon: r.icon == "lift" ? Icon.dumbbell : r.icon == "home" ? Icon.home : r.icon == "heart" ? Icon.heart : Icon.walk,
+                   tint: lift ? Theme.violet : Theme.coral, name: r.name, meta: r.meta, right: r.right, first: first, chevron: true)
+        }.buttonStyle(.plain)
+    }
+
+    private func healthRow(_ w: HealthWorkoutRow, first: Bool) -> some View {
+        logRow(icon: w.isStrength ? Icon.dumbbell : Icon.walk, tint: w.isStrength ? Theme.violet : Theme.coral,
+               name: w.name, meta: w.start.formatted(date: .omitted, time: .shortened) + " · Apple Health",
+               right: "\(Int(w.minutes.rounded())) min", first: first, chevron: false)
     }
 
     // MARK: the week strip

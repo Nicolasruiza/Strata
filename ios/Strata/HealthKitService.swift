@@ -17,6 +17,15 @@ struct HealthAccessSummary: Equatable {
     )
 }
 
+/// One workout Apple Health has for a day (recorded on the Watch or by another app).
+struct HealthWorkoutRow: Identifiable, Equatable {
+    let id: UUID
+    let name: String
+    let start: Date
+    let minutes: Double
+    let isStrength: Bool
+}
+
 /// workout.js `Health` on iPhone, implemented for real with HealthKit. Both calls return what
 /// actually happened: `saved` is true only when the workout was written to Apple Health.
 /// Only the types Strata uses are requested: workouts and heart rate (write), steps, sleep and workouts (read).
@@ -271,6 +280,51 @@ final class HealthKitService: HealthService {
                 continuation.resume(returning: minutes)
             }
             store.execute(query)
+        }
+    }
+
+    /// Workouts Apple Health has for a civil day, newest first. Anything Strata saved itself is
+    /// left out because Strata already lists it from its own log.
+    func workouts(on day: Date) async -> [HealthWorkoutRow]? {
+        guard available else { return nil }
+        let calendar = Calendar.current
+        let from = calendar.startOfDay(for: day)
+        guard let to = calendar.date(byAdding: .day, value: 1, to: from) else { return nil }
+        let predicate = HKQuery.predicateForSamples(withStart: from, end: to)
+        let sort = [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: HKObjectType.workoutType(), predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: sort) { _, samples, error in
+                guard error == nil, let workouts = samples as? [HKWorkout] else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+                let rows = workouts
+                    .filter { !$0.sourceRevision.source.bundleIdentifier.hasPrefix("net.nicolasruiza.strata") }
+                    .map { w in
+                        HealthWorkoutRow(id: w.uuid, name: Self.workoutName(w.workoutActivityType), start: w.startDate,
+                                         minutes: w.duration / 60,
+                                         isStrength: w.workoutActivityType == .traditionalStrengthTraining || w.workoutActivityType == .functionalStrengthTraining)
+                    }
+                continuation.resume(returning: rows)
+            }
+            store.execute(query)
+        }
+    }
+
+    private static func workoutName(_ type: HKWorkoutActivityType) -> String {
+        switch type {
+        case .walking: return "Walk"
+        case .running: return "Run"
+        case .cycling: return "Bike"
+        case .hiking: return "Hike"
+        case .elliptical: return "Elliptical"
+        case .rowing: return "Row"
+        case .swimming: return "Swim"
+        case .traditionalStrengthTraining, .functionalStrengthTraining: return "Strength"
+        case .highIntensityIntervalTraining: return "HIIT"
+        case .yoga: return "Yoga"
+        case .stairClimbing: return "Stairs"
+        default: return "Workout"
         }
     }
 }

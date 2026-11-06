@@ -56,3 +56,27 @@ struct RingsCard: View {
         .accessibilityLabel("\(label) \(d) of \(t)")
     }
 }
+
+/// Slim version for the top of Today: just the three rings with "Muscle 2/4" under each.
+struct CompactRings: View {
+    let st: WeekStats
+    var body: some View {
+        HStack {
+            cell("m", "Muscle", st.m, st.mt); Spacer(minLength: 0)
+            cell("h", "Heart", st.h, st.ht); Spacer(minLength: 0)
+            cell("b", "Bone", st.b, st.bt)
+        }
+        .padding(.horizontal, 18).padding(.vertical, 12)
+        .card(tight: true)
+    }
+
+    private func cell(_ k: String, _ label: String, _ d: Int, _ t: Int) -> some View {
+        VStack(spacing: 2) {
+            RingView(kind: k, done: d, target: t, size: 64)
+            Text("\(label) \(d)/\(t)").font(.inter(size: 13, weight: .semibold)).monospacedDigit()
+        }
+        .frame(minWidth: 84)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(label) \(d) of \(t)")
+    }
+}
