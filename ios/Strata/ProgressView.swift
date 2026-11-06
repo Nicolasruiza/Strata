@@ -146,7 +146,7 @@ struct ProgressScreen: View {
                     HStack(alignment: .top, spacing: 10) {         // .grid2: both cards stretch to the taller one
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Cardio").nameStyle(15); Text("minutes / week · incl. Health").metaStyle()
-                            BarChart(vals: cardioMinutes(ending: e.today), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { jsMinutes($0) }
+                            BarChart(vals: cardioMinutes(ending: e.today), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { String(Int($0.rounded())) }
                         }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Steps").nameStyle(15)
@@ -224,7 +224,7 @@ struct ProgressScreen: View {
             let week = Dates.weekDates(Dates.addDays(monday, -7 * (7 - index)))
             let strata = cardio.filter { week.contains($0.date) && $0.type != "jumps" && $0.type != "office" }
                 .reduce(0) { $0 + ($1.min ?? 0) }
-            return strata + week.reduce(0) { $0 + model.healthCardioMinutes(on: $1) }
+            return (strata + week.reduce(0) { $0 + model.healthCardioMinutes(on: $1) }).rounded()
         }
     }
 
