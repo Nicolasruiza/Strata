@@ -19,6 +19,7 @@ struct RootView: View {
                             case .progress: ProgressScreen()
                             case .history: HistoryView()
                             case .detail(let i): DetailView(index: i)
+                            case .activity(let d, let t): ActivityDetailView(date: d, type: t)
                             case .settings: SettingsView()
                             case .preview(let d): PreviewView(day: d)
                             case .pick: PickCardioView()

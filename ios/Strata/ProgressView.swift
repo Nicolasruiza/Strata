@@ -51,6 +51,8 @@ struct BarChart: View {
     let color: Color
     let fmt: (Double) -> String
     var lightIndex: Int? = 7
+    var showValues = true
+    var labelEvery = 1
     var body: some View {
         Canvas { ctx, size in
             let W = 160.0, H = 110.0, pb = 18.0, pt = 16.0
@@ -59,8 +61,8 @@ struct BarChart: View {
                 let x = Double(i) * W / Double(n) + (W / Double(n) - bw) / 2, h = v / mx * (H - pb - pt)
                 let rect = CGRect(x: x * k, y: (H - pb - h) * k, width: bw * k, height: max(h, v != 0 ? 2 : 0) * k)
                 ctx.fill(Path(roundedRect: rect, cornerRadius: 3 * k), with: .color(color.opacity(i == lightIndex ? 0.45 : 1)))
-                if v != 0 { ctx.draw(Text(fmt(v)).font(.inter(size: 9.5 * k, weight: .bold)).foregroundColor(.white), at: CGPoint(x: (x + bw / 2) * k, y: (H - pb - h - 4) * k - 4 * k), anchor: .center) }
-                ctx.draw(Text(labels[i]).font(.inter(size: 8.5 * k)).foregroundColor(Color(hex: "#A9AEBD")), at: CGPoint(x: (x + bw / 2) * k, y: (H - 5) * k - 3 * k), anchor: .center)
+                if v != 0 && showValues { ctx.draw(Text(fmt(v)).font(.inter(size: 9.5 * k, weight: .bold)).foregroundColor(.white), at: CGPoint(x: (x + bw / 2) * k, y: (H - pb - h - 4) * k - 4 * k), anchor: .center) }
+                if i % labelEvery == 0 { ctx.draw(Text(labels[i]).font(.inter(size: 8.5 * k)).foregroundColor(Color(hex: "#A9AEBD")), at: CGPoint(x: (x + bw / 2) * k, y: (H - 5) * k - 3 * k), anchor: .center) }
             }
         }.aspectRatio(160.0 / 110.0, contentMode: .fit).padding(.top, 8)
     }
