@@ -86,7 +86,7 @@ struct ProgressScreen: View {
         let waistPts = (e.db.waist ?? []).suffix(8)
         let sk = e.streak()
         let sleepVals = sleepWeekly ? sleepWeeklyAverages(ending: e.today) : sleepDaily(ending: e.today)
-        let sleepLabels = sleepWeekly ? wl.map { String($0.dropFirst()) } : ["M", "T", "W", "T", "F", "S", "S"]
+        let sleepLabels = sleepWeekly ? wl.map { String($0.dropFirst()) } : lastSevenDays(ending: e.today).map { String(Dates.fmtD($0, .init(weekday: .short)).prefix(1)) }
         let sleepNonZero = sleepVals.filter { $0 > 0 }
         let sleepHeadline: Double? = sleepNonZero.isEmpty ? nil : sleepNonZero.reduce(0, +) / Double(sleepNonZero.count)
         ScrollView {
@@ -164,10 +164,10 @@ struct ProgressScreen: View {
                                 Spacer(minLength: 4)
                                 miniToggle
                             }
-                            Text(sleepWeekly ? "avg / night · 8 wks" : "this week").metaStyle()
+                            Text(sleepWeekly ? "avg / night · 8 wks" : "last 7 days").metaStyle()
                             Text(sleepHeadline.map { Fmt.fmtFixed($0, 1) } ?? "—").font(.inter(size: 24, weight: .heavy)).monospacedDigit().padding(.top, 10)
                             BarChart(vals: sleepVals, labels: sleepLabels, color: Theme.amber, fmt: { Fmt.fmtFixed($0, 1) },
-                                     lightIndex: sleepWeekly ? 7 : nil)
+                                     lightIndex: sleepWeekly ? 7 : 6)
                             Text(sleepHeadline == nil ? "No sleep in Health" : "Apple Health").smallStyle()
                         }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
 
@@ -228,9 +228,12 @@ struct ProgressScreen: View {
         }
     }
 
-    /// Hours asleep for each day of this week, Monday first (0 where Health has nothing).
+    /// The last 7 days ending today, oldest first, so the chart always has recent nights
+    /// (a Monday-to-Sunday week would be empty every Monday). 0 where Health has nothing.
+    private func lastSevenDays(ending today: String) -> [String] { (0..<7).map { Dates.addDays(today, $0 - 6) } }
+
     private func sleepDaily(ending today: String) -> [Double] {
-        Dates.weekDates(Dates.mondayOf(today)).map { model.syncedSleep(on: $0) ?? 0 }
+        lastSevenDays(ending: today).map { model.syncedSleep(on: $0) ?? 0 }
     }
 
     /// Average hours per night for each of the last 8 weeks (0 for a week with no data).
