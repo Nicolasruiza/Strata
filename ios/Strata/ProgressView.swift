@@ -5,6 +5,7 @@ import StrataCore
 struct LineChart: View {
     let pts: [ProgressPoint]
     let color: Color
+    var fmt: (Double) -> String = { jsMinutes($0) }
     var body: some View {
         if pts.isEmpty {
             Text("No data yet.").font(.inter(size: 14)).foregroundStyle(Theme.muted).frame(maxWidth: .infinity).padding(.vertical, 26)
@@ -19,7 +20,7 @@ struct LineChart: View {
                 for t in sc.ticks {
                     var l = Path(); l.move(to: P(pl, Y(t))); l.addLine(to: P(W - pr, Y(t)))
                     ctx.stroke(l, with: .color(.white.opacity(0.08)), lineWidth: 1)
-                    ctx.draw(Text(jsMinutes(t)).font(.inter(size: 11 * k)).foregroundColor(Color(hex: "#A9AEBD")), at: P(pl - 6, Y(t)), anchor: .trailing)
+                    ctx.draw(Text(fmt(t)).font(.inter(size: 11 * k)).foregroundColor(Color(hex: "#A9AEBD")), at: P(pl - 6, Y(t)), anchor: .trailing)
                 }
                 var line = Path()
                 for i in 0..<n { let p = P(X(i), Y(pts[i].y)); if i == 0 { line.move(to: p) } else { line.addLine(to: p) } }
@@ -35,8 +36,8 @@ struct LineChart: View {
                         ctx.draw(Text(pts[i].l).font(.inter(size: 10.5 * k)).foregroundColor(Color(hex: "#A9AEBD")), at: P(X(i), H - 6), anchor: .center)
                     }
                 }
-                ctx.draw(Text(jsMinutes(pts[0].y)).font(.inter(size: 12 * k, weight: .bold)).foregroundColor(.white), at: P(X(0), Y(pts[0].y) - 9), anchor: .center)
-                if n > 1 { ctx.draw(Text(jsMinutes(pts[n - 1].y)).font(.inter(size: 13 * k, weight: .heavy)).foregroundColor(.white), at: P(X(n - 1), Y(pts[n - 1].y) - 10), anchor: .center) }
+                ctx.draw(Text(fmt(pts[0].y)).font(.inter(size: 12 * k, weight: .bold)).foregroundColor(.white), at: P(X(0), Y(pts[0].y) - 9), anchor: .center)
+                if n > 1 { ctx.draw(Text(fmt(pts[n - 1].y)).font(.inter(size: 13 * k, weight: .heavy)).foregroundColor(.white), at: P(X(n - 1), Y(pts[n - 1].y) - 10), anchor: .center) }
             }
             .aspectRatio(340.0 / 150.0, contentMode: .fit).padding(.top, 8)
         }
@@ -70,6 +71,7 @@ struct ProgressScreen: View {
     @EnvironmentObject var model: AppModel
     @State private var waist = ""
     @State private var sleepWeekly = false
+    @State private var vo2Monthly = false
 
     var body: some View {
         let e = model.engine!
@@ -85,6 +87,7 @@ struct ProgressScreen: View {
         let lastSteps = stepValues.reversed().first { $0 != 0 } ?? 0
         let waistPts = (e.db.waist ?? []).suffix(8)
         let sk = e.streak()
+        let cardioVals = cardioMinutes(ending: e.today)
         let sleepVals = sleepWeekly ? sleepWeeklyAverages(ending: e.today) : sleepDaily(ending: e.today)
         let sleepLabels = sleepWeekly ? wl.map { String($0.dropFirst()) } : lastSevenDays(ending: e.today).map { String(Dates.fmtD($0, .init(weekday: .short)).prefix(1)) }
         let sleepNonZero = sleepVals.filter { $0 > 0 }
@@ -145,19 +148,22 @@ struct ProgressScreen: View {
 
                     HStack(alignment: .top, spacing: 10) {         // .grid2: both cards stretch to the taller one
                         VStack(alignment: .leading, spacing: 0) {
-                            Text("Cardio").nameStyle(15); Text("minutes / week · incl. Health").metaStyle()
-                            BarChart(vals: cardioMinutes(ending: e.today), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { String(Int($0.rounded())) }
+                            Text("Cardio").nameStyle(15)
+                            Text("min / week").metaStyle().lineLimit(1).minimumScaleFactor(0.8)
+                            Text(cardioVals.last.map { String(Int($0.rounded())) } ?? "—").font(.inter(size: 24, weight: .heavy)).monospacedDigit().padding(.top, 10)
+                            BarChart(vals: cardioVals, labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { String(Int($0.rounded())) }
+                            Text("Strata + Apple Health").smallStyle().lineLimit(1).minimumScaleFactor(0.8)
                         }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Steps").nameStyle(15)
-                            Text((healthStepWeeks.contains(where: { $0 != 0 }) ? "daily avg" : "avg / office day") + " · thousands").metaStyle()
-                            Text(lastSteps != 0 ? Fmt.nf(Double(lastSteps)) : "—").font(.inter(size: 20, weight: .heavy)).monospacedDigit().padding(.top, 4)
+                            Text((healthStepWeeks.contains(where: { $0 != 0 }) ? "daily avg" : "per office day") + " · 1000s").metaStyle().lineLimit(1).minimumScaleFactor(0.8)
+                            Text(lastSteps != 0 ? Fmt.nf(Double(lastSteps)) : "—").font(.inter(size: 24, weight: .heavy)).monospacedDigit().padding(.top, 10)
                             BarChart(vals: stepValues.map(Double.init), labels: wl.map { String($0.dropFirst()) }, color: Theme.coral) { Fmt.fmtFixed($0 / 1000, 1) }
-                            Text(healthStepWeeks.contains(where: { $0 != 0 }) ? "Apple Health" : "Manual office logs").smallStyle()
+                            Text(healthStepWeeks.contains(where: { $0 != 0 }) ? "Apple Health" : "Manual office logs").smallStyle().lineLimit(1).minimumScaleFactor(0.8)
                         }.frame(maxHeight: .infinity, alignment: .top).card(tight: true)
                     }.fixedSize(horizontal: false, vertical: true)
 
-                    vo2Card(e.today)
+                    vo2Card(e)
 
                     HStack(alignment: .top, spacing: 10) {
                         VStack(alignment: .leading, spacing: 0) {
@@ -247,52 +253,83 @@ struct ProgressScreen: View {
         }
     }
 
-    /// Compact Days / Weeks switch that fits the card header without making it taller.
-    private var miniToggle: some View {
+    /// Compact two-way switch that fits a card header without making it taller.
+    private func miniSwitch(_ right: Binding<Bool>, _ labels: (String, String)) -> some View {
         HStack(spacing: 0) {
-            ForEach([(false, "D"), (true, "W")], id: \.1) { weekly, label in
-                Button { sleepWeekly = weekly } label: {
+            ForEach([(false, labels.0), (true, labels.1)], id: \.1) { value, label in
+                Button { right.wrappedValue = value } label: {
                     Text(label).font(.inter(size: 11, weight: .bold))
-                        .foregroundStyle(sleepWeekly == weekly ? Color.white : Theme.muted)
+                        .foregroundStyle(right.wrappedValue == value ? Color.white : Theme.muted)
                         .frame(width: 22, height: 20)
-                        .background(Capsule().fill(sleepWeekly == weekly ? Color.white.opacity(0.18) : .clear))
+                        .background(Capsule().fill(right.wrappedValue == value ? Color.white.opacity(0.18) : .clear))
                 }.buttonStyle(.plain)
             }
         }.padding(2).background(Capsule().fill(Color.white.opacity(0.07)))
     }
 
-    /// VO2 max over time, one point per week that has a reading (Apple Watch estimate).
-    private func vo2Card(_ today: String) -> some View {
-        let pts = vo2Points()
-        let last = pts.last?.y, first = pts.first?.y
-        let change = (last != nil && first != nil && pts.count > 1) ? last! - first! : nil
+    private var miniToggle: some View { miniSwitch($sleepWeekly, ("D", "W")) }
+
+    /// VO2 max (Apple Watch estimate): W = the same 8 weeks as the other charts, M = the last
+    /// 6 months. Values are rounded; the rating compares the latest reading with people of the
+    /// same age and sex.
+    private func vo2Card(_ e: Engine) -> some View {
+        let pts = vo2Points(ending: e.today)
+        let latest = model.vo2.last?.value
+        let rating = latest.flatMap { Engine.vo2Rating($0, age: e.ageForNorms, gender: e.profile.gender) }
         return VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 2) { Text("VO2 max").nameStyle(); Text("mL/kg/min · Apple Watch estimate").metaStyle() }
-                Spacer()
-                if let last {
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text(Fmt.fmtFixed(last, 1)).font(.inter(size: 24, weight: .heavy)).foregroundStyle(Theme.coral)
-                        if let change { Text("\(change >= 0 ? "+" : "")\(Fmt.fmtFixed(change, 1)) since \(pts[0].l)").smallStyle() }
-                    }
+                VStack(alignment: .leading, spacing: 2) { Text("VO2 max").nameStyle(); Text("mL/kg/min · Apple Watch").metaStyle() }
+                Spacer(minLength: 6)
+                VStack(alignment: .trailing, spacing: 6) {
+                    miniSwitch($vo2Monthly, ("W", "M"))
+                    if let latest { Text(String(Int(latest.rounded()))).font(.inter(size: 24, weight: .heavy)).foregroundStyle(Theme.coral) }
                 }
             }
             if pts.count > 1 {
-                LineChart(pts: pts, color: Theme.coral)
+                LineChart(pts: pts, color: Theme.coral) { String(Int($0.rounded())) }
             } else {
                 Text(pts.isEmpty ? "No VO2 max in Apple Health yet. The Watch estimates it after outdoor walks, runs and hikes."
-                                 : "One reading so far. The trend appears after the next estimate.")
+                                 : "One point so far. The trend appears after the next estimate.")
                     .font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 10)
             }
+            if let rating, let latest { ratingScale(rating, value: latest, age: e.ageForNorms) }
         }.card()
     }
 
-    private func vo2Points() -> [ProgressPoint] {
+    /// Five-step scale (Poor ... Superior) with a marker where the latest reading falls.
+    private func ratingScale(_ r: Vo2Rating, value: Double, age: Double) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 3) {
+                ForEach(0..<5, id: \.self) { i in
+                    Capsule().fill(i == r.level ? Theme.coral : Color.white.opacity(i < r.level ? 0.28 : 0.1)).frame(height: 6)
+                }
+            }
+            Text("\(r.name) for your age (\(r.band))" + (r.nextAt.map { " · \(r.nextName ?? "") from \(Fmt.fmtFixed($0, 1))" } ?? ""))
+                .font(.inter(size: 13, weight: .semibold))
+            Text("Cooper Institute norms. Watch estimates run a little lower than lab tests.").smallStyle()
+        }.padding(.top, 12)
+    }
+
+    private func vo2Points(ending today: String) -> [ProgressPoint] {
         let calendar = Calendar.current
-        let groups = Dictionary(grouping: model.vo2) { calendar.dateInterval(of: .weekOfYear, for: $0.date)?.start ?? $0.date }
-        return groups.keys.sorted().suffix(12).map { week in
-            let values = groups[week]!.map(\.value)
-            return ProgressPoint(l: week.formatted(.dateTime.month(.abbreviated).day()), y: values.reduce(0, +) / Double(values.count))
+        func average(_ values: [Vo2Reading]) -> Double { (values.map(\.value).reduce(0, +) / Double(values.count)).rounded() }
+        if vo2Monthly {
+            let now = Date()
+            return (0..<6).reversed().compactMap { back in
+                guard let month = calendar.date(byAdding: .month, value: -back, to: now),
+                      let interval = calendar.dateInterval(of: .month, for: month) else { return nil }
+                let inMonth = model.vo2.filter { interval.contains($0.date) }
+                return inMonth.isEmpty ? nil : ProgressPoint(l: month.formatted(.dateTime.month(.abbreviated)), y: average(inMonth))
+            }
+        }
+        let monday = Dates.mondayOf(today)
+        return (0..<8).compactMap { index in
+            let start = Dates.addDays(monday, -7 * (7 - index))
+            let days = Set(Dates.weekDates(start))
+            let formatter = DateFormatter()
+            formatter.calendar = calendar; formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.dateFormat = "yyyy-MM-dd"
+            let inWeek = model.vo2.filter { days.contains(formatter.string(from: $0.date)) }
+            return inWeek.isEmpty ? nil : ProgressPoint(l: Dates.fmtD(start, .init(month: .short, day: true)), y: average(inWeek))
         }
     }
 }

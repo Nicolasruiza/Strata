@@ -44,4 +44,14 @@ final class InsightsTests: XCTestCase {
         let noPrior = engine().insights(health: HealthSignals(vo2Recent: [40]))
         XCTAssertFalse(noPrior.contains { $0.kind == .vo2 })
     }
+
+    func testVo2RatingByAgeAndSex() {
+        // 37 is Poor for a man 30-49 (Fair starts at 40.5 / 38.5), Good for a woman 30-39 (37.8).
+        XCTAssertEqual(Engine.vo2Rating(37, age: 37, gender: "male")?.name, "Poor")
+        XCTAssertEqual(Engine.vo2Rating(37, age: 45, gender: "male")?.nextAt, 38.5)
+        XCTAssertEqual(Engine.vo2Rating(37.8, age: 35, gender: "female")?.name, "Good")
+        XCTAssertEqual(Engine.vo2Rating(60, age: 25, gender: "male")?.name, "Superior")
+        XCTAssertNil(Engine.vo2Rating(60, age: 25, gender: nil))
+        XCTAssertEqual(Engine.vo2Rating(40, age: 95, gender: "male")?.band, "70–79")
+    }
 }

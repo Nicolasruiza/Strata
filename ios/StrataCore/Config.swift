@@ -83,6 +83,19 @@ public enum Config {
     /// Weekly ring targets that are not derived from the plan.
     public static let boneDaysPerWeek = 2
 
+    /// VO2 max norms (mL/kg/min), Cooper Institute percentiles as printed in Garmin's standard
+    /// ratings: the value needed to *reach* Fair (40th percentile), Good (60th), Excellent (80th)
+    /// and Superior (95th). Below Fair is Poor. Age bands start at 20, 30, ... 70.
+    public enum Vo2Norms {
+        public static let ratings = ["Poor", "Fair", "Good", "Excellent", "Superior"]
+        public static let male: [[Double]] = [
+            [41.7, 45.4, 51.1, 55.4], [40.5, 44.0, 48.3, 54.0], [38.5, 42.4, 46.4, 52.5],
+            [35.6, 39.2, 43.4, 48.9], [32.3, 35.5, 39.5, 45.7], [29.4, 32.3, 36.7, 42.1]]
+        public static let female: [[Double]] = [
+            [36.1, 39.5, 43.9, 49.6], [34.4, 37.8, 42.4, 47.4], [33.0, 36.3, 39.7, 45.3],
+            [30.1, 33.0, 36.7, 41.1], [27.5, 30.0, 33.0, 37.8], [25.9, 28.1, 30.9, 36.7]]
+    }
+
     /// Thresholds for the Move-tab insight card. Not in the web app: these are new.
     public enum Insights {
         /// Muscle is built during sleep: under this average is "short".
