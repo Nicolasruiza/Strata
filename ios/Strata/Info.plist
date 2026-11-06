@@ -23,7 +23,7 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Strata reads your steps, sleep, VO2 max and workouts to show your daily activity and recovery alongside your training.</string>
+	<string>Strata reads your steps, sleep, heart rate, distance, VO2 max and workouts to show your daily activity and recovery alongside your training.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Strata saves your strength and cardio workouts and heart rate to Apple Health.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

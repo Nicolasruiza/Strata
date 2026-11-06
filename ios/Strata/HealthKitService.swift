@@ -17,6 +17,28 @@ struct HealthAccessSummary: Equatable {
     )
 }
 
+/// One heart-rate point on a session chart: minutes since the start, average bpm of that slice.
+struct HRPoint: Equatable { let minute: Double; let bpm: Double }
+
+/// What Apple Health knows about one workout: the heart-rate curve, distance and climb.
+struct WorkoutDetail: Equatable {
+    let start: Date
+    let minutes: Double
+    let hr: [HRPoint]
+    let avgHR: Double?
+    let maxHR: Double?
+    let distanceKm: Double?
+    let ascendedM: Double?
+}
+
+/// A whole day from Health: steps and average heart rate per hour, plus distance and floors.
+struct DaySeries: Equatable {
+    let stepsByHour: [Double]
+    let hrByHour: [Double?]
+    let distanceKm: Double?
+    let flights: Double?
+}
+
 /// One VO2 max estimate (mL/kg/min) from Apple Health, usually made by the Watch.
 struct Vo2Reading: Equatable {
     let date: Date
@@ -42,6 +64,8 @@ final class HealthKitService: HealthService {
     private let stepType = HKQuantityType(.stepCount)
     private let sleepType = HKCategoryType(.sleepAnalysis)
     private let vo2Type = HKQuantityType(.vo2Max)
+    private let distanceTypes = [HKQuantityType(.distanceWalkingRunning), HKQuantityType(.distanceCycling)]
+    private let flightsType = HKQuantityType(.flightsClimbed)
 
     var available: Bool { HKHealthStore.isHealthDataAvailable() }
 
@@ -88,7 +112,7 @@ final class HealthKitService: HealthService {
     private func authorize() async -> Bool {
         guard available else { return false }
         do {
-            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType], read: [stepType, sleepType, vo2Type, HKObjectType.workoutType()])
+            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType], read: Set<HKObjectType>([stepType, sleepType, vo2Type, hrType, flightsType, HKObjectType.workoutType()] + distanceTypes))
             return store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized
         } catch { return false }
     }
@@ -351,5 +375,93 @@ final class HealthKitService: HealthService {
             }
             store.execute(query)
         }
+    }
+
+    // MARK: session / day detail
+
+    private func civilDay(_ ymd: String) -> Date? {
+        let f = DateFormatter()
+        f.calendar = Calendar.current; f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "yyyy-MM-dd"
+        return f.date(from: ymd)
+    }
+
+    private func samples(_ type: HKSampleType, _ predicate: NSPredicate, ascending: Bool = true) async -> [HKSample]? {
+        await withCheckedContinuation { continuation in
+            let sort = [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: ascending)]
+            let q = HKSampleQuery(sampleType: type, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: sort) { _, result, error in
+                continuation.resume(returning: error == nil ? result : nil)
+            }
+            store.execute(q)
+        }
+    }
+
+    private func total(_ type: HKQuantityType, unit: HKUnit, from: Date, to: Date) async -> Double? {
+        await withCheckedContinuation { continuation in
+            let q = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: HKQuery.predicateForSamples(withStart: from, end: to), options: .cumulativeSum) { _, r, _ in
+                continuation.resume(returning: r?.sumQuantity()?.doubleValue(for: unit))
+            }
+            store.execute(q)
+        }
+    }
+
+    /// The Health workout on `day` whose length is closest to `minutes` (Strata's own saved
+    /// workouts are included: they carry the heart-rate samples), with its heart-rate curve.
+    func workoutDetail(on ymd: String, minutes: Double?) async -> WorkoutDetail? {
+        guard available, let from = civilDay(ymd), let to = Calendar.current.date(byAdding: .day, value: 1, to: from) else { return nil }
+        guard let found = await samples(HKObjectType.workoutType(), HKQuery.predicateForSamples(withStart: from, end: to)) as? [HKWorkout],
+              !found.isEmpty else { return nil }
+        let w = found.min { abs($0.duration / 60 - (minutes ?? $0.duration / 60)) < abs($1.duration / 60 - (minutes ?? $1.duration / 60)) } ?? found[0]
+
+        let bpm = HKUnit.count().unitDivided(by: .minute())
+        let hrSamples = (await samples(hrType, HKQuery.predicateForSamples(withStart: w.startDate, end: w.endDate)) as? [HKQuantitySample]) ?? []
+        let values = hrSamples.map { $0.quantity.doubleValue(for: bpm) }
+        let buckets = 24, length = max(1, w.duration)
+        var sums = [Double](repeating: 0, count: buckets), counts = [Double](repeating: 0, count: buckets)
+        for sample in hrSamples {
+            let i = min(buckets - 1, max(0, Int(sample.startDate.timeIntervalSince(w.startDate) / length * Double(buckets))))
+            sums[i] += sample.quantity.doubleValue(for: bpm); counts[i] += 1
+        }
+        let curve = (0..<buckets).compactMap { i -> HRPoint? in
+            counts[i] > 0 ? HRPoint(minute: (Double(i) + 0.5) / Double(buckets) * w.duration / 60, bpm: sums[i] / counts[i]) : nil
+        }
+
+        var km: Double?
+        for type in distanceTypes {
+            if let m = w.statistics(for: type)?.sumQuantity()?.doubleValue(for: .meter()), m > 0 { km = m / 1000; break }
+        }
+        let up = (w.metadata?[HKMetadataKeyElevationAscended] as? HKQuantity)?.doubleValue(for: .meter())
+        return WorkoutDetail(start: w.startDate, minutes: w.duration / 60, hr: curve,
+                             avgHR: values.isEmpty ? nil : values.reduce(0, +) / Double(values.count), maxHR: values.max(),
+                             distanceKm: km, ascendedM: up)
+    }
+
+    /// Hourly steps and heart rate for a civil day, with the day's distance and floors climbed.
+    func daySeries(on ymd: String) async -> DaySeries? {
+        guard available, let from = civilDay(ymd), let to = Calendar.current.date(byAdding: .day, value: 1, to: from) else { return nil }
+        var hour = DateComponents(); hour.hour = 1
+        let predicate = HKQuery.predicateForSamples(withStart: from, end: to)
+        let bpm = HKUnit.count().unitDivided(by: .minute())
+
+        func hourly(_ type: HKQuantityType, _ options: HKStatisticsOptions, _ value: @escaping (HKStatistics) -> Double?) async -> [Double?] {
+            await withCheckedContinuation { continuation in
+                let q = HKStatisticsCollectionQuery(quantityType: type, quantitySamplePredicate: predicate, options: options, anchorDate: from, intervalComponents: hour)
+                q.initialResultsHandler = { _, collection, _ in
+                    var out = [Double?](repeating: nil, count: 24)
+                    collection?.enumerateStatistics(from: from, to: to) { stat, _ in
+                        let h = Calendar.current.component(.hour, from: stat.startDate)
+                        if h < 24 { out[h] = value(stat) }
+                    }
+                    continuation.resume(returning: out)
+                }
+                store.execute(q)
+            }
+        }
+        let steps = await hourly(stepType, .cumulativeSum) { $0.sumQuantity()?.doubleValue(for: .count()) }
+        let rates = await hourly(hrType, .discreteAverage) { $0.averageQuantity()?.doubleValue(for: bpm) }
+        var meters = 0.0
+        for type in distanceTypes { meters += await total(type, unit: .meter(), from: from, to: to) ?? 0 }
+        let flights = await total(flightsType, unit: .count(), from: from, to: to)
+        return DaySeries(stepsByHour: steps.map { $0 ?? 0 }, hrByHour: rates,
+                         distanceKm: meters > 0 ? meters / 1000 : nil, flights: (flights ?? 0) > 0 ? flights : nil)
     }
 }

@@ -54,7 +54,7 @@ struct HistoryView: View {
         let wk = Dates.fmtD(it.date, .init(weekday: .short)), md = Dates.fmtD(it.date, .init(month: .short, day: true))
         return Button {
             if it.kind == "lift" { model.go(.detail(index: it.index)) }
-            else { model.sheet = .editCardio(date: it.date, type: it.kind) }
+            else { model.go(.activity(date: it.date, type: it.kind)) }
         } label: {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 0) { Text(wk); Text(md) }

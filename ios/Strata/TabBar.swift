@@ -39,5 +39,5 @@ struct TabBar: View {
                 .ignoresSafeArea(edges: .bottom)
         )
     }
-    private var isDetail: Bool { if case .detail = current { return true } else { return false } }
+    private var isDetail: Bool { switch current { case .detail, .activity: return true; default: return false } }
 }
