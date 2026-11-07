@@ -277,6 +277,11 @@ private struct WeightField: View {
         _text = State(initialValue: jsMinutes(value))
     }
 
+    private func parsed(_ t: String) -> Double? {
+        guard let v = Double(t.replacingOccurrences(of: ",", with: ".")), v >= 0, v <= Engine.maximumTypedWeight else { return nil }
+        return (v * 100).rounded() / 100
+    }
+
     var body: some View {
         Text(text.isEmpty ? "00" : text)
             .font(.inter(size: 64, weight: .heavy))
@@ -309,10 +314,13 @@ private struct WeightField: View {
                     text = jsMinutes(commit(text))
                 }
             }
+            // Typing counts as you go, so the plates per side and the +/- steps follow what is on screen.
+            .onChange(of: text) { _, t in
+                if isFocused, let v = parsed(t), v != value { _ = commit(t) }
+            }
+            // The +/- buttons (or any other change) update the field, even while it has the keyboard.
             .onChange(of: value) { _, newValue in
-                if !isFocused {
-                    text = jsMinutes(newValue)
-                }
+                if parsed(text) != newValue { text = jsMinutes(newValue) }
             }
     }
 }

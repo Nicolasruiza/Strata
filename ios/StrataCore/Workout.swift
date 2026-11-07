@@ -59,7 +59,7 @@ public struct EndResult: Codable, Equatable {
 
 extension Engine {
     /// Upper bound mirrored from the `#wIn` change listener in workout.js.
-    private static let maximumTypedWeight = 2_000.0
+    public static let maximumTypedWeight = 2_000.0
 
     // MARK: the lift list (app.js liftList … progOf, workout.js exState, nextUp)
 
