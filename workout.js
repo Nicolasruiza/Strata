@@ -304,13 +304,11 @@ function overviewView(){
 /* ===================== 5 · STRENGTH: ONE EXERCISE IN FOCUS ===================== */
 function trendOf(id){
   const ex=exById(id), hs=DB.history.filter(h=>h.entries[id]).slice(-4).map(h=>h.entries[id]);
-  if(!hs.length)return {t:'First time',c:'n',i:WIC.flat};
-  if(DB.holds&&DB.holds[id])return {t:'On hold',c:'hold',i:WIC.flat};
+  if(!hs.length)return {t:'New',c:'n',i:WIC.flat};
+  if(DB.holds&&DB.holds[id])return {t:'Holding',c:'hold',i:WIC.flat};
   const last=hs[hs.length-1], hit=last.reps.every(r=>r!=null&&r>=(ex?ex.r:0));
-  if(hs.length>=3&&hs.slice(-3).every(e=>e.w===last.w)&&!hit)return {t:'Stalled',c:'bad',i:WIC.flat};
-  if(hs.length>=2&&last.w>hs[hs.length-2].w)return {t:'Progressing',c:'up',i:WIC.trend};
-  if(hit)return {t:'On track',c:'up',i:WIC.trend};
-  return {t:'Behind',c:'hold',i:WIC.flat};
+  if(hit||(hs.length>=2&&last.w>hs[hs.length-2].w))return {t:'On track',c:'up',i:WIC.trend};
+  return {t:'Holding',c:'hold',i:WIC.flat};
 }
 let woReps=null;
 function focusView(){

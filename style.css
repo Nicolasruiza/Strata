@@ -239,7 +239,6 @@ h1{margin:6px 0 4px;font-size:34px;font-weight:800;letter-spacing:-.02em;line-he
 .wtrend svg{width:16px;height:16px}
 .wtrend.up{background:rgba(74,222,128,.14);color:var(--mint);border:1px solid rgba(74,222,128,.35)}
 .wtrend.hold{background:rgba(245,181,68,.14);color:var(--amber);border:1px solid rgba(245,181,68,.35)}
-.wtrend.bad{background:rgba(255,107,74,.14);color:#FF8A70;border:1px solid rgba(255,107,74,.35)}
 .wtrend.n{background:var(--glass2);color:#fff}
 .wbig{font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
 .wpm{width:56px;height:60px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;flex:none}

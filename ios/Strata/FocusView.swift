@@ -136,11 +136,10 @@ struct FocusView: View {
             switch t.c {
             case "up": return (Theme.mint, Theme.mint.opacity(0.14), Theme.mint.opacity(0.35))
             case "hold": return (Theme.amber, Theme.amber.opacity(0.14), Theme.amber.opacity(0.35))
-            case "bad": return (Color(hex: "#FF8A70"), Theme.coral.opacity(0.14), Theme.coral.opacity(0.35))
             default: return (.white, Theme.glass2, .clear)
             }
         }()
-        let icon = (t.t == "Progressing" || t.t == "On track") ? "M3 17l6-6 4 4 8-8M15 7h6v6" : "M3 12h18M15 6l6 6-6 6"
+        let icon = t.t == "On track" ? "M3 17l6-6 4 4 8-8M15 7h6v6" : "M3 12h18M15 6l6 6-6 6"
         return HStack(spacing: 6) { IconView(d: icon, size: 16, color: fg, line: 1.9); Text(t.t) }
             .font(.inter(size: 14, weight: .bold)).foregroundStyle(fg).fixedSize()
             .padding(.horizontal, 12).padding(.vertical, 7)
