@@ -421,7 +421,27 @@ extension Engine {
     }
 
     /// The numbers on the Workout complete screen.
-    public func sessionSummary(_ c: Celebration) -> SessionSummary? {
+    /// What `endSession` decided for a session already in History, rebuilt from its entries:
+    /// a lift went up when every rep hit the target, it can progress, and the day was not a lighter one.
+    /// Holds set after the session are not known, so they are not applied.
+    public func celebration(forSession idx: Int) -> Celebration? {
+        guard idx >= 0, idx < db.history.count else { return nil }
+        let s = db.history[idx]
+        var ups: [String] = [], holds: [String] = []
+        for id in s.entries.keys.sorted() {
+            guard let ex = exById(id), let e = s.entries[id] else { continue }
+            let hit = !e.reps.isEmpty && e.reps.allSatisfy { r in
+                guard let need = ex.r else { return false }
+                return (r ?? 0) >= Double(need)
+            }
+            if hit && (ex.inc ?? 0) != 0 && !(s.lowEnergy ?? false) { ups.append(id) } else { holds.append(id) }
+        }
+        return Celebration(idx: idx, ups: ups, holds: holds, low: s.lowEnergy ?? false)
+    }
+
+    /// `derivedNext`: for an old session, the weight a lift went up to comes from that session's own entry,
+    /// not from today's `db.next`, which later sessions have moved on.
+    public func sessionSummary(_ c: Celebration, derivedNext: Bool = false) -> SessionSummary? {
         guard c.idx >= 0, c.idx < db.history.count else { return nil }
         let s = db.history[c.idx]
         let req = requiredItems(s.day), reqIds = Set(req.map(\.id))
@@ -437,7 +457,8 @@ extension Engine {
             let ex = exById(id) ?? Ex(id: id, n: id), e = s.entries[id]!, up = c.ups.contains(id)
             let need = (!up && (ex.r ?? 0) != 0) ? e.reps.reduce(0.0) { $0 + max(0, Double(ex.r!) - ($1 ?? 0)) } : 0
             let unlock = (!up && !c.low && need > 0 && (ex.inc ?? 0) != 0) ? progressedWeight(ex, e.w) : nil
-            return SummaryRow(id: id, up: up, next: db.next[id], need: need, unlocks: unlock)
+            let next = derivedNext ? (up ? progressedWeight(ex, e.w) : e.w) : db.next[id]
+            return SummaryRow(id: id, up: up, next: next, need: need, unlocks: unlock)
         }
         var cmp: SummaryCompare?
         if let prev = db.history.prefix(c.idx).reversed().first(where: { $0.day == s.day }) {

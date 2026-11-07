@@ -77,7 +77,6 @@ struct Vo2DoneView: View {
                     }.card(inset: EdgeInsets(top: 14, leading: 6, bottom: 14, trailing: 6))
                     RingsCard(st: r.st, headline: r.ringsLine)
                     Text(r.note).bodyStyle().card()
-                    if let n = e.nextCard(from: r.v.date) { NextCardView(card: n) }
                 }.padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 110)
             }.frame(maxWidth: Theme.maxWidth)
         }

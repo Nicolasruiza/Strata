@@ -1,29 +1,6 @@
 import SwiftUI
 import StrataCore
 
-/// "Next · Tomorrow" card (`nextCard`)
-struct NextCardView: View {
-    let card: NextCard
-    var body: some View {
-        let C = Theme.ring(card.col)
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 16).fill(C.opacity(0.2))
-                IconView(d: card.col == "m" ? Icon.dumbbell : Icon.heart, size: 24, color: C)
-            }.frame(width: 52, height: 52)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(card.label).labelStyle(C)
-                Text(card.name).nameStyle()
-                Text(card.sub).metaStyle()
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: Theme.Radius.card).fill(LinearGradient(colors: [C.opacity(0.15), C.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing)))
-        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.card).strokeBorder(C.opacity(0.33)))
-    }
-}
-
 /// Workout complete (app.js `doneView`).
 struct CompleteView: View {
     @EnvironmentObject var model: AppModel
@@ -53,10 +30,9 @@ struct CompleteView: View {
                     VStack(spacing: 12) {
                         stats(s: s, sum: sum)
                         RingsCard(st: st, headline: e.ringsLine(st))
-                        if !sum.rows.isEmpty { nextTime(e, sum: sum, s: s) }
-                        if let cmp = sum.compare { compare(e, cmp: cmp, s: s) }
+                        if !sum.rows.isEmpty { SummaryCards.nextTime(e, sum: sum, s: s) }
+                        if let cmp = sum.compare { SummaryCards.compare(e, cmp: cmp, s: s) }
                         if e.cardioOn(s.date, "jumps") != nil { bone(st) }
-                        if let n = e.nextCard(from: s.date) { NextCardView(card: n) }
                     }.padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 110)
                 }.frame(maxWidth: Theme.maxWidth)
             }
@@ -91,7 +67,34 @@ struct CompleteView: View {
         VStack(spacing: 3) { Text(big).font(.inter(size: 24, weight: .heavy)).monospacedDigit(); Text(small).smallStyle() }.frame(maxWidth: .infinity)
     }
 
-    private func nextTime(_ e: Engine, sum: SessionSummary, s: Session) -> some View {
+    private func bone(_ st: WeekStats) -> some View {
+        HStack(spacing: 14) {
+            ZStack(alignment: .leading) {
+                Thumb(path: "img/pogo.jpg", size: 48).overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.bg, lineWidth: 2))
+                Thumb(path: "img/box_jump.jpg", size: 48).overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.bg, lineWidth: 2)).offset(x: 34)
+            }.frame(width: 82, alignment: .leading)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Bone · impact").labelStyle(Theme.mint)
+                Text("\(st.b * Config.landingsPerJumpDay) landings this week").nameStyle()
+                Text(st.b >= st.bt ? "Both jump days done. Full weekly dose." : "\(st.bt - st.b) more jump day to go.").metaStyle()
+            }
+            Spacer(minLength: 0)
+        }.card()
+    }
+}
+
+extension AppModel {
+    /// "Done" on the complete screen.
+    func finishCelebration() {
+        mutate { $0.celebration = nil; return nil }
+        selDay = nil
+        screen = .today
+    }
+}
+
+/// The "Next time" (went up / hold) and "vs last" cards, shared by the completion screen and a session's detail.
+enum SummaryCards {
+    static func nextTime(_ e: Engine, sum: SessionSummary, s: Session) -> some View {
         let rows: [SummaryRow] = sum.rows
         return VStack(alignment: .leading, spacing: 6) {
             Text("Next time").labelStyle()
@@ -101,7 +104,7 @@ struct CompleteView: View {
         }.card()
     }
 
-    private func nextRow(_ e: Engine, _ r: SummaryRow, _ s: Session, first: Bool) -> some View {
+    static func nextRow(_ e: Engine, _ r: SummaryRow, _ s: Session, first: Bool) -> some View {
         let ex: Ex = e.exById(r.id) ?? Ex(id: r.id, n: r.id)
         let en: Entry = s.entries[r.id]!
         let reps: String = en.reps.map { Fmt.repLbl(ex, $0) }.joined(separator: " · ")
@@ -122,7 +125,7 @@ struct CompleteView: View {
         .overlay(alignment: .top) { if !first { Rectangle().fill(Theme.line).frame(height: 1) } }
     }
 
-    private func upChip(_ w: Double) -> some View {
+    static func upChip(_ w: Double) -> some View {
         HStack(spacing: 5) {
             IconView(d: "M12 19V5M6 11l6-6 6 6", size: 13, color: Theme.mint, line: 3.2)
             Text("\(jsMinutes(w)) lb")
@@ -131,7 +134,7 @@ struct CompleteView: View {
         .padding(.horizontal, 11).padding(.vertical, 7).background(Capsule().fill(Theme.mint.opacity(0.14)))
     }
 
-    private func compare(_ e: Engine, cmp: SummaryCompare, s: Session) -> some View {
+    static func compare(_ e: Engine, cmp: SummaryCompare, s: Session) -> some View {
         let mx = max(cmp.items.map { max($0.a, $0.b) }.max() ?? 1, 1)
         return VStack(alignment: .leading, spacing: 0) {
             HStack {
@@ -162,31 +165,7 @@ struct CompleteView: View {
             }.padding(.top, 12)
         }.card()
     }
-    private func legend(_ c: Color, _ t: String) -> some View {
+    static func legend(_ c: Color, _ t: String) -> some View {
         HStack(spacing: 6) { RoundedRectangle(cornerRadius: 3).fill(c).frame(width: 10, height: 10); Text(t).smallStyle() }
-    }
-
-    private func bone(_ st: WeekStats) -> some View {
-        HStack(spacing: 14) {
-            ZStack(alignment: .leading) {
-                Thumb(path: "img/pogo.jpg", size: 48).overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.bg, lineWidth: 2))
-                Thumb(path: "img/box_jump.jpg", size: 48).overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Theme.bg, lineWidth: 2)).offset(x: 34)
-            }.frame(width: 82, alignment: .leading)
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Bone · impact").labelStyle(Theme.mint)
-                Text("\(st.b * Config.landingsPerJumpDay) landings this week").nameStyle()
-                Text(st.b >= st.bt ? "Both jump days done. Full weekly dose." : "\(st.bt - st.b) more jump day to go.").metaStyle()
-            }
-            Spacer(minLength: 0)
-        }.card()
-    }
-}
-
-extension AppModel {
-    /// "Done" on the complete screen.
-    func finishCelebration() {
-        mutate { $0.celebration = nil; return nil }
-        selDay = nil
-        screen = .today
     }
 }
