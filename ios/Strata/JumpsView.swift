@@ -74,7 +74,7 @@ struct JumpsView: View {
                     Text("\(it.sets) sets × \(it.reps)\(it.perLeg ? " / leg" : "")").metaStyle().padding(.top, -10)
                     Text(it.how).bodyStyle()
                     if it.weighted { weightCard(e, it) }
-                    RestBanner()
+                    RestBanner(idle: (big: done >= it.sets ? "All sets logged" : "Set \(done + 1) of \(it.sets)", meta: done >= it.sets ? "On to the next exercise" : "Log it when you finish"))
                     ForEach(0..<it.sets, id: \.self) { i in setRow(e, it, i, done: done, next: nextLabel(list, step)) }
                     Button { model.openFormVideo(id: it.yt, name: it.yt.hasPrefix("rc_") ? "" : it.name) } label: {
                         HStack(spacing: 6) { SVGPathShape(d: "M8 5v14l11-7z").fill(Color.white).frame(width: 14, height: 14); Text("Form video") }
