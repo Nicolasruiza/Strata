@@ -39,7 +39,7 @@ struct HistoryView: View {
                 HStack(spacing: 8) {
                     HStack(spacing: 4) {
                         ForEach(0..<3, id: \.self) { i in
-                            Circle().fill(st.closed[i] ? Theme.ring(["m", "h", "b"][i]) : Color.white.opacity(0.14)).frame(width: 9, height: 9)
+                            RingDot(kind: ["m", "h", "b"][i], done: [st.m, st.h, st.b][i], target: [st.mt, st.ht, st.bt][i], size: 11)
                         }
                     }
                     if !list.isEmpty {

@@ -12,7 +12,7 @@ struct OnboardView: View {
         ScrollView {
             VStack(spacing: 0) {
                 Hero(eyebrow: nil, title: "", titleAttr: headline, titleSize: 36,
-                     sub: "4 lifts, 2–3 heart sessions and 2 jump warm-ups a week. Each one closes a ring.", tall: true)
+                     sub: "3 lifts, 3 heart sessions and 2 jump days a week. Each one fills a ring, and you can go past it.", tall: true)
                 VStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("About you").labelStyle()

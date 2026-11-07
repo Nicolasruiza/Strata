@@ -145,15 +145,15 @@ const homeKey=(slot,date)=>{
   return slot==='vo2'?'vo2':'walk';
 };
 
+/* weekly ring goals are fixed (not tied to the plan) and can be exceeded, like Apple's rings: a missed day never costs the week */
+const RING_GOALS={m:3,h:3,b:2};
 function weekStats(mon){
-  const ds=weekDates(mon), wp=weekPlan();
-  const mt=WD_ORDER.filter(w=>wp[w]==='lift').length;
-  const ht=WD_ORDER.filter(w=>HEART.has(wp[w])).length;
-  const bt=2;
-  const m=Math.min(mt,new Set(DB.history.filter(h=>ds.includes(h.date)).map(h=>h.date)).size);
+  const ds=weekDates(mon);
+  const mt=RING_GOALS.m, ht=RING_GOALS.h, bt=RING_GOALS.b;
+  const m=new Set(DB.history.filter(h=>ds.includes(h.date)).map(h=>h.date)).size;
   const hk=new Set((DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type!=='jumps'&&c.type!=='home'&&!(c.type==='cardio'&&(c.min||0)<WCFG.shortCardioMin)).map(c=>c.date+c.type));
-  const h=Math.min(ht,hk.size);
-  const b=Math.min(bt,new Set((DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type==='jumps').map(c=>c.date)).size);
+  const h=hk.size;
+  const b=new Set((DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type==='jumps').map(c=>c.date)).size;
   return {m,mt,h,ht,b,bt,closed:[m>=mt,h>=ht,b>=bt],all:m>=mt&&h>=ht&&b>=bt};
 }
 function streak(){
@@ -186,11 +186,12 @@ const minutesFor=day=>Math.round(requiredItems(day).length*MIN_PER_LIFT/5)*5;
 
 /* ---------- rings ---------- */
 function ringSVG(k,done,target,size){
-  const s=size||84, r=s/2-7, c=2*Math.PI*r, f=Math.min(1,target?done/target:0), col=KC[k], closed=f>=1;
+  const s=size||84, r=s/2-7, c=2*Math.PI*r, f=Math.min(1,target?done/target:0), ov=target?Math.min(1,Math.max(0,done/target-1)):0, col=KC[k], closed=f>=1;
   const icon={m:I.dumbbell,h:I.heart,b:I.bone}[k];
   return `<div style="position:relative;width:${s}px;height:${s}px;color:${col};${closed?`filter:drop-shadow(0 0 10px ${col}88)`:''}">
     <svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" aria-hidden="true"><circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" stroke="${col}" stroke-opacity=".2" stroke-width="9"/>
-    ${f>0?`<circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 ${s/2} ${s/2})"/>`:''}</svg>
+    ${f>0?`<circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 ${s/2} ${s/2})"/>`:''}
+    ${ov>0?`<circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(c*ov).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 ${s/2} ${s/2})"/>`:''}</svg>
     <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><span style="width:${s*.34}px;height:${s*.34}px;display:block">${icon}</span></span></div>`;
 }
 function ringsCard(st,headline){
@@ -200,7 +201,9 @@ function ringsCard(st,headline){
     <div class="rings">${cell('m','Muscle',st.m,st.mt)}${cell('h','Heart',st.h,st.ht)}${cell('b','Bone',st.b,st.bt)}</div>
     ${headline?`<div class="p" style="margin-top:0">${headline}</div>`:''}</section>`;
 }
-const rdots=st=>`<span class="rdots" aria-label="Muscle ${st.closed[0]?'closed':'open'}, Heart ${st.closed[1]?'closed':'open'}, Bone ${st.closed[2]?'closed':'open'}">${['m','h','b'].map((k,i)=>`<i style="${st.closed[i]?`background:${KC[k]}`:''}"></i>`).join('')}</span>`;
+/* a dot that fills like a pie: shows how far the week got, not just closed or open */
+const dotBg=(k,d,t)=>{const f=Math.min(1,t?d/t:0);return f>=1?KC[k]:f>0?`conic-gradient(${KC[k]} ${(f*360).toFixed(0)}deg,rgba(255,255,255,.14) 0)`:''};
+const rdots=st=>`<span class="rdots" aria-label="Muscle ${st.m} of ${st.mt}, Heart ${st.h} of ${st.ht}, Bone ${st.b} of ${st.bt}">${[['m',st.m,st.mt],['h',st.h,st.ht],['b',st.b,st.bt]].map(([k,d,t])=>`<i style="${dotBg(k,d,t)?`background:${dotBg(k,d,t)}`:''}"></i>`).join('')}</span>`;
 
 /* ---------- shell ---------- */
 const TABS=[['today','Today',I.home],['progress','Progress',I.chart],['history','History',I.cal],['settings','Settings',I.gear]];
@@ -778,7 +781,7 @@ function progressView(){
       ${lineSVG(pts,KC.m,{aria:'Top set trend'})}
       <div class="seg" style="margin-top:8px">${[[8,'8W'],[26,'6M'],[52,'1Y']].map(([w,l])=>`<button data-range="${w}" class="${progRange===w?'on':''}">${l}</button>`).join('')}</div></section>
     <section class="card"><div class="rowh"><div><div class="name">Weekly rings</div><div class="meta">Muscle, Heart, Bone</div></div></div>
-      <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:14px;text-align:center">${stats.map((s,i)=>`<div><div style="display:flex;flex-direction:column;align-items:center;gap:4px">${['m','h','b'].map((k,j)=>`<i style="width:12px;height:12px;border-radius:6px;display:block;background:${s.closed[j]?KC[k]:'rgba(255,255,255,.12)'}"></i>`).join('')}</div><div class="small" style="margin-top:6px;${i===7?'color:#fff;font-weight:700':''}">${i===7?'Now':wl[i]}</div></div>`).join('')}</div></section>
+      <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:14px;text-align:center">${stats.map((s,i)=>`<div><div style="display:flex;flex-direction:column;align-items:center;gap:4px">${['m','h','b'].map((k,j)=>`<i style="width:12px;height:12px;border-radius:6px;display:block;background:${dotBg(k,[s.m,s.h,s.b][j],[s.mt,s.ht,s.bt][j])||'rgba(255,255,255,.12)'}"></i>`).join('')}</div><div class="small" style="margin-top:6px;${i===7?'color:#fff;font-weight:700':''}">${i===7?'Now':wl[i]}</div></div>`).join('')}</div></section>
     <div class="grid2"><section class="card tight"><div class="name" style="font-size:15px">Cardio</div><div class="meta">sessions / week</div>${barSVG(cardio,wl.map(x=>x.slice(1)),KC.h,v=>v,7)}</section>
       <section class="card tight"><div class="rowh"><div><div class="name" style="font-size:15px">Steps</div><div class="meta">avg / office day</div></div></div>
       <div class="big" style="font-size:20px;margin-top:4px">${lastSteps?nf(lastSteps):'—'}</div>${barSVG(steps,wl.map(x=>x.slice(1)),KC.h,v=>(v/1000).toFixed(1)+'k',7)}</section></div>
@@ -884,7 +887,7 @@ function onboardView(){
   const o=onboard, ll=o.gender?liftLogLocal(o.gender==='female'?'sa':'nr'):null, ready=o.name.trim()&&o.gender;
   return `<header class="hero tall"><div class="topbar"><div class="brand">${I.logo}Strata</div></div>
     <div class="htext"><div><h1 style="font-size:36px">Build it in layers:<br><span style="color:var(--violet)">muscle</span>, <span style="color:var(--coral)">heart</span>, <span style="color:var(--mint)">bone</span></h1>
-    <div class="sub">4 lifts, 2–3 heart sessions and 2 jump warm-ups a week. Each one closes a ring.</div></div></div></header>
+    <div class="sub">3 lifts, 3 heart sessions and 2 jump days a week. Each one fills a ring, and you can go past it.</div></div></div></header>
    <main class="wrap">
     <section class="card"><span class="label">About you</span>
       <label class="step" style="margin-top:10px;padding:6px 14px"><span class="name">Name</span><input id="obName" type="text" value="${esc(o.name)}" placeholder="Your name" autocomplete="given-name" style="text-align:right;font-size:17px;font-weight:600;width:60%"></label>
