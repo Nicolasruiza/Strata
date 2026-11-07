@@ -157,7 +157,7 @@ final class HealthKitService: HealthService {
         let lastNight = await dailySleep(from: Date().addingTimeInterval(-3 * 86_400), through: Date())?
             .sorted { $0.key < $1.key }.last
         let sleepAccess = lastNight.map { "\(String(format: "%.1f", $0.value)) h last night" } ?? "No readable data"
-        let minutes = await dailyWorkoutMinutes(from: Date().addingTimeInterval(-56 * 86_400), through: Date())?.values.reduce(0, +) ?? 0
+        let minutes = await dailyWorkoutMinutes(from: Date().addingTimeInterval(-56 * 86_400), through: Date())?.values.reduce(0) { $0 + $1.reduce(0, +) } ?? 0
         let workoutsRead = minutes > 0 ? "\(Int(minutes.rounded())) min in 8 wks" : "No readable data"
         let waistWrite: String
         switch store.authorizationStatus(for: waistType) {
@@ -315,7 +315,7 @@ final class HealthKitService: HealthService {
     /// Minutes of cardio workouts per day from Apple Health (Fitness, other apps, third-party watches).
     /// Strength workouts are skipped, and so is anything Strata itself saved: those minutes are
     /// already in Strata's own log, so counting them again would double them.
-    func dailyWorkoutMinutes(from start: Date, through end: Date) async -> [String: Double]? {
+    func dailyWorkoutMinutes(from start: Date, through end: Date) async -> [String: [Double]]? {
         guard available else { return nil }
         let calendar = Calendar.current
         let from = calendar.startOfDay(for: start)
@@ -332,11 +332,11 @@ final class HealthKitService: HealthService {
                 formatter.locale = Locale(identifier: "en_US_POSIX")
                 formatter.timeZone = calendar.timeZone
                 formatter.dateFormat = "yyyy-MM-dd"
-                var minutes: [String: Double] = [:]
+                var minutes: [String: [Double]] = [:]
                 for workout in workouts {
                     if workout.workoutActivityType == .traditionalStrengthTraining || workout.workoutActivityType == .functionalStrengthTraining { continue }
                     if workout.sourceRevision.source.bundleIdentifier.hasPrefix("net.nicolasruiza.strata") { continue }
-                    minutes[formatter.string(from: workout.startDate), default: 0] += workout.duration / 60
+                    minutes[formatter.string(from: workout.startDate), default: []].append(workout.duration / 60)
                 }
                 continuation.resume(returning: minutes)
             }

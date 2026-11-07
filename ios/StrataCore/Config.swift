@@ -167,6 +167,12 @@ public enum Config {
 }
 
 extension Config {
+    /// Apple Health workouts that duplicate something Strata already logged are hidden.
+    public enum Health {
+        /// A Health cardio workout this many minutes (or fewer) off a Strata cardio entry is the same session.
+        public static let duplicateMinutes = 5.0
+    }
+
     /// Jumps warm-up, set by set. Rest follows the cues in the exercise text ("30 s rest", "60 s rest").
     public enum Jumps {
         public static let restSec: [String: Double] = ["pogo": 30, "box": 60]

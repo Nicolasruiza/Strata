@@ -275,7 +275,7 @@ struct TodayView: View {
     /// from the Watch or other apps.
     private func todayLog(_ e: Engine, t: String) -> some View {
         let own = e.historyItems().filter { $0.date == t }
-        let health = model.todayWorkouts
+        let health = model.newTodayWorkouts
         return VStack(spacing: 0) {
             HStack {
                 Text("Today").labelStyle(); Spacer()
