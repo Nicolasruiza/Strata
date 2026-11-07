@@ -14,10 +14,35 @@ struct RingView: View {
                 Circle().trim(from: 0, to: f).stroke(col, style: StrokeStyle(lineWidth: 9, lineCap: .round))
                     .rotationEffect(.degrees(-90)).frame(width: r * 2, height: r * 2)
             }
+            // Past the goal: a second, lighter lap on top (Apple-style), capped at one extra lap.
+            if over > 0 {
+                Circle().trim(from: 0, to: over).stroke(Color.white.opacity(0.4), style: StrokeStyle(lineWidth: 9, lineCap: .round))
+                    .rotationEffect(.degrees(-90)).frame(width: r * 2, height: r * 2)
+            }
             IconView(d: kind == "m" ? Icon.dumbbell : kind == "h" ? Icon.heart : Icon.bone, size: size * 0.34, color: col)
         }
         .frame(width: size, height: size)
         .shadow(color: closed ? col.opacity(0.53) : .clear, radius: 10)
+    }
+    private var over: Double { target > 0 ? min(1, max(0, Double(done) / Double(target) - 1)) : 0 }
+}
+
+/// A small ring-shaped dot for week summaries: shows how far the week got, not just closed or open.
+struct RingDot: View {
+    let kind: String
+    let done: Int, target: Int
+    var size: CGFloat = 12
+    var body: some View {
+        let f = min(1, target > 0 ? Double(done) / Double(target) : 0), col = Theme.ring(kind)
+        ZStack {
+            Circle().fill(Color.white.opacity(0.14))
+            if f >= 1 { Circle().fill(col) }
+            else if f > 0 {
+                Circle().trim(from: 0, to: f).stroke(col, style: StrokeStyle(lineWidth: size / 2))
+                    .rotationEffect(.degrees(-90)).frame(width: size / 2, height: size / 2)
+            }
+        }
+        .frame(width: size, height: size).clipShape(Circle())
     }
 }
 

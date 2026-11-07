@@ -92,17 +92,15 @@ extension Engine {
     // MARK: rings
 
     public func weekStats(_ mon: String) -> WeekStats {
-        let ds = Dates.weekDates(mon), wp = weekPlan()
-        let mt = Engine.wdOrder.filter { wp[$0] == "lift" }.count
-        let ht = Engine.wdOrder.filter { heartSlots.contains(wp[$0] ?? "") }.count
-        let bt = Config.boneDaysPerWeek
-        let m = min(mt, Set(db.history.filter { ds.contains($0.date) }.map(\.date)).count)
+        let ds = Dates.weekDates(mon)
+        let mt = Config.RingGoals.muscle, ht = Config.RingGoals.heart, bt = Config.RingGoals.bone
+        let m = Set(db.history.filter { ds.contains($0.date) }.map(\.date)).count
         let hk = Set(db.cardio.filter { c in
             ds.contains(c.date) && c.type != "jumps" && c.type != "home"
                 && !(c.type == "cardio" && (c.min ?? 0) < Config.workout.shortCardioMin)
         }.map { $0.date + $0.type })
-        let h = min(ht, hk.count)
-        let b = min(bt, Set(db.cardio.filter { ds.contains($0.date) && $0.type == "jumps" }.map(\.date)).count)
+        let h = hk.count
+        let b = Set(db.cardio.filter { ds.contains($0.date) && $0.type == "jumps" }.map(\.date)).count
         return WeekStats(m: m, mt: mt, h: h, ht: ht, b: b, bt: bt, closed: [m >= mt, h >= ht, b >= bt], all: m >= mt && h >= ht && b >= bt)
     }
 
