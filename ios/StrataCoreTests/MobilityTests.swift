@@ -26,6 +26,29 @@ final class MobilityTests: XCTestCase {
         XCTAssertEqual(e.mobilityDays(in: [e.today, Dates.addDays(e.today, -1)]), 1)
     }
 
+    func testSetsAreTrackedOneByOne() {
+        var e = engine()   // glide is 4 sets
+        for i in 0..<3 { e.tapMobilitySet(session: "morning", ex: "glide", index: i) }
+        XCTAssertEqual(e.mobilitySets(date: e.today, session: "morning", ex: "glide"), 3)
+        XCTAssertEqual(e.mobilityCount(date: e.today, session: "morning"), 0)   // not done until the last set
+        e.tapMobilitySet(session: "morning", ex: "glide", index: 3)
+        XCTAssertEqual(e.mobilityCount(date: e.today, session: "morning"), 1)
+        e.tapMobilitySet(session: "morning", ex: "glide", index: 3)             // tapping the last again steps back
+        XCTAssertEqual(e.mobilitySets(date: e.today, session: "morning", ex: "glide"), 3)
+    }
+
+    func testOlderEntriesWithoutSetsCountAsDone() {
+        var e = engine()
+        e.db.mobility = [MobilityDone(date: e.today, session: "morning", ex: "glide")]
+        XCTAssertEqual(e.mobilityCount(date: e.today, session: "morning"), 1)
+    }
+
+    func testSetsAreClamped() {
+        var e = engine()
+        e.setMobilitySets(session: "evening", ex: "itband", sets: 9)   // itband is 1 set
+        XCTAssertEqual(e.mobilitySets(date: e.today, session: "evening", ex: "itband"), 1)
+    }
+
     func testPartialSessionDoesNotCountAsADay() {
         var e = engine()
         e.toggleMobility(session: "morning", ex: "pressup")
