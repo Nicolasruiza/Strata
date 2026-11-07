@@ -101,7 +101,7 @@ struct SettingsView: View {
 
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Apple Health").labelStyle()
-                        Text("Strata saves workouts to Health and reads steps and sleep when you allow access.")
+                        Text("Strata saves workouts and waist measurements to Health, and reads steps, sleep and waist when you allow access.")
                             .font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 6).padding(.bottom, 6)
                         line("HealthKit", model.healthAccess.isAvailable ? "Available" : "Unavailable",
                              model.healthAccess.isAvailable ? Theme.mint : Color(hex: "#FF8A70"))
@@ -110,6 +110,7 @@ struct SettingsView: View {
                         line("Read steps", model.healthAccess.stepsAccess, Theme.soft)
                         line("Read sleep", model.healthAccess.sleepAccess, Theme.soft)
                         line("Other workouts", model.healthAccess.workoutsRead, Theme.soft)
+                        line("Waist (read and save)", model.healthAccess.waistAccess, Theme.soft)
                         line("Watch workout", model.watchConnected ? "Active" : "Not active",
                              model.watchConnected ? Theme.mint : Theme.soft)
                         Button {

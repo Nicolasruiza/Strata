@@ -7,13 +7,15 @@ struct HealthAccessSummary: Equatable {
     var stepsAccess: String
     var sleepAccess: String
     var workoutsRead: String
+    var waistAccess: String
 
     static let checking = HealthAccessSummary(
         isAvailable: true,
         workoutAccess: "Checking…",
         stepsAccess: "Checking…",
         sleepAccess: "Checking…",
-        workoutsRead: "Checking…"
+        workoutsRead: "Checking…",
+        waistAccess: "Checking…"
     )
 }
 
@@ -63,6 +65,7 @@ final class HealthKitService: HealthService {
     private let hrType = HKQuantityType(.heartRate)
     private let stepType = HKQuantityType(.stepCount)
     private let standType = HKCategoryType(.appleStandHour)
+    private let waistType = HKQuantityType(.waistCircumference)
     private let sleepType = HKCategoryType(.sleepAnalysis)
     private let vo2Type = HKQuantityType(.vo2Max)
     private let distanceTypes = [HKQuantityType(.distanceWalkingRunning), HKQuantityType(.distanceCycling)]
@@ -113,7 +116,7 @@ final class HealthKitService: HealthService {
     private func authorize() async -> Bool {
         guard available else { return false }
         do {
-            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType], read: Set<HKObjectType>([stepType, standType, sleepType, vo2Type, hrType, flightsType, HKObjectType.workoutType()] + distanceTypes))
+            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType, waistType], read: Set<HKObjectType>([stepType, standType, waistType, sleepType, vo2Type, hrType, flightsType, HKObjectType.workoutType()] + distanceTypes))
             return store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized
         } catch { return false }
     }
@@ -128,7 +131,8 @@ final class HealthKitService: HealthService {
                 workoutAccess: "Unavailable",
                 stepsAccess: "Unavailable",
                 sleepAccess: "Unavailable",
-                workoutsRead: "Unavailable"
+                workoutsRead: "Unavailable",
+                waistAccess: "Unavailable"
             )
         }
 
@@ -155,12 +159,22 @@ final class HealthKitService: HealthService {
         let sleepAccess = lastNight.map { "\(String(format: "%.1f", $0.value)) h last night" } ?? "No readable data"
         let minutes = await dailyWorkoutMinutes(from: Date().addingTimeInterval(-56 * 86_400), through: Date())?.values.reduce(0, +) ?? 0
         let workoutsRead = minutes > 0 ? "\(Int(minutes.rounded())) min in 8 wks" : "No readable data"
+        let waistWrite: String
+        switch store.authorizationStatus(for: waistType) {
+        case .sharingAuthorized: waistWrite = "Allowed"
+        case .sharingDenied: waistWrite = "Not allowed"
+        case .notDetermined: waistWrite = "Not requested"
+        @unknown default: waistWrite = "Unknown"
+        }
+        let lastWaist = await waistReadings(from: Date().addingTimeInterval(-730 * 86_400), through: Date())?.sorted { $0.key < $1.key }.last
+        let waistAccess = lastWaist.map { "\(waistWrite) · last \(String(format: "%.1f", $0.value)) cm" } ?? waistWrite
         return HealthAccessSummary(
             isAvailable: true,
             workoutAccess: workoutAccess,
             stepsAccess: stepsAccess,
             sleepAccess: sleepAccess,
-            workoutsRead: workoutsRead
+            workoutsRead: workoutsRead,
+            waistAccess: waistAccess
         )
     }
 
@@ -391,6 +405,47 @@ final class HealthKitService: HealthService {
             }
             store.execute(query)
         }
+    }
+
+    // MARK: waist circumference
+
+    /// Waist readings by civil day, in cm (the latest of each day), or nil when Health can't be read.
+    func waistReadings(from start: Date, through end: Date) async -> [String: Double]? {
+        guard available else { return nil }
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
+        let sort = [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.calendar = calendar; formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = calendar.timeZone; formatter.dateFormat = "yyyy-MM-dd"
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: waistType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: sort) { _, samples, error in
+                guard error == nil, let samples = samples as? [HKQuantitySample] else { continuation.resume(returning: nil); return }
+                var byDay: [String: Double] = [:]
+                for q in samples { byDay[formatter.string(from: q.startDate)] = q.quantity.doubleValue(for: .meterUnit(with: .centi)) }
+                continuation.resume(returning: byDay)
+            }
+            store.execute(query)
+        }
+    }
+
+    /// Writes a waist measurement for a civil day (`yyyy-MM-dd`). A sync identifier per day means
+    /// correcting the number in Strata replaces the Health sample instead of adding a second one.
+    func saveWaist(cm: Double, on ymd: String, isToday: Bool) async -> Bool {
+        guard available else { return false }
+        if store.authorizationStatus(for: waistType) == .notDetermined { _ = await authorize() }
+        guard store.authorizationStatus(for: waistType) == .sharingAuthorized else { return false }
+        let when: Date
+        if isToday { when = Date() }
+        else if let d = civilDay(ymd) { when = d.addingTimeInterval(12 * 3600) }
+        else { return false }
+        let sample = HKQuantitySample(
+            type: waistType,
+            quantity: HKQuantity(unit: .meterUnit(with: .centi), doubleValue: cm),
+            start: when, end: when,
+            metadata: [HKMetadataKeySyncIdentifier: "strata.waist.\(ymd)", HKMetadataKeySyncVersion: Int(Date().timeIntervalSince1970)]
+        )
+        do { try await store.save(sample); return true } catch { return false }
     }
 
     // MARK: session / day detail

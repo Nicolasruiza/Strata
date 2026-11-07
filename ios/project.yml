@@ -39,8 +39,8 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         UIAppFonts: [Inter-Regular.ttf, Inter-Medium.ttf, Inter-SemiBold.ttf, Inter-Bold.ttf, Inter-ExtraBold.ttf]
         NSLocationWhenInUseUsageDescription: Strata uses your location during outdoor workouts to measure elevation gain.
-        NSHealthShareUsageDescription: Strata reads your steps, sleep, heart rate, distance, VO2 max and workouts to show your daily activity and recovery alongside your training.
-        NSHealthUpdateUsageDescription: Strata saves your strength and cardio workouts and heart rate to Apple Health.
+        NSHealthShareUsageDescription: Strata reads your steps, sleep, heart rate, distance, VO2 max, waist measurements and workouts to show your daily activity and recovery alongside your training.
+        NSHealthUpdateUsageDescription: Strata saves your strength and cardio workouts, heart rate and waist measurements to Apple Health.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: net.nicolasruiz.strata
