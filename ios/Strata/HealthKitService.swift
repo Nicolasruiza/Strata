@@ -62,6 +62,7 @@ final class HealthKitService: HealthService {
     private(set) lazy var bridge = WatchBridge(store: store)
     private let hrType = HKQuantityType(.heartRate)
     private let stepType = HKQuantityType(.stepCount)
+    private let standType = HKCategoryType(.appleStandHour)
     private let sleepType = HKCategoryType(.sleepAnalysis)
     private let vo2Type = HKQuantityType(.vo2Max)
     private let distanceTypes = [HKQuantityType(.distanceWalkingRunning), HKQuantityType(.distanceCycling)]
@@ -112,7 +113,7 @@ final class HealthKitService: HealthService {
     private func authorize() async -> Bool {
         guard available else { return false }
         do {
-            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType], read: Set<HKObjectType>([stepType, sleepType, vo2Type, hrType, flightsType, HKObjectType.workoutType()] + distanceTypes))
+            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType], read: Set<HKObjectType>([stepType, standType, sleepType, vo2Type, hrType, flightsType, HKObjectType.workoutType()] + distanceTypes))
             return store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized
         } catch { return false }
     }
@@ -182,6 +183,21 @@ final class HealthKitService: HealthService {
             try await builder.endCollection(at: end)
             return try await builder.finishWorkout() != nil
         } catch { return false }
+    }
+
+    /// Hours with a stand reading today (Apple Watch's stand ring), or nil when Health has none readable.
+    func standHours(on day: Date) async -> Int? {
+        guard available else { return nil }
+        let cal = Calendar.current
+        let from = cal.startOfDay(for: day), to = cal.date(byAdding: .day, value: 1, to: from) ?? day
+        let pred = HKQuery.predicateForSamples(withStart: from, end: to)
+        return await withCheckedContinuation { cont in
+            let q = HKSampleQuery(sampleType: standType, predicate: pred, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                guard error == nil, let samples = samples as? [HKCategorySample] else { cont.resume(returning: nil); return }
+                cont.resume(returning: samples.filter { $0.value == HKCategoryValueAppleStandHour.stood.rawValue }.count)
+            }
+            store.execute(q)
+        }
     }
 
     /// Steps for a civil day, or nil when Health has no readable data (the field stays manual).

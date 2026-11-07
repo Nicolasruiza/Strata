@@ -297,10 +297,12 @@ public struct AppData: Codable, Equatable {
     public var live: LiveCardio?
     /// Daily Mobility check-offs (iOS only; the web ignores it).
     public var mobility: [MobilityDone]?
+    /// Daily step totals from Apple Health, every day (iOS only; the web ignores it). The weekly walking average reads it.
+    public var steps: [String: Int]?
 
     enum CodingKeys: String, CodingKey {
         case next, history, active, holds, cycleStarts, focus, injuries, cycleAnchor, cardio, age
-        case officeDays, rcOffice, waist, skips, live, mobility
+        case officeDays, rcOffice, waist, skips, live, mobility, steps
     }
 
     public init() {}
@@ -333,6 +335,7 @@ public struct AppData: Codable, Equatable {
         skips = try c.decodeIfPresent([String: Skip].self, forKey: .skips)
         live = try c.decodeIfPresent(LiveCardio.self, forKey: .live)
         mobility = try c.decodeIfPresent([MobilityDone].self, forKey: .mobility)
+        steps = try c.decodeIfPresent([String: Int].self, forKey: .steps)
         // `demoSensors` is a web testing switch: read nothing, write nothing.
     }
 }

@@ -4,6 +4,11 @@ public struct WeekStats: Codable, Equatable {
     public var m: Int, mt: Int, h: Int, ht: Int, b: Int, bt: Int
     public var closed: [Bool]
     public var all: Bool
+    /// Average daily steps over the finished days of the week (iOS only, from Apple Health). Not part of the web's stats.
+    public var walkAvg: Int? = nil
+    enum CodingKeys: String, CodingKey { case m, mt, h, ht, b, bt, closed, all }
+    /// True when the walking average, not sessions, is what closed Heart.
+    public var closedByWalking: Bool { (walkAvg ?? 0) >= Int(Config.Insights.stepsMinDaily) && closed[1] && h >= ht }
 }
 
 public struct LiftSlot: Codable, Equatable {
@@ -99,9 +104,37 @@ extension Engine {
             ds.contains(c.date) && c.type != "jumps" && c.type != "home"
                 && !(c.type == "cardio" && (c.min ?? 0) < Config.workout.shortCardioMin)
         }.map { $0.date + $0.type })
-        let h = hk.count
+        var h = hk.count
+        // A decent walking average also closes Heart (Apple Health steps, every day, not just office days).
+        let avg = walkAverage(mon)
+        if let avg, Double(avg) >= Config.Insights.stepsMinDaily { h = max(h, ht) }
         let b = Set(db.cardio.filter { ds.contains($0.date) && $0.type == "jumps" }.map(\.date)).count
-        return WeekStats(m: m, mt: mt, h: h, ht: ht, b: b, bt: bt, closed: [m >= mt, h >= ht, b >= bt], all: m >= mt && h >= ht && b >= bt)
+        var st = WeekStats(m: m, mt: mt, h: h, ht: ht, b: b, bt: bt, closed: [m >= mt, h >= ht, b >= bt], all: m >= mt && h >= ht && b >= bt)
+        st.walkAvg = avg
+        return st
+    }
+
+    /// Average daily steps over the week's finished days (today is still being walked, so it is left out),
+    /// or nil until `Config.RingGoals.walkMinDays` days have data.
+    public func walkAverage(_ mon: String) -> Int? {
+        guard let steps = db.steps else { return nil }
+        let days = Dates.weekDates(mon).filter { $0 < today }.compactMap { steps[$0] }
+        guard days.count >= Config.RingGoals.walkMinDays else { return nil }
+        return Int((Double(days.reduce(0, +)) / Double(days.count)).rounded())
+    }
+
+    /// Keeps Apple Health's daily step totals on the data, so the weekly average works for every day.
+    /// Returns whether anything changed.
+    @discardableResult
+    public mutating func recordDailySteps(_ totals: [String: Int]) -> Bool {
+        var steps = db.steps ?? [:]
+        let before = steps
+        for (d, n) in totals where d <= today && n > 0 { steps[d] = n }
+        let cutoff = Dates.addDays(today, -120)
+        steps = steps.filter { $0.key >= cutoff }
+        guard steps != before else { return false }
+        db.steps = steps
+        return true
     }
 
     /// `streak()`: full weeks (all three rings closed) before this one.

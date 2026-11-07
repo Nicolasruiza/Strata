@@ -48,6 +48,7 @@ struct RingDot: View {
 
 /// `ringsCard(st, headline)`
 struct RingsCard: View {
+    @EnvironmentObject var model: AppModel
     let st: WeekStats
     let headline: String?
     var body: some View {
@@ -61,20 +62,33 @@ struct RingsCard: View {
             }
             HStack {
                 cell("m", "Muscle", st.m, st.mt); Spacer(minLength: 0)
-                cell("h", "Heart", st.h, st.ht); Spacer(minLength: 0)
+                cell("h", "Heart", st.h, st.ht, caption: st.closedByWalking ? "\(Self.k(st.walkAvg ?? 0))/day" : nil); Spacer(minLength: 0)
                 cell("b", "Bone", st.b, st.bt)
             }
             .padding(.top, 14).padding(.bottom, 10).padding(.horizontal, 8)
+            if let w = walkLine() { Text(w).metaStyle().padding(.bottom, 8) }
             if let h = headline { Text(h).bodyStyle() }
         }
         .card()
     }
 
-    private func cell(_ k: String, _ label: String, _ d: Int, _ t: Int) -> some View {
+    private static func k(_ n: Int) -> String { String(format: "%.1fk", Double(n) / 1000) }
+
+    /// "Walking avg 5.2k a day (7k closes Heart) · stood 6 h today": the Watch's own stand reminders drive the hours.
+    private func walkLine() -> String? {
+        var parts: [String] = []
+        if let a = st.walkAvg {
+            parts.append(st.closedByWalking ? "Walking avg \(Self.k(a)) a day closes Heart" : "Walking avg \(Self.k(a)) a day (\(Self.k(Int(Config.Insights.stepsMinDaily))) closes Heart)")
+        }
+        if let h = model.standHours, st.walkAvg != nil || h > 0 { parts.append("stood \(h) h today") }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    private func cell(_ k: String, _ label: String, _ d: Int, _ t: Int, caption: String? = nil) -> some View {
         VStack(spacing: 4) {
             RingView(kind: k, done: d, target: t)
             Text(label).font(.inter(size: 13, weight: .semibold))
-            Text("\(d)/\(t)").font(.inter(size: 14, weight: .bold)).monospacedDigit()
+            Text(caption ?? "\(d)/\(t)").font(.inter(size: 14, weight: .bold)).monospacedDigit()
         }
         .frame(minWidth: 84)
         .accessibilityElement(children: .ignore)

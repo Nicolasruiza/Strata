@@ -86,6 +86,9 @@ public enum Config {
         public static let muscle = 3
         public static let heart = 3
         public static let bone = 2
+        /// A week whose daily steps average at least `Insights.stepsMinDaily` closes Heart on its own,
+        /// once this many finished days have data (so one big Monday does not close the week).
+        public static let walkMinDays = 4
     }
 
     /// VO2 max norms (mL/kg/min), Cooper Institute percentiles as printed in Garmin's standard
