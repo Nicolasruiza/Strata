@@ -188,3 +188,6 @@ Web quirk seen while comparing (not ported, not changed): opening the web app wi
 ## Waist and Apple Health (iOS only)
 - [x] Waist circumference is read from Health (last 2 years, latest reading of each day) into `waist`; days already in Strata are never overwritten. Runs with the other Health syncs when the app opens
 - [x] "Add measurement" also writes the number to Health (one sample per day, replaced if you correct it); asks for permission the first time. Settings › Apple Health shows "Waist (read and save)" with the last reading. The web has no Health, so it keeps manual entry only
+
+## Health workouts that duplicate a Strata log (iOS only)
+- [x] Today's log and the Progress cardio minutes hide Apple Health workouts that are the same session as something Strata logged: each Strata lift that day hides one Health strength workout; each Strata cardio entry hides one Health workout within 5 min of its length (office walks and jumps never hide anything). Matching is by kind and size because a finished Strata session keeps no start time

@@ -62,7 +62,8 @@ final class AppModel: ObservableObject {
     /// Hours stood today, from Apple Health (the Watch's own stand reminders drive it).
     @Published private(set) var standHours: Int?
     @Published private(set) var healthSleep: [String: Double] = [:]
-    @Published private(set) var healthWorkoutMinutes: [String: Double] = [:]
+    /// Health workouts by day (minutes each), Strata's own already left out. Duplicates of a Strata log are removed when read.
+    @Published private(set) var healthWorkoutMinutes: [String: [Double]] = [:]
     @Published private(set) var todayWorkouts: [HealthWorkoutRow] = []
     @Published private(set) var vo2: [Vo2Reading] = []
     private var watchRevision = 0
@@ -143,7 +144,18 @@ final class AppModel: ObservableObject {
 
     func syncedSteps(on date: String) -> Int? { healthSteps[date] }
     func syncedSleep(on date: String) -> Double? { healthSleep[date] }
-    func healthCardioMinutes(on date: String) -> Double { healthWorkoutMinutes[date] ?? 0 }
+    func healthCardioMinutes(on date: String) -> Double {
+        guard let e = engine, let list = healthWorkoutMinutes[date] else { return 0 }
+        let ext = list.map { ExternalWorkout(isStrength: false, minutes: $0) }
+        return e.newExternalWorkouts(ext, on: date).reduce(0) { $0 + list[$1] }
+    }
+
+    /// Today's Health workouts without the ones that are the same session as something Strata logged.
+    var newTodayWorkouts: [HealthWorkoutRow] {
+        guard let e = engine else { return todayWorkouts }
+        let ext = todayWorkouts.map { ExternalWorkout(isStrength: $0.isStrength, minutes: $0.minutes) }
+        return e.newExternalWorkouts(ext, on: e.today).map { todayWorkouts[$0] }
+    }
 
     /// Run a change on the engine, save, and show the toast it returned.
     func mutate(_ change: (inout Engine) -> String?) {
