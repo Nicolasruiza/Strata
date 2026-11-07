@@ -22,7 +22,7 @@ struct FocusView: View {
         let w = p?.w ?? baseW, reps = p?.reps ?? []
         let last = e.lastOf(ex.id), tr = e.trendOf(ex.id)
         let exT = A.exT?[ex.id] ?? AppModel.nowMs()
-        let plate = ex.bar != nil ? Fmt.plateTxt(ex, w) : ex.isEach ? "\(jsMinutes(w)) lb in each hand" : ex.hasPlates ? "Load evenly on both sides" : (ex.isBodyweight && w == 0) ? "Bodyweight" : ""
+        let plate = ex.bar != nil ? Fmt.plateTxt(ex, w) : ex.isEach ? "\(jsMinutes(w)) lb in each hand" : ex.hasPlates ? Fmt.sledTxt(w) : (ex.isBodyweight && w == 0) ? "Bodyweight" : ""
         let warm = A.warm?[ex.id] ?? []
         ScrollView {
             VStack(spacing: 0) {

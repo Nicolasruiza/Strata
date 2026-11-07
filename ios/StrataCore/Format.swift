@@ -56,6 +56,18 @@ public enum Fmt {
         return "\(jsNum(bar)) lb bar + \(out.joined(separator: " + ")) / side"
     }
 
+    /// `sledTxt`: leg press. The weight is the plates on the sled (not counting the sled), split evenly:
+    /// "45 + 45 / side (plates only)".
+    public static func sledTxt(_ total: Double) -> String {
+        guard total > 0 else { return "Empty sled" }
+        var side = total / 2
+        var out: [String] = []
+        for p in Catalog.shared.plates {
+            while side >= p - 0.001 { out.append(jsNum(p)); side = Double(jsFixed(side - p, 2)) ?? 0 }
+        }
+        return "\(out.joined(separator: " + ")) / side (plates only)" + (side > 0.001 ? " · +\(jsNum(side)) short" : "")
+    }
+
     /// `ytURL`: YouTube search for the form video. `qmapKey` is "nr" or "sa".
     public static func formVideoURL(id: String, name: String, qmapKey: String) -> String {
         let cat = Catalog.shared

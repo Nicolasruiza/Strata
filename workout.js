@@ -281,6 +281,9 @@ function restBanner(){
     <div class="grow"><div class="label" id="restLbl" style="color:${rem>0?'var(--violet)':'var(--mint)'}">${rem>0?'Rest':'Go'}</div><b id="restClock" style="font-size:30px;font-variant-numeric:tabular-nums">${mmss(Math.ceil(rem))}</b>
     ${rest.next?`<div class="meta">${esc(rest.next)}</div>`:''}</div><button class="btn sm" id="rest30" style="width:auto;padding:0 14px">+30 s</button><button class="btn sm" id="restSkip" style="width:auto;padding:0 14px">Skip</button></div>`;
 }
+/* "2 of 8 sets done" once something is logged, else the plan line */
+function jumpsMeta(){const A=DB.active, sets=A.jumps||{}, items=jumpItems(), total=items.reduce((a,x)=>a+x.sets,0), done=items.reduce((a,x)=>a+Math.min(x.sets,sets[x.k]||0),0);
+  return done>0?`${done} of ${total} sets done`:'Pogo hops 3 × 10 · Box jumps 3 × 5'}
 function overviewView(){
   const A=DB.active, L=liftList(), req=requiredItems(A.day), done=req.filter(x=>exState(x)==='done').length, nx=nextUp();
   const el=Math.floor((Date.now()-(A.started||Date.now()))/1000), legs=isLegs(A.day), jumps=cardioOn(A.date,'jumps');
@@ -294,7 +297,7 @@ function overviewView(){
     <div class="weye" style="color:var(--violet)">Strength${legs?' + Bone':''}${A.lowEnergy?' · lighter day':''}</div><h1 class="wh1">${PLAN[A.day].name}</h1>
     <div class="wprog"><i style="width:${req.length?done/req.length*100:0}%"></i></div><div class="meta" style="margin-top:-6px">${done} of ${req.length} main lifts done</div>
     ${restBanner()}
-    ${legs?`<div class="wsec">Warm-up · Bone</div><button class="wrow ${jumps?'done':''}" id="woJumps"><img class="thumb" src="img/pogo.jpg" alt=""><span class="grow"><span class="name" style="display:block">Jumps warm-up</span><span class="meta">Pogo hops 3 × 10 · Box jumps 3 × 5</span></span>${jumps?`<span class="wck" style="background:var(--mint)">${I.check}</span>`:I.chev}</button>`:''}
+    ${legs?`<div class="wsec">Warm-up · Bone</div><button class="wrow ${jumps?'done':''}" id="woJumps"><img class="thumb" src="img/pogo.jpg" alt=""><span class="grow"><span class="name" style="display:block">Jumps warm-up</span><span class="meta">${jumpsMeta()}</span></span>${jumps?`<span class="wck" style="background:var(--mint)">${I.check}</span>`:I.chev}</button>`:''}
     ${woBlocks().map(b=>{const d=b.items.filter(x=>exState(x)==='done').length;
       return `<div class="wsec" style="display:flex;justify-content:space-between"><span>${b.kind}${b.opt?' · if time':''}</span><span class="meta" style="font-weight:600">${d} of ${b.items.length}</span></div>${b.items.map(row).join('')}`}).join('')}
   </div>
@@ -317,7 +320,7 @@ function focusView(){
   const n=setsOf(orig), p=progOf(orig), baseW=A.lowEnergy?loEnergyW(ex,wOf(ex)):wOf(ex), w=p?p.w:baseW, reps=p?p.reps:[];
   const last=lastOf(ex.id), tr=trendOf(ex.id), im=imgOf(ex.id);
   const exT=((A.exT||{})[ex.id])||Date.now();
-  const plate=ex.bar?plateTxt(ex,w):ex.each?`${w} lb in each hand`:ex.plates?'Load evenly on both sides':ex.bw&&!w?'Bodyweight':'';
+  const plate=ex.bar?plateTxt(ex,w):ex.each?`${w} lb in each hand`:ex.plates?sledTxt(w):ex.bw&&!w?'Bodyweight':'';
   const cur=reps.length, rv=woReps!=null?woReps:(reps[cur-1]!=null?reps[cur-1]:orig.r);
   const warm=(A.warm||{})[ex.id]||[];
   const setRow=i=>{
@@ -427,8 +430,8 @@ document.addEventListener('click',e=>{
   const k=b.dataset.wo, i=b.dataset.i;
   if(b.id==='woPickBack'){pickAct=null;go(prevScr&&prevScr!=='pick'?prevScr:'today');return}
   if(b.id==='woList'){DB.active.view='list';woReps=null;save();render();window.scrollTo({top:0});return}
-  if(b.id==='jumpBack'&&DB.active){DB.active.jumpsSeen=1;save();go('lift');return}
-  if(b.id==='woJumps'){jumpSets={};DB.active.jumpsSeen=0;save();go('jumps');return}
+  if(b.id==='jumpBack'&&DB.active){if(jumpStep>0){jumpStep--;rest=null;render();window.scrollTo({top:0});return} DB.active.jumpsSeen=1;rest=null;save();go('lift');return}
+  if(b.id==='woJumps'){jumpStep=0;DB.active.jumpsSeen=0;save();go('jumps');return}
   if(!k)return;
   const A=DB.active;
   if(k==='pick'){pickAct=null;go('pick');return}
@@ -460,7 +463,7 @@ document.addEventListener('click',e=>{
 });
 $('#sheet').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b)return;
-  if(b.dataset.wo==='addlift'){closeSheet(); const d=nextDay(); begin(d); jumpSets={}; go(isLegs(d)?'jumps':'lift'); return}
+  if(b.dataset.wo==='addlift'){closeSheet(); const d=nextDay(); begin(d); jumpSets={}; jumpW={}; jumpStep=0; go(isLegs(d)?'jumps':'lift'); return}
   if(b.dataset.wo==='endsess'){closeSheet(); toast('Session saved'); return}
   if(b.dataset.wwu){const [w,r]=b.dataset.wwu.split('|').map(Number), A=DB.active, ex=shownEx(liftList()[curIdx()]);
     A.warm=A.warm||{}; (A.warm[ex.id]=A.warm[ex.id]||[]).push({w,r,done:false}); save(); closeSheet(); render(); return}

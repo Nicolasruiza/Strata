@@ -384,22 +384,43 @@ function begin(day){
 }
 
 /* ===================== JUMPS ===================== */
-let jumpSets={};
-function jumpsView(){
+let jumpSets={}, jumpW={}, jumpStep=0;
+/* rest between sets (from the cues in the exercise text), and the optional load step on warm-up moves like the single-leg RDL */
+const JUMPS_REST={pogo:30,box:60}, JUMPS_REST_DEFAULT=30, JUMPS_W_STEP=5;
+function jumpItems(){
   const A=DB.active, warm=PLAN[A.day].blocks.filter(b=>/^warm-up/i.test(b.t)).flatMap(b=>b.items);
-  const items=[{k:'pogo',n:'Pogo hops',img:'img/pogo.jpg',sets:3,reps:'10',how:'Bounce on the balls of your feet, knees almost straight, quick and light. 30 s rest between sets.',yt:'rc_pogo'},
-               {k:'box',n:'Box jumps',img:'img/box_jump.jpg',sets:3,reps:'5',how:'Low box, 30–40 cm. Jump up, land soft, stand tall, then step down. 60 s rest.',yt:'rc_box'}]
-    .concat(warm.map(ex=>({k:ex.id,n:cleanN(ex.n),img:imgOf(ex.id),sets:2,reps:ex.r+perLeg(ex),how:cueOf(ex.id),yt:ex.id,ex})));
-  const card=it=>{const done=jumpSets[it.k]||0;
-    return `<section class="card"><div style="display:flex;gap:12px;align-items:center"><img class="thumb" src="${it.img}" alt="">
-      <div class="grow"><div class="name">${it.n}</div><div class="meta">${it.sets} × ${it.reps}</div></div>
-      <button class="gbtn" data-yt="${it.yt}" aria-label="Watch ${esc(it.n)}">${I.play}</button></div>
-      <p class="p">${it.how}</p>
-      <div style="display:flex;gap:8px;margin-top:12px">${[...Array(it.sets).keys()].map(i=>`<button class="btn sm ${i<done?'mint':''}" data-jset="${it.k}|${i}" aria-pressed="${i<done}">${i<done?I.check.replace('<svg','<svg width="16" height="16"'):`Set ${i+1}`}</button>`).join('')}</div></section>`};
-  const allDone=items.every(it=>(jumpSets[it.k]||0)>=it.sets);
-  return hero({left:backBtn('jumpBack'),title:'Jumps warm-up',eyebrow:`Bone · ${PLAN[A.day].name}`,cls:'short',sub:'Impact for bone density. Short, sharp, done before you lift.'})
-   +`<main class="wrap">${items.map(card).join('')}</main>
-    <div class="dock"><button class="btn" id="skipJumps">Skip</button><button class="btn ${allDone?'mint':''} w2" id="jumpsDone">${allDone?'Done · start lifting':'Mark done · start lifting'}</button></div>`;
+  return [{k:'pogo',n:'Pogo hops',img:'img/pogo.jpg',sets:3,reps:10,per:'',how:'Bounce on the balls of your feet, knees almost straight, quick and light. 30 s rest between sets.',yt:'rc_pogo',rest:JUMPS_REST.pogo},
+          {k:'box',n:'Box jumps',img:'img/box_jump.jpg',sets:3,reps:5,per:'',how:'Low box, 30–40 cm. Jump up, land soft, stand tall, then step down. 60 s rest.',yt:'rc_box',rest:JUMPS_REST.box}]
+    .concat(warm.map(ex=>({k:ex.id,n:cleanN(ex.n).replace(', bodyweight',''),img:imgOf(ex.id),sets:2,reps:ex.r,per:perLeg(ex),how:cueOf(ex.id),yt:ex.id,rest:JUMPS_REST_DEFAULT,weighted:true})));
+}
+const jumpWeight=it=>{const A=DB.active; return jumpW[it.k]!=null?jumpW[it.k]:(A.entries[it.k]&&A.entries[it.k].w)||(lastOf(it.k)||{}).w||0};
+/* sets logged so far live on the workout, so leaving and coming back keeps them */
+function setJump(k,n){const A=DB.active; jumpSets[k]=n; A.jumps=A.jumps||{}; if(n>0)A.jumps[k]=n; else delete A.jumps[k]; if(!Object.keys(A.jumps).length)delete A.jumps; save()}
+function jumpsView(){
+  const A=DB.active, items=jumpItems(); jumpSets=Object.assign({},A.jumps||{});
+  const step=Math.min(jumpStep,items.length-1), it=items[step], done=jumpSets[it.k]||0, last=step===items.length-1;
+  const allDone=items.every(x=>(jumpSets[x.k]||0)>=x.sets), w=it.weighted?jumpWeight(it):0;
+  const line=(w>0?`${w} lb × `:'')+`${it.reps} reps${it.per}`;
+  const rows=[...Array(it.sets).keys()].map(i=>i<done
+    ?`<div class="wcard" style="display:flex;align-items:center;gap:12px;padding:12px 14px"><button ${i===done-1?`data-jundo="${i}"`:'disabled'} aria-label="Undo set ${i+1}" style="background:var(--mint);border:0;border-radius:15px;width:30px;height:30px;color:#08210F;display:flex;align-items:center;justify-content:center"><span style="width:15px;height:15px;display:block">${I.check}</span></button>
+        <div class="grow"><div class="name">Set ${i+1}</div><div class="meta">${line}</div></div><span class="chip n" style="margin:0">Done</span></div>`
+    :i===done
+    ?`<div class="wcard" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--mint);background:rgba(74,222,128,.08)"><div class="grow"><div class="name">Set ${i+1}</div><div class="meta">${line}</div></div>
+        <button class="btn sm mint" id="jumpLog" style="width:auto;padding:0 20px">Log</button></div>`
+    :`<div class="wcard" style="display:flex;align-items:center;gap:12px;padding:12px 14px;opacity:.75"><span style="width:30px;height:30px;border-radius:15px;border:2px solid rgba(255,255,255,.3);display:block"></span>
+        <div class="grow"><div class="name">Set ${i+1}</div><div class="meta">${line}</div></div></div>`).join('');
+  const weightCard=it.weighted?`<div class="card tight" style="padding:10px"><div class="label" style="text-align:center">Weight · lb · optional</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+      <button class="stp" data-jw="-1" aria-label="Less weight">−</button><b id="jW" class="bignum">${w}</b><button class="stp" data-jw="1" aria-label="More weight">+</button></div>
+      <div class="meta" style="text-align:center;margin-top:4px">${w===0?'Bodyweight. Add a kettlebell if you use one.':'In your hand, remembered for next time'}</div></div>`:'';
+  return hero({left:backBtn('jumpBack',step===0?'Skip the warm-up':'Previous exercise'),title:it.n,eyebrow:`Warm-up · Bone ${step+1} of ${items.length}`,cls:'short',sub:`${it.sets} sets × ${it.reps}${it.per}`})
+   +`<main class="wrap" style="gap:10px;margin-top:10px">
+    <section class="card tight"><div style="display:flex;gap:14px"><img src="${it.img}" alt="${esc(it.n)}" style="width:112px;height:112px;object-fit:cover;border-radius:16px;flex:none;background:#1b1e28">
+      <div class="grow" style="display:flex;flex-direction:column;gap:6px;min-width:0"><div class="label">How</div><div style="font-size:14px;line-height:1.4;color:#E6E8EE">${it.how}</div></div></div></section>
+    <button class="btn sm" data-yt="${it.yt}">${I.play.replace('<svg','<svg width="14" height="14"')}Form video</button>
+    ${weightCard}${restBanner()}${rows}</main>
+    <div class="dock"><button class="btn" id="skipJumps">Skip</button>${last
+      ?`<button class="btn ${allDone?'mint':''} w2" id="jumpsDone">${allDone?'Done · start lifting':'Start lifting'}</button>`
+      :`<button class="btn ${done>=it.sets?'mint':''} w2" id="jumpNext">Next exercise</button>`}</div>`;
 }
 
 /* ===================== LIFT IN PROGRESS ===================== */
@@ -439,7 +460,7 @@ function liftView(){
       <div class="name" style="margin-top:4px">${canUp?`${nextW} lb next`:'Weight stays'}</div></div></section>`;
   /* media slot: same size in every state */
   const resting=rest&&(rest.endAt-Date.now())>-1000;
-  const s=imgOf(ex.id), plate=ex.bar?plateTxt(ex,w):(ex.each?`${w} lb in each hand`:ex.plates?'Load evenly on both sides':'');
+  const s=imgOf(ex.id), plate=ex.bar?plateTxt(ex,w):(ex.each?`${w} lb in each hand`:ex.plates?sledTxt(w):'');
   let media;
   if(resting){
     const rem=Math.max(0,(rest.endAt-Date.now())/1000), C=2*Math.PI*62;
@@ -529,7 +550,7 @@ function renderRest(){ const R=$('#restbar'); if(R)R.hidden=true; if(scr==='lift
 let liftTick=null;
 function ensureLiftTick(){ if(!liftTick)liftTick=setInterval(tickLift,500); }
 function tickLift(){
-  if(scr!=='lift'||!DB.active){clearInterval(liftTick);liftTick=null;return}
+  if((scr!=='lift'&&scr!=='jumps')||!DB.active){clearInterval(liftTick);liftTick=null;return}
   const e=$('#elapsed'); if(e)e.textContent=mmss(Math.floor((Date.now()-(DB.active.started||Date.now()))/1000))+' elapsed';
   if(!rest)return;
   const rem=(rest.endAt-Date.now())/1000;
@@ -1024,12 +1045,18 @@ document.addEventListener('click',e=>{
   if(id==='beginBtn'){
     if(DB.active){toast('Finish the open workout first');go('lift');return}
     const g=gateFor(previewDay); if(!g.ok&&!confirm(g.msg.replace(/<[^>]+>/g,'')+'\n\nStart anyway?'))return;
-    begin(previewDay); jumpSets={}; go(isLegs(previewDay)?'jumps':'lift'); return}
-  if(ds.jset){const [k,i]=ds.jset.split('|'); jumpSets[k]=(jumpSets[k]||0)===+i+1?+i:+i+1; render(); return}
-  if(id==='jumpsDone'){const A=DB.active; A.jumpsSeen=1;
-    PLAN[A.day].blocks.filter(b=>/^warm-up/i.test(b.t)).flatMap(b=>b.items).forEach(ex=>{if((jumpSets[ex.id]||0)>0)A.entries[ex.id]={w:0,reps:Array(jumpSets[ex.id]).fill(ex.r)}});
+    begin(previewDay); jumpSets={}; jumpW={}; jumpStep=0; go(isLegs(previewDay)?'jumps':'lift'); return}
+  if(id==='jumpLog'){const items=jumpItems(), it=items[Math.min(jumpStep,items.length-1)], n=(jumpSets[it.k]||0)+1, nxt=items[jumpStep+1];
+    setJump(it.k,n); if(it.weighted)jumpW[it.k]=jumpWeight(it);
+    if(n>=it.sets&&!nxt)rest=null; else startRest(it.rest,n<it.sets?`Set ${n+1} of ${it.sets}`:`Next: ${nxt.n}`,n<it.sets?undefined:'Logged');
+    render(); return}
+  if(ds.jundo!=null){const items=jumpItems(), it=items[Math.min(jumpStep,items.length-1)]; setJump(it.k,+ds.jundo); rest=null; render(); return}
+  if(ds.jw){const items=jumpItems(), it=items[Math.min(jumpStep,items.length-1)]; jumpW[it.k]=Math.max(0,jumpWeight(it)+(+ds.jw)*JUMPS_W_STEP); render(); return}
+  if(id==='jumpNext'){rest=null; jumpStep++; render(); window.scrollTo({top:0}); return}
+  if(id==='jumpsDone'){const A=DB.active; A.jumpsSeen=1; rest=null; jumpStep=0;
+    PLAN[A.day].blocks.filter(b=>/^warm-up/i.test(b.t)).flatMap(b=>b.items).forEach(ex=>{if((jumpSets[ex.id]||0)>0)A.entries[ex.id]={w:jumpW[ex.id]||0,reps:Array(jumpSets[ex.id]).fill(ex.r)}});
     logCardio('jumps',{landings:45}); go('lift'); toast('Jumps logged'); return}
-  if(id==='skipJumps'){DB.active.jumpsSeen=1;save();go('lift');return}
+  if(id==='skipJumps'){DB.active.jumpsSeen=1;rest=null;jumpStep=0;save();go('lift');return}
   if(id==='jumpBack'||id==='liftBack'){go('today');return}
   if(ds.st){const [k,dir]=ds.st.split('|'), el=$(k==='r'?'#vR':'#vW');
     const L=liftList(), ex=shownEx(L[curIdx()]), stp=k==='r'?(isSec(ex)?5:1):(ex.inc||5);

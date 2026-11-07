@@ -167,9 +167,12 @@ Web quirk seen while comparing (not ported, not changed): opening the web app wi
 - Not done: Live Activity (needs a widget extension target)
 - Not verified: everything on this list needs a paired Apple Watch; it compiles in CI but has never run on hardware
 
-## Jumps warm-up (iOS, set by set)
+## Jumps warm-up (set by set, web and iOS)
 - [x] One exercise per screen like the lifts (image header, "Warm-up · Bone N of M", sets × reps, how-to), Log per set with the rest banner between sets (pogo 30 s, box 60 s), Next exercise, final "Done · start lifting"
-- [x] Single-leg RDL takes an optional weight (kettlebell), remembered from last time, saved on the session entry (web still logs bodyweight only)
+- [x] Single-leg RDL takes an optional weight (kettlebell), remembered from last time, saved on the session entry; sets logged so far are kept on the workout (`active.jumps`) so reopening the warm-up shows them; the finish button reads "Start lifting" until every set is logged
 ## Ring goals (fixed, can be exceeded)
 - [x] Muscle 3 lifts, Heart 3 sessions, Bone 2 jump days per week; goals no longer follow the plan, and counts are not capped (a 4th lift shows 4/3 and a second, lighter lap on the ring)
 - [x] Week summaries (History cards, Progress 8-week grid) show each ring as a dot that fills with progress, not just closed/open
+
+## Leg press plates
+- [x] Leg press (plates, no bar) shows what to load on each side: weight is the plates on the sled, split evenly ("45 + 45 / side (plates only)", "Empty sled" at 0); web `sledTxt`, iOS `Fmt.sledTxt`

@@ -734,6 +734,13 @@ function badge(ex,raw){
   return `<span class="badge b1" title="${tip}">NEEDS BOOST</span>`;
 }
 const PLATES=[45,35,25,10,5,2.5];
+/* leg press: the weight is the plates on the sled (not counting the sled), split evenly: what to load on each side */
+function sledTxt(total){
+  if(!(total>0))return 'Empty sled';
+  let side=total/2,out=[];
+  PLATES.forEach(p=>{while(side>=p-.001){out.push(p);side=+(side-p).toFixed(2)}});
+  return `${out.join(' + ')} / side (plates only)`+(side>.001?` · +${side} short`:'');
+}
 function plateLine(ex,total){
   if(!ex.bar)return'';
   const bt=ex.bar===45?'45 lb bar':ex.bar+' lb EZ bar';
