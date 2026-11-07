@@ -144,6 +144,7 @@ function countdown(label,done,cfg){
   let n=WCFG.countdownSec;
   const step=async()=>{
     if(n===0){o.remove(); cue(); done&&done();
+      if(cfg===false)return;   // a timed set: no watch workout
       const r=await Health.startWatch(cfg||{}); if(r.started)toast(`Apple Watch · ${label} started`);
       return}
     o.innerHTML=`<div class="cdl">${esc(label)}</div><div class="cdn">${n}</div><div class="cdl" style="opacity:.6">Get ready</div>`;
@@ -325,9 +326,15 @@ function focusView(){
   const warm=(A.warm||{})[ex.id]||[];
   const setRow=i=>{
     if(i<cur)return `<div class="wset done"><button class="wck" data-wo="undo" data-i="${i}" aria-label="Undo set ${i+1}" ${i===cur-1?'':'disabled'}>${I.check}</button><div class="grow"><div class="name">Set ${i+1}</div><div class="meta">${w} lb × ${repLbl(ex,reps[i])}</div></div><span class="chip n" style="margin:0">Done</span></div>`;
+    if(i===cur&&hold&&hold.id===ex.id&&hold.endAt){const hr=Math.max(0,(hold.endAt-Date.now())/1000), C=2*Math.PI*62;
+      return `<div class="wset cur" style="flex-direction:column;align-items:center;gap:10px;padding:16px"><div class="label" style="color:var(--violet)">Set ${i+1} of ${n}${w>0?` · ${w} lb`:''}</div>
+        <div style="position:relative;width:170px;height:170px"><svg width="170" height="170" viewBox="0 0 140 140" aria-hidden="true"><circle cx="70" cy="70" r="62" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="9"/>
+          <circle id="holdArc" cx="70" cy="70" r="62" fill="none" stroke="#9C8CFF" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(C*hr/hold.total).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 70 70)"/></svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span id="holdClock" style="font-size:56px;font-weight:800;font-variant-numeric:tabular-nums">${Math.ceil(hr)}</span><span class="meta">seconds</span></div></div>
+        <button class="btn sm" data-wo="holdstop">Stop and log</button></div>`}
     if(i===cur)return `<div class="wset cur"><div class="grow"><div class="name">Set ${i+1}${i>=(A.lowEnergy?2:(orig.sets||3))?' · extra':''}</div><div class="meta">${w} lb × ${repLbl(ex,orig.r)} target</div></div>
       <div class="wstep"><button data-wo="rep" data-i="-1" aria-label="Fewer">−</button><b>${rv}</b><button data-wo="rep" data-i="1" aria-label="More">+</button></div>
-      <button class="wlog" data-wo="log">Log</button></div>`;
+      <button class="wlog" data-wo="${isSec(ex)?'hold':'log'}">${isSec(ex)?'Start':'Log'}</button></div>`;
     return `<div class="wset todo"><span class="wdot"></span><div class="grow"><div class="name">Set ${i+1}</div><div class="meta">${w} lb × ${repLbl(ex,orig.r)}</div></div></div>`;
   };
   return `<div class="wfocus">
@@ -345,6 +352,7 @@ function focusView(){
       <button class="wpm" data-wo="w" data-i="-1" aria-label="Less weight">${WIC.minus}</button><button class="wpm v" data-wo="w" data-i="1" aria-label="More weight">${WIC.plus}</button></div>
     ${warm.map((s,i)=>`<div class="wset ${s.done?'done':'todo'}" style="border-style:dashed"><button class="wck ${s.done?'':'off'}" data-wo="wu" data-i="${i}" aria-label="Warm-up set done">${s.done?I.check:''}</button><div class="grow"><div class="name">Warm-up ${i+1}</div><div class="meta">${s.w} lb × ${s.r}${ex.bar?' · '+plateTxt(ex,s.w):''}</div></div><button class="link" data-wo="wudel" data-i="${i}" style="padding:4px">Remove</button></div>`).join('')}
     ${[...Array(n).keys()].map(setRow).join('')}
+    ${isSec(ex)&&cur<n&&!(hold&&hold.id===ex.id)?`<button class="link" data-wo="log" style="align-self:flex-start;padding:0">Log without timer</button>`:''}
     <div class="grid2"><button class="btn sm" data-wo="addset">${WIC.plus}Set</button><button class="btn sm" data-wo="warm">${WIC.plus}Warm-up</button></div>
     <div class="grid2"><button class="btn sm" data-yt="${ex.id}">${I.play.replace('<svg','<svg width="14" height="14"')}Form video</button>${(ALT_OF[orig.id]||[]).length?`<button class="btn sm" id="swapBtn">${I.swap.replace('<svg','<svg width="16" height="16"')}Swap</button>`:'<span></span>'}</div>
     <button class="btn violet" data-wo="busy" style="background:rgba(156,140,255,.85)">${WIC.busy}Machine busy</button>
@@ -445,6 +453,8 @@ document.addEventListener('click',e=>{
   if(k==='sdiscard'){if(confirm('Discard this workout? Nothing will be saved.')){DB.active=null;rest=null;save();go('today')}return}
   if(k==='rep'){const L=liftList(),orig=L[curIdx()],ex=shownEx(orig),p=progOf(orig);const base=woReps!=null?woReps:(p&&p.reps.length?p.reps[p.reps.length-1]:orig.r);woReps=Math.max(0,base+(+i)*(isSec(ex)?5:1));render();return}
   if(k==='log'){logWoSet();return}
+  if(k==='hold'){const ex=shownEx(liftList()[curIdx()]), b=document.querySelector('.wset.cur .wstep b'); startHold(ex,b?+b.textContent:0); return}
+  if(k==='holdstop'){stopHold();return}
   if(k==='undo'){const L=liftList(),orig=L[curIdx()],ex=shownEx(orig),p=progOf(orig);if(!p)return;p.reps.pop();A.prog[ex.id]=p;delete A.entries[ex.id];save();render();return}
   if(k==='w'){const L=liftList(),orig=L[curIdx()],ex=shownEx(orig);const p=progOf(orig)||{w:A.lowEnergy?loEnergyW(ex,wOf(ex)):wOf(ex),reps:[]};
     p.w=Math.max(0,p.w+(+i)*(ex.inc||5));A.prog[ex.id]=p;if(A.entries[ex.id])A.entries[ex.id].w=p.w;save();render();return}

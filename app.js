@@ -207,7 +207,7 @@ const rdots=st=>`<span class="rdots" aria-label="Muscle ${st.m} of ${st.mt}, Hea
 
 /* ---------- shell ---------- */
 const TABS=[['today','Today',I.home],['progress','Progress',I.chart],['history','History',I.cal],['settings','Settings',I.gear]];
-function go(s){ prevScr=scr; scr=s; editSet=null; render(); window.scrollTo({top:0}); }
+function go(s){ if(s!=='lift')hold=null; prevScr=scr; scr=s; editSet=null; render(); window.scrollTo({top:0}); }
 function hero(o){
   return `<header class="hero ${o.cls||''}" ${o.img?`style="background-image:url(${o.img})"`:''}>
     <div class="topbar">${o.left||`<div class="brand">${I.logo}Strata</div>`}${o.right||''}</div>
@@ -547,11 +547,33 @@ function startRest(sec,next,lbl){
   ensureLiftTick();
 }
 function renderRest(){ const R=$('#restbar'); if(R)R.hidden=true; if(scr==='lift')ensureLiftTick(); }
+/* timed sets (plank, carry...): 3-2-1, then a countdown that logs the set at zero; Stop logs what was held */
+let hold=null;
+function startHold(ex,secs){
+  if(hold||!(secs>0))return;
+  hold={id:ex.id,total:secs,endAt:null};
+  countdown(cleanN(ex.n),()=>{ if(!hold)return; hold.endAt=Date.now()+secs*1000; ensureLiftTick(); render(); },false);
+}
+function finishHold(sec,doCue){
+  const h=hold; if(!h)return; hold=null; if(doCue)cue();
+  const A=DB.active; if(!A||scr!=='lift'||shownEx(liftList()[curIdx()]).id!==h.id){render();return}
+  woReps=sec; logWoSet();
+}
+function stopHold(){
+  if(!hold||!hold.endAt){hold=null;render();return}
+  finishHold(Math.max(1,Math.round(hold.total-Math.max(0,(hold.endAt-Date.now())/1000))),false);
+}
 let liftTick=null;
 function ensureLiftTick(){ if(!liftTick)liftTick=setInterval(tickLift,500); }
 function tickLift(){
   if((scr!=='lift'&&scr!=='jumps')||!DB.active){clearInterval(liftTick);liftTick=null;return}
   const e=$('#elapsed'); if(e)e.textContent=mmss(Math.floor((Date.now()-(DB.active.started||Date.now()))/1000))+' elapsed';
+  if(hold&&hold.endAt){
+    const hr=(hold.endAt-Date.now())/1000;
+    if(hr<=0){finishHold(hold.total,true);return}
+    const hc=$('#holdClock'); if(hc)hc.textContent=Math.ceil(hr);
+    const ha=$('#holdArc'); if(ha){const C=2*Math.PI*62;ha.setAttribute('stroke-dasharray',`${(C*hr/hold.total).toFixed(1)} ${C.toFixed(1)}`)}
+  }
   if(!rest)return;
   const rem=(rest.endAt-Date.now())/1000;
   if(rem<=0&&!rest.beeped){rest.beeped=true;cue();render();return}
