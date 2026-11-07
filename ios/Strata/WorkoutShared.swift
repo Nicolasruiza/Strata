@@ -4,25 +4,38 @@ import StrataCore
 /// Rest timer card (`restBanner`).
 struct RestBanner: View {
     @EnvironmentObject var model: AppModel
+    /// When set, the banner keeps its place (same size) while no rest is running, so the screen doesn't jump
+    /// when a set is logged and the rest appears. `big` is the status line, `meta` the small line under it.
+    var idle: (big: String, meta: String)? = nil
+
     var body: some View {
         if let e = model.engine, let r = e.rest, (r.endAt - AppModel.nowMs()) > -1000 {
             TimelineView(.periodic(from: .now, by: 0.5)) { _ in
                 let rem = max(0, (r.endAt - AppModel.nowMs()) / 1000)
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(rem > 0 ? "Rest" : "Go").labelStyle(rem > 0 ? Theme.violet : Theme.mint)
-                        Text(Fmt.mmss(rem.rounded(.up))).font(.inter(size: 30, weight: .bold)).monospacedDigit()
-                        if let n = r.next { Text(n).metaStyle() }
-                    }
-                    Spacer(minLength: 0)
-                    Button("+30 s") { model.extendRest() }.buttonStyle(StrataButtonStyle(small: true, hPad: 14)).fixedSize()
-                    Button("Skip") { model.skipRest() }.buttonStyle(StrataButtonStyle(small: true, hPad: 14)).fixedSize()
-                }
-                .padding(.horizontal, 16).padding(.vertical, 14)
-                .background(RoundedRectangle(cornerRadius: 22).fill(Theme.glass))
-                .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(Theme.violet.opacity(0.45)))
+                card(label: rem > 0 ? "Rest" : "Go", color: rem > 0 ? Theme.violet : Theme.mint,
+                     big: Fmt.mmss(rem.rounded(.up)), meta: r.next, border: Theme.violet.opacity(0.45), buttons: true)
             }
+        } else if let i = idle {
+            card(label: "Ready", color: Theme.mint, big: i.big, meta: i.meta, border: Theme.line, buttons: false)
         }
+    }
+
+    private func card(label: String, color: Color, big: String, meta: String?, border: Color, buttons: Bool) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label).labelStyle(color)
+                Text(big).font(.inter(size: 30, weight: .bold)).monospacedDigit()
+                Text(meta ?? " ").metaStyle()
+            }
+            Spacer(minLength: 0)
+            Group {
+                Button("+30 s") { model.extendRest() }.buttonStyle(StrataButtonStyle(small: true, hPad: 14)).fixedSize()
+                Button("Skip") { model.skipRest() }.buttonStyle(StrataButtonStyle(small: true, hPad: 14)).fixedSize()
+            }.opacity(buttons ? 1 : 0).allowsHitTesting(buttons)
+        }
+        .padding(.horizontal, 16).padding(.vertical, 14)
+        .background(RoundedRectangle(cornerRadius: 22).fill(Theme.glass))
+        .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(border))
     }
 }
 
