@@ -207,7 +207,7 @@ struct ProgressScreen: View {
                         HStack(spacing: 8) {
                             StepField(title: nil, placeholder: "cm", text: $waist, keyboard: .decimalPad, big: false, alignRight: false)
                             Button("Add measurement") {
-                                model.mutate { $0.addWaist(cm: Double(waist) ?? 0) }
+                                model.addWaist(cm: Double(waist) ?? 0)
                                 if let w = Double(waist), w > Config.waistRangeCm.min && w < Config.waistRangeCm.max { waist = "" }
                             }.buttonStyle(StrataButtonStyle(small: true, hPad: 18)).fixedSize()
                         }.padding(.top, 12)

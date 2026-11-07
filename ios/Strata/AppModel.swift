@@ -122,6 +122,8 @@ final class AppModel: ObservableObject {
         if let hours = await health.standHours(on: today) { standHours = hours }
         if let workouts = await health.dailyWorkoutMinutes(from: start, through: today) { healthWorkoutMinutes = workouts }
         if let sleep = await health.dailySleep(from: start, through: today), !sleep.isEmpty { healthSleep = sleep }
+        if let readings = await health.waistReadings(from: calendar.date(byAdding: .day, value: -730, to: today) ?? start, through: today),
+           var updated = engine, updated.importWaist(readings) { engine = updated; persist() }
         guard let totals = await health.dailySteps(from: start, through: today), !totals.isEmpty else { return }
         healthSteps = totals
         stepsLastUpdated = Date()
@@ -129,6 +131,14 @@ final class AppModel: ObservableObject {
             let a = updated.recordDailySteps(totals), b = updated.syncHealthSteps(totals)
             if a || b { engine = updated; persist() }
         }
+    }
+
+    /// "Add measurement": saved in Strata, and written to Apple Health when allowed.
+    func addWaist(cm: Double) {
+        mutate { $0.addWaist(cm: cm) }
+        guard let e = engine, cm > Config.waistRangeCm.min && cm < Config.waistRangeCm.max else { return }
+        let day = e.today
+        Task { _ = await health.saveWaist(cm: cm, on: day, isToday: true) }
     }
 
     func syncedSteps(on date: String) -> Int? { healthSteps[date] }

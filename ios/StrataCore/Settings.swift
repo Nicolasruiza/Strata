@@ -93,6 +93,22 @@ extension Engine {
         if let i = off.firstIndex(of: d) { off.remove(at: i) } else { off.append(d) }
         db.officeDays = off.sorted()
     }
+    /// Brings waist readings in from Apple Health (cm by civil day). Days you already have are left alone,
+    /// so a number typed in Strata is never overwritten. Returns whether anything was added.
+    @discardableResult
+    public mutating func importWaist(_ readings: [String: Double]) -> Bool {
+        var w = db.waist ?? []
+        let have = Set(w.map(\.date))
+        var added = false
+        for (date, raw) in readings where date <= today && !have.contains(date) {
+            let cm = (raw * 10).rounded() / 10
+            guard cm > Config.waistRangeCm.min && cm < Config.waistRangeCm.max else { continue }
+            w.append(Waist(date: date, cm: cm)); added = true
+        }
+        if added { db.waist = w.stableSorted { $0.date < $1.date } }
+        return added
+    }
+
     public mutating func addWaist(cm: Double) -> String {
         if !(cm > Config.waistRangeCm.min && cm < Config.waistRangeCm.max) { return "Type your waist in cm" }
         var w = (db.waist ?? []).filter { $0.date != today }

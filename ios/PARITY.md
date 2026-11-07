@@ -184,3 +184,7 @@ Web quirk seen while comparing (not ported, not changed): opening the web app wi
 
 ## Timed sets (plank, side plank, farmer carry)
 - [x] On a timed exercise the current set shows "Start" (and "Log without timer"): 3-2-1, then a ring counting down the target seconds; at zero it cues and logs the set by itself, "Stop and log" logs the seconds actually held. Leaving the exercise cancels a running timer. Web (`startHold`, `workout.js` focus view) and iOS (`startTimedSet`, `TimedSetCard`). No watch workout is started by this countdown
+
+## Waist and Apple Health (iOS only)
+- [x] Waist circumference is read from Health (last 2 years, latest reading of each day) into `waist`; days already in Strata are never overwritten. Runs with the other Health syncs when the app opens
+- [x] "Add measurement" also writes the number to Health (one sample per day, replaced if you correct it); asks for permission the first time. Settings › Apple Health shows "Waist (read and save)" with the last reading. The web has no Health, so it keeps manual entry only
