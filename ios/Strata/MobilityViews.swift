@@ -136,10 +136,11 @@ struct MobilityGuide: View {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(ex.category).labelStyle(mobTint)
-                        Text(ex.name).title2Style()
+                        Text(ex.name).title2Style().fixedSize(horizontal: false, vertical: true)
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                    GlassButton(action: { dismiss() }, accessibility: "Close") {
+                        IconView(d: "M6 6l12 12M18 6L6 18", size: 16, color: .white, line: 2.4)
                     }
-                    Spacer()
-                    Button("Close") { dismiss() }.buttonStyle(StrataButtonStyle(small: true))
                 }
                 photo("Start", ex.startImage)
                 photo("Finish", ex.finishImage)
