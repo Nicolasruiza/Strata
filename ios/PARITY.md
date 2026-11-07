@@ -72,7 +72,7 @@ system font for now (the font files in `fonts.css` are WOFF2, which iOS can't lo
 ## Exercise in focus (`focusView`) — `FocusView.swift`
 - [x] Photo header with back to the list, logo, exercise timer
 - [x] Block tag ("Compound 1 of 2"), name, "n sets × reps", injury warning
-- [x] "Last time" + trend chip (First time / Progressing / On track / Behind / Stalled / On hold)
+- [x] "Last time" + trend chip (New / On track / Holding)
 - [x] Rest banner; "Today's weight" with −/+ and plate math
 - [x] Warm-up rows (check, "Warm-up i", plates, Remove); set rows (Done + undo on the last, current with reps stepper + "Log", upcoming)
 - [x] "+ Set", "+ Warm-up", "Form video", "Swap" (only when there are alternates), "Machine busy"

@@ -8,8 +8,8 @@ public struct WoBlock: Codable, Equatable {
 }
 
 public struct Trend: Codable, Equatable {
-    public var t: String          // First time · Progressing · On track · Behind · Stalled · On hold
-    public var c: String          // chip colour class: n · up · hold · bad
+    public var t: String          // New · On track · Holding
+    public var c: String          // chip colour class: n · up · hold
 }
 
 public struct WarmOption: Codable, Equatable {
@@ -131,17 +131,15 @@ extension Engine {
     public func trendOf(_ id: String) -> Trend {
         let ex = exById(id)
         let hs = Array(db.history.filter { $0.entries[id] != nil }.suffix(4).map { $0.entries[id]! })
-        guard let last = hs.last else { return Trend(t: "First time", c: "n") }
-        if (db.holds[id] ?? 0) != 0 { return Trend(t: "On hold", c: "hold") }
+        guard let last = hs.last else { return Trend(t: "New", c: "n") }
+        if (db.holds[id] ?? 0) != 0 { return Trend(t: "Holding", c: "hold") }
         let hit = last.reps.allSatisfy { r in
             guard let r = r else { return false }
             guard let need = ex?.r else { return ex == nil }
             return r >= Double(need)
         }
-        if hs.count >= 3, hs.suffix(3).allSatisfy({ $0.w == last.w }), !hit { return Trend(t: "Stalled", c: "bad") }
-        if hs.count >= 2, last.w > hs[hs.count - 2].w { return Trend(t: "Progressing", c: "up") }
-        if hit { return Trend(t: "On track", c: "up") }
-        return Trend(t: "Behind", c: "hold")
+        if hit || (hs.count >= 2 && last.w > hs[hs.count - 2].w) { return Trend(t: "On track", c: "up") }
+        return Trend(t: "Holding", c: "hold")
     }
 
     /// `restFor(ex)`: key lifts rest longest, optional blocks shortest.
