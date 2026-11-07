@@ -14,7 +14,7 @@ system font for now (the font files in `fonts.css` are WOFF2, which iOS can't lo
 
 ## First launch (`onboardView`) — `OnboardView.swift`
 - [x] Hero (tall): logo + "Strata"; "Build it in layers:" / "muscle" (violet), "heart" (coral), "bone" (mint)
-- [x] Sub: "4 lifts, 2–3 heart sessions and 2 jump warm-ups a week. Each one closes a ring."
+- [x] Sub: "3 lifts, 3 heart sessions and 2 jump days a week. Each one fills a ring, and you can go past it."
 - [x] Card "About you": Name field ("Your name"), Male / Female segmented, note "Sets your plan template and starting loads."
 - [x] Card "Bring your history" (only after a gender is picked): "N sessions imported" (mint) or "Import a Lift Log export file" + note "Optional. In Lift Log: More → Export data, then pick that file here. Weights carry over, so nothing restarts."
   - Not on iOS: "Import N Lift Log sessions from this device" (it reads the browser's `localStorage`).
@@ -170,3 +170,6 @@ Web quirk seen while comparing (not ported, not changed): opening the web app wi
 ## Jumps warm-up (iOS, set by set)
 - [x] One exercise per screen like the lifts (image header, "Warm-up · Bone N of M", sets × reps, how-to), Log per set with the rest banner between sets (pogo 30 s, box 60 s), Next exercise, final "Done · start lifting"
 - [x] Single-leg RDL takes an optional weight (kettlebell), remembered from last time, saved on the session entry (web still logs bodyweight only)
+## Ring goals (fixed, can be exceeded)
+- [x] Muscle 3 lifts, Heart 3 sessions, Bone 2 jump days per week; goals no longer follow the plan, and counts are not capped (a 4th lift shows 4/3 and a second, lighter lap on the ring)
+- [x] Week summaries (History cards, Progress 8-week grid) show each ring as a dot that fills with progress, not just closed/open

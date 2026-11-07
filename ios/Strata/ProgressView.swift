@@ -139,7 +139,7 @@ struct ProgressScreen: View {
                                 VStack(spacing: 6) {
                                     VStack(spacing: 4) {
                                         ForEach(0..<3, id: \.self) { j in
-                                            Circle().fill(pw.stats[i].closed[j] ? Theme.ring(["m", "h", "b"][j]) : Color.white.opacity(0.12)).frame(width: 12, height: 12)
+                                            RingDot(kind: ["m", "h", "b"][j], done: [pw.stats[i].m, pw.stats[i].h, pw.stats[i].b][j], target: [pw.stats[i].mt, pw.stats[i].ht, pw.stats[i].bt][j], size: 12)
                                         }
                                     }
                                     Text(i == 7 ? "Now" : wl[i]).font(.inter(size: 12, weight: i == 7 ? .bold : .regular)).foregroundStyle(i == 7 ? .white : Theme.muted)

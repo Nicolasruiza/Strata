@@ -80,8 +80,13 @@ public enum Config {
         public static let displayFallbackCount = 4     // `L.n||4`
     }
 
-    /// Weekly ring targets that are not derived from the plan.
-    public static let boneDaysPerWeek = 2
+    /// Weekly ring goals. Fixed (not tied to the plan) and counted past 100%, like Apple's rings:
+    /// a missed day never costs the week.
+    public enum RingGoals {
+        public static let muscle = 3
+        public static let heart = 3
+        public static let bone = 2
+    }
 
     /// VO2 max norms (mL/kg/min), Cooper Institute percentiles as printed in Garmin's standard
     /// ratings: the value needed to *reach* Fair (40th percentile), Good (60th), Excellent (80th)
