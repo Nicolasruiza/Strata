@@ -166,3 +166,7 @@ Web quirk seen while comparing (not ported, not changed): opening the web app wi
 - [x] Copy (Q3): "Apple Watch connected" / "Apple Watch not connected", "No heart rate. Open Strata on your Apple Watch."
 - Not done: Live Activity (needs a widget extension target)
 - Not verified: everything on this list needs a paired Apple Watch; it compiles in CI but has never run on hardware
+
+## Jumps warm-up (iOS, set by set)
+- [x] One exercise per screen like the lifts (image header, "Warm-up · Bone N of M", sets × reps, how-to), Log per set with the rest banner between sets (pogo 30 s, box 60 s), Next exercise, final "Done · start lifting"
+- [x] Single-leg RDL takes an optional weight (kettlebell), remembered from last time, saved on the session entry (web still logs bodyweight only)

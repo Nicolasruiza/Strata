@@ -67,7 +67,7 @@ struct OverviewView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Warm-up · Bone").font(.inter(size: 20, weight: .heavy)).tracking(-0.2).padding(.top, 8)
             Button {
-                model.jumpSets = [:]
+                model.jumpSets = [:]; model.jumpWeights = [:]; model.jumpStep = 0
                 model.mutate { $0.db.active?.jumpsSeen = 0; return nil }
             } label: {
                 HStack(spacing: 12) {

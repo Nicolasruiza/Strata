@@ -368,12 +368,12 @@ extension Engine {
     public mutating func discardWorkout() { db.active = nil; rest = nil }
 
     /// The jumps warm-up screen's "Done · start lifting".
-    public mutating func completeJumps(sets: [String: Int]) -> String {
+    public mutating func completeJumps(sets: [String: Int], weights: [String: Double] = [:]) -> String {
         guard let A = db.active else { return "" }
         db.active!.jumpsSeen = 1
         for b in plan[A.day]?.blocks ?? [] where Engine.isWarmUp(b.t) {
             for ex in b.items where (sets[ex.id] ?? 0) > 0 {
-                db.active!.entries[ex.id] = Entry(w: 0, reps: Array(repeating: ex.r.map(Double.init), count: sets[ex.id]!))
+                db.active!.entries[ex.id] = Entry(w: weights[ex.id] ?? 0, reps: Array(repeating: ex.r.map(Double.init), count: sets[ex.id]!))
             }
         }
         logCardio("jumps", CardioEntry(date: "", type: "", landings: Double(Config.landingsPerJumpDay)))

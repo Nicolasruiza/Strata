@@ -77,7 +77,7 @@ struct BlockSheet: View {
             if !lifted {
                 Button {
                     model.blockSheetOpen = false
-                    model.jumpSets = [:]
+                    model.jumpSets = [:]; model.jumpWeights = [:]; model.jumpStep = 0
                     model.mutate { $0.begin(day: nd); return nil }
                     model.screen = .today
                 } label: {

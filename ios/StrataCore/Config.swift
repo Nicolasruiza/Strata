@@ -159,6 +159,14 @@ public enum Config {
 }
 
 extension Config {
+    /// Jumps warm-up, set by set. Rest follows the cues in the exercise text ("30 s rest", "60 s rest").
+    public enum Jumps {
+        public static let restSec: [String: Double] = ["pogo": 30, "box": 60]
+        public static let defaultRestSec = 30.0
+        /// Optional load on a warm-up move (e.g. a kettlebell on the single-leg RDL), in lb.
+        public static let weightStep = 5.0
+    }
+
     /// Daily Mobility: a routine from a home exercise handout. It sits beside the rings, never inside them:
     /// nothing here changes ring targets or streaks, and a missed session is never flagged.
     public enum Mobility {

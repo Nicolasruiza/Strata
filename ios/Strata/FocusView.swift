@@ -264,7 +264,7 @@ struct FocusView: View {
     }
 }
 
-private struct WeightField: View {
+struct WeightField: View {
     let value: Double
     let commit: (String) -> Double
 

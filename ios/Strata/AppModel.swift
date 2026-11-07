@@ -33,6 +33,8 @@ final class AppModel: ObservableObject {
     @Published var location: LocationState = .waiting
     @Published var blockSheetOpen = false
     @Published var jumpSets: [String: Int] = [:]
+    @Published var jumpWeights: [String: Double] = [:]
+    @Published var jumpStep = 0
     @Published var swapOpen = false
     @Published var warmOpen = false
     @Published var menuOpen = false
