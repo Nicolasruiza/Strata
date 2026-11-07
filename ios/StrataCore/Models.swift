@@ -340,5 +340,7 @@ public struct MobilityDone: Codable, Equatable {
     public var date: String
     public var session: String
     public var ex: String
-    public init(date: String, session: String, ex: String) { self.date = date; self.session = session; self.ex = ex }
+    /// Sets finished so far. Nil (older saves) means every set was done.
+    public var sets: Int?
+    public init(date: String, session: String, ex: String, sets: Int? = nil) { self.date = date; self.session = session; self.ex = ex; self.sets = sets }
 }

@@ -63,13 +63,15 @@ struct MobilityView: View {
             VStack(spacing: 0) {
                 ZStack(alignment: .topLeading) {
                     Hero(eyebrow: "Mobility · \(checked.count) of \(total)", title: "\(label) routine",
-                         sub: "Tick each exercise once all its sets are done.", short: true, brand: false)
+                         sub: "Tick each set as you finish it.", short: true, brand: false)
                     GlassButton(action: { model.go(.today) }, accessibility: "Back") {
                         IconView(d: "M15 5l-7 7 7 7", size: 18, color: .white, line: 2.4)
                     }.padding(.leading, 16).padding(.top, 14 + safeTop)
                 }
                 VStack(spacing: 12) {
-                    ForEach(Config.Mobility.exercises) { ex in card(ex, done: checked.contains(ex.id)) }
+                    ForEach(Config.Mobility.exercises) { ex in
+                        card(ex, done: checked.contains(ex.id), sets: e.mobilitySets(date: e.today, session: session, ex: ex.id))
+                    }
                     Text(Config.Mobility.safetyNote).font(.inter(size: 12)).foregroundStyle(Theme.muted)
                         .multilineTextAlignment(.center).padding(.horizontal, 12).padding(.top, 4)
                 }.padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 110)
@@ -86,7 +88,7 @@ struct MobilityView: View {
         .sheet(item: $guide) { ex in MobilityGuide(ex: ex) }
     }
 
-    private func card(_ ex: Config.Mobility.Exercise, done: Bool) -> some View {
+    private func card(_ ex: Config.Mobility.Exercise, done: Bool, sets: Int) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 12) {
                 Thumb(path: "img/\(ex.finishImage).jpg")
@@ -95,18 +97,30 @@ struct MobilityView: View {
             }
             Text(ex.cue).bodyStyle().padding(.top, 8)
             HStack(spacing: 8) {
+                ForEach(0..<ex.sets, id: \.self) { i in
+                    Button {
+                        model.mutate { $0.tapMobilitySet(session: session, ex: ex.id, index: i); return nil }
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    } label: {
+                        if i < sets { IconView(d: Icon.check, size: 16, color: Color(hex: "#08210F"), line: 3) } else { Text("Set \(i + 1)") }
+                    }
+                    .buttonStyle(StrataButtonStyle(kind: i < sets ? .mint : .plain, small: true))
+                    .accessibilityAddTraits(i < sets ? .isSelected : [])
+                }
+            }.padding(.top, 12)
+            HStack(spacing: 8) {
                 Button("View guide") { guide = ex }.buttonStyle(StrataButtonStyle(small: true))
                 Button {
                     model.mutate { $0.toggleMobility(session: session, ex: ex.id); return nil }
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 } label: {
                     if done { HStack(spacing: 6) { IconView(d: Icon.check, size: 16, color: Color(hex: "#08210F"), line: 3); Text("Done") } }
-                    else { Text("Mark done") }
+                    else { Text("All sets done") }
                 }
                 .buttonStyle(StrataButtonStyle(kind: done ? .mint : .plain, small: true))
                 .accessibilityAddTraits(done ? .isSelected : [])
                 .accessibilityHint(done ? "Tap to undo" : "")
-            }.padding(.top, 12)
+            }.padding(.top, 8)
         }.card()
     }
 }
@@ -122,10 +136,11 @@ struct MobilityGuide: View {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(ex.category).labelStyle(mobTint)
-                        Text(ex.name).title2Style()
+                        Text(ex.name).title2Style().fixedSize(horizontal: false, vertical: true)
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                    GlassButton(action: { dismiss() }, accessibility: "Close") {
+                        IconView(d: "M6 6l12 12M18 6L6 18", size: 16, color: .white, line: 2.4)
                     }
-                    Spacer()
-                    Button("Close") { dismiss() }.buttonStyle(StrataButtonStyle(small: true))
                 }
                 photo("Start", ex.startImage)
                 photo("Finish", ex.finishImage)
