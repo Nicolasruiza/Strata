@@ -33,6 +33,8 @@ final class AppModel: ObservableObject {
     @Published var location: LocationState = .waiting
     @Published var blockSheetOpen = false
     @Published var jumpWeights: [String: Double] = [:]
+    @Published var timedSet: TimedSet?
+    var timedTask: Task<Void, Never>?
     @Published var jumpStep = 0
     @Published var swapOpen = false
     @Published var warmOpen = false
@@ -386,6 +388,9 @@ extension AppModel {
 
 struct CountdownState: Equatable { var label: String; var n: Int }
 
+/// A timed set (plank, carry...) counting down. `endAt` is nil during the 3-2-1.
+struct TimedSet: Equatable { var exId: String; var total: Double; var endAt: Double? }
+
 extension AppModel {
     /// `cue()`: haptic (the web also beeps and vibrates). The watch gets the same cue.
     func cue() { UINotificationFeedbackGenerator().notificationOccurred(.warning); health.bridge.sendCue() }
@@ -431,6 +436,44 @@ extension AppModel {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
             }
             await MainActor.run { self?.countdown = nil; self?.cue(); then?() }
+        }
+    }
+
+    /// "Start" on a timed set: the 3-2-1, then the countdown. It logs the set by itself at zero.
+    func startTimedSet(exId: String, name: String, seconds: Double) {
+        guard seconds > 0, timedSet == nil else { return }
+        timedSet = TimedSet(exId: exId, total: seconds, endAt: nil)
+        runCountdown(label: name) { [weak self] in
+            guard let self, var t = self.timedSet, t.exId == exId else { return }
+            t.endAt = Self.nowMs() + seconds * 1000
+            self.timedSet = t
+            self.timedTask = Task { @MainActor [weak self] in
+                while let self, let t = self.timedSet, let end = t.endAt {
+                    if Self.nowMs() >= end { self.finishTimedSet(seconds: t.total, cue: true); return }
+                    try? await Task.sleep(nanoseconds: 200_000_000)
+                    if Task.isCancelled { return }
+                }
+            }
+        }
+    }
+
+    /// "Stop": the set is logged with the time actually held.
+    func stopTimedSet() {
+        guard let t = timedSet, let end = t.endAt else { cancelTimedSet(); return }
+        let held = max(1, (t.total - max(0, (end - Self.nowMs()) / 1000)).rounded())
+        finishTimedSet(seconds: held, cue: false)
+    }
+
+    func cancelTimedSet() { timedTask?.cancel(); timedTask = nil; timedSet = nil; countdown = nil }
+
+    private func finishTimedSet(seconds: Double, cue doCue: Bool) {
+        guard let t = timedSet else { return }
+        timedTask?.cancel(); timedTask = nil; timedSet = nil
+        if doCue { cue() }
+        mutate { e in
+            guard e.db.active != nil, e.shownEx(e.liftList()[e.curIdx()]).id == t.exId else { return nil }
+            e.woReps = seconds
+            return e.logWoSet()
         }
     }
 

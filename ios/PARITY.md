@@ -181,3 +181,6 @@ Web quirk seen while comparing (not ported, not changed): opening the web app wi
 
 ## Leg press plates
 - [x] Leg press (plates, no bar) shows what to load on each side: weight is the plates on the sled, split evenly ("45 + 45 / side (plates only)", "Empty sled" at 0); web `sledTxt`, iOS `Fmt.sledTxt`
+
+## Timed sets (plank, side plank, farmer carry)
+- [x] On a timed exercise the current set shows "Start" (and "Log without timer"): 3-2-1, then a ring counting down the target seconds; at zero it cues and logs the set by itself, "Stop and log" logs the seconds actually held. Leaving the exercise cancels a running timer. Web (`startHold`, `workout.js` focus view) and iOS (`startTimedSet`, `TimedSetCard`). No watch workout is started by this countdown

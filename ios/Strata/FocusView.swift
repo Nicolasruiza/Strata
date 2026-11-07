@@ -86,6 +86,7 @@ struct FocusView: View {
                 .padding(.horizontal, Theme.gutter).padding(.top, -56).padding(.bottom, 110)
             }.frame(maxWidth: Theme.maxWidth)
         }
+        .onDisappear { model.cancelTimedSet() }
         .onChange(of: reps.count) { _, c in withAnimation(.easeOut(duration: 0.25)) { proxy.scrollTo("set-\(min(c, n - 1))", anchor: .center) } }
         }
         .ignoresSafeArea(edges: .top)
@@ -204,7 +205,9 @@ struct FocusView: View {
     @ViewBuilder
     private func setRow(_ i: Int, cur: Int, reps: [Double?], w: Double, ex: Ex, orig: Ex, low: Bool) -> some View {
         let wl = jsMinutes(w)
-        if i < cur {
+        if i == cur, let t = model.timedSet, t.exId == ex.id {
+            TimedSetCard(set: t, index: i, of: model.engine!.setsOf(orig), weight: w)
+        } else if i < cur {
             HStack(spacing: 12) {
                 Button { model.mutate { $0.undoSet(); return nil } } label: { CheckDot() }
                     .buttonStyle(.plain).allowsHitTesting(i == cur - 1).accessibilityLabel("Undo set \(i + 1)")
@@ -230,9 +233,15 @@ struct FocusView: View {
                     Text(jsMinutes(rv)).font(.inter(size: 22, weight: .bold)).monospacedDigit().frame(minWidth: 32)
                     repButton("+", "More") { model.mutate { $0.adjustReps(1); return nil } }
                 }
-                Button("Log") { model.mutate { $0.logWoSet() } }
-                    .font(.inter(size: 16, weight: .heavy)).foregroundStyle(Color(hex: "#0E1018"))
-                    .padding(.horizontal, 16).frame(height: 44).background(RoundedRectangle(cornerRadius: 14).fill(Theme.violet))
+                if Fmt.isSec(ex) {
+                    Button("Start") { model.startTimedSet(exId: ex.id, name: Fmt.cleanN(ex.n), seconds: rv) }
+                        .font(.inter(size: 16, weight: .heavy)).foregroundStyle(Color(hex: "#0E1018"))
+                        .padding(.horizontal, 16).frame(height: 44).background(RoundedRectangle(cornerRadius: 14).fill(Theme.violet))
+                } else {
+                    Button("Log") { model.mutate { $0.logWoSet() } }
+                        .font(.inter(size: 16, weight: .heavy)).foregroundStyle(Color(hex: "#0E1018"))
+                        .padding(.horizontal, 16).frame(height: 44).background(RoundedRectangle(cornerRadius: 14).fill(Theme.violet))
+                }
             }.padding(.horizontal, 14).padding(.vertical, 12)
              .background(RoundedRectangle(cornerRadius: 18).fill(Theme.violet.opacity(0.08)))
              .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(Theme.violet, lineWidth: 1.5))
@@ -325,5 +334,35 @@ struct WeightField: View {
             .onChange(of: value) { _, newValue in
                 if parsed(text) != newValue { text = jsMinutes(newValue) }
             }
+    }
+}
+
+
+/// A timed set running: the seconds left in a ring, big. It logs itself at zero; Stop logs what was held.
+struct TimedSetCard: View {
+    @EnvironmentObject var model: AppModel
+    let set: TimedSet
+    let index: Int, of: Int
+    let weight: Double
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 0.1)) { _ in
+            let rem = set.endAt.map { max(0, ($0 - AppModel.nowMs()) / 1000) } ?? set.total
+            VStack(spacing: 14) {
+                Text("Set \(index + 1) of \(of)\(weight > 0 ? " · \(jsMinutes(weight)) lb" : "")").labelStyle(Theme.violet)
+                ZStack {
+                    Circle().stroke(Color.white.opacity(0.12), lineWidth: 10)
+                    Circle().trim(from: 0, to: CGFloat(rem / max(1, set.total)))
+                        .stroke(Theme.violet, style: StrokeStyle(lineWidth: 10, lineCap: .round)).rotationEffect(.degrees(-90))
+                    VStack(spacing: 0) {
+                        Text("\(Int(rem.rounded(.up)))").font(.inter(size: 64, weight: .heavy)).monospacedDigit()
+                        Text("seconds").metaStyle()
+                    }
+                }.frame(width: 190, height: 190)
+                Button("Stop and log") { model.stopTimedSet() }.buttonStyle(StrataButtonStyle(small: true))
+            }
+            .frame(maxWidth: .infinity).padding(.vertical, 18)
+            .background(RoundedRectangle(cornerRadius: 22).fill(Theme.violet.opacity(0.08)))
+            .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(Theme.violet, lineWidth: 1.5))
+        }
     }
 }
