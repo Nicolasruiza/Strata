@@ -24,6 +24,7 @@ struct FocusView: View {
         let exT = A.exT?[ex.id] ?? AppModel.nowMs()
         let plate = ex.bar != nil ? Fmt.plateTxt(ex, w) : ex.isEach ? "\(jsMinutes(w)) lb in each hand" : ex.hasPlates ? Fmt.sledTxt(w) : (ex.isBodyweight && w == 0) ? "Bodyweight" : ""
         let warm = A.warm?[ex.id] ?? []
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(spacing: 0) {
                 ZStack(alignment: .top) {
@@ -60,10 +61,10 @@ struct FocusView: View {
                     Text("\(n) sets × \(Fmt.repLbl(ex, orig.r.map(Double.init)))\(Fmt.perLeg(ex))\(ex.id != orig.id ? " · swapped" : "")").metaStyle().padding(.top, -10)
                     if orig.isInjured { WarnBox(markdown: "On hold for your injury flag. Go light or swap it.") }
                     lastCard(last: last, trend: tr)
-                    RestBanner()
+                    RestBanner(idle: (big: reps.count >= n ? "All sets logged" : "Set \(reps.count + 1) of \(n)", meta: reps.count >= n ? "Tap Complete when you are done" : "Log it when you finish"))
                     weightCard(w: w, plate: plate, ex: ex)
                     ForEach(Array(warm.enumerated()), id: \.offset) { i, s in warmRow(i, s, ex) }
-                    ForEach(0..<n, id: \.self) { i in setRow(i, cur: reps.count, reps: reps, w: w, ex: ex, orig: orig, low: low) }
+                    ForEach(0..<n, id: \.self) { i in setRow(i, cur: reps.count, reps: reps, w: w, ex: ex, orig: orig, low: low).id("set-\(i)") }
                     HStack(spacing: 10) {
                         Button { model.mutate { $0.addExtraSet() } } label: { plusLabel("Set") }.buttonStyle(StrataButtonStyle(small: true))
                         Button { model.warmOpen = true } label: { plusLabel("Warm-up") }.buttonStyle(StrataButtonStyle(small: true))
@@ -84,6 +85,8 @@ struct FocusView: View {
                 }
                 .padding(.horizontal, Theme.gutter).padding(.top, -56).padding(.bottom, 110)
             }.frame(maxWidth: Theme.maxWidth)
+        }
+        .onChange(of: reps.count) { _, c in withAnimation(.easeOut(duration: 0.25)) { proxy.scrollTo("set-\(min(c, n - 1))", anchor: .center) } }
         }
         .ignoresSafeArea(edges: .top)
         .safeAreaInset(edge: .bottom) {

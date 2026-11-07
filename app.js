@@ -417,7 +417,7 @@ function jumpsView(){
     <section class="card tight"><div style="display:flex;gap:14px"><img src="${it.img}" alt="${esc(it.n)}" style="width:112px;height:112px;object-fit:cover;border-radius:16px;flex:none;background:#1b1e28">
       <div class="grow" style="display:flex;flex-direction:column;gap:6px;min-width:0"><div class="label">How</div><div style="font-size:14px;line-height:1.4;color:#E6E8EE">${it.how}</div></div></div></section>
     <button class="btn sm" data-yt="${it.yt}">${I.play.replace('<svg','<svg width="14" height="14"')}Form video</button>
-    ${weightCard}${restBanner()}${rows}</main>
+    ${weightCard}${restBanner()||`<div class="wcard" style="display:flex;align-items:center;gap:12px;border-color:var(--line)"><div class="grow"><div class="label" style="color:var(--mint)">Ready</div><b style="font-size:30px">${done>=it.sets?'All sets logged':`Set ${done+1} of ${it.sets}`}</b><div class="meta">${done>=it.sets?'On to the next exercise':'Log it when you finish'}</div></div><span class="btn sm" style="width:auto;padding:0 14px;visibility:hidden">+30 s</span><span class="btn sm" style="width:auto;padding:0 14px;visibility:hidden">Skip</span></div>`}${rows}</main>
     <div class="dock"><button class="btn" id="skipJumps">Skip</button>${last
       ?`<button class="btn ${allDone?'mint':''} w2" id="jumpsDone">${allDone?'Done · start lifting':'Start lifting'}</button>`
       :`<button class="btn ${done>=it.sets?'mint':''} w2" id="jumpNext">Next exercise</button>`}</div>`;
