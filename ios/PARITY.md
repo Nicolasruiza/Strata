@@ -174,5 +174,10 @@ Web quirk seen while comparing (not ported, not changed): opening the web app wi
 - [x] Muscle 3 lifts, Heart 3 sessions, Bone 2 jump days per week; goals no longer follow the plan, and counts are not capped (a 4th lift shows 4/3 and a second, lighter lap on the ring)
 - [x] Week summaries (History cards, Progress 8-week grid) show each ring as a dot that fills with progress, not just closed/open
 
+## Heart ring: walking average (iOS only, Apple Health)
+- [x] Daily steps from Apple Health are kept for every day (`AppData.steps`, 120 days). A week whose finished days (today excluded, at least 4 with data) average 7,000+ steps closes Heart on its own; sessions still count. Web has no Health data, so it is unaffected
+- [x] Rings card shows "Walking avg 5.2k a day (7.0k closes Heart) · stood 6 h today"; when walking closed Heart the ring caption reads "7.4k/day"
+- [x] Stand hours come from Apple Health (the Watch's own stand reminders drive them); Strata sends no stand reminders. Needs Health access re-granted for the new "Stand hours" type
+
 ## Leg press plates
 - [x] Leg press (plates, no bar) shows what to load on each side: weight is the plates on the sled, split evenly ("45 + 45 / side (plates only)", "Empty sled" at 0); web `sledTxt`, iOS `Fmt.sledTxt`

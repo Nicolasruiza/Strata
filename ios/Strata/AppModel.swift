@@ -57,6 +57,8 @@ final class AppModel: ObservableObject {
     @Published private(set) var healthAccessChecking = false
     @Published private(set) var healthSteps: [String: Int] = [:]
     @Published private(set) var stepsLastUpdated: Date?
+    /// Hours stood today, from Apple Health (the Watch's own stand reminders drive it).
+    @Published private(set) var standHours: Int?
     @Published private(set) var healthSleep: [String: Double] = [:]
     @Published private(set) var healthWorkoutMinutes: [String: Double] = [:]
     @Published private(set) var todayWorkouts: [HealthWorkoutRow] = []
@@ -115,14 +117,15 @@ final class AppModel: ObservableObject {
         guard let start = calendar.date(byAdding: .day, value: -55, to: today) else { return }
         if let readings = await health.vo2Readings(from: calendar.date(byAdding: .day, value: -365, to: today) ?? start, through: today) { vo2 = readings }
         if let rows = await health.workouts(on: today) { todayWorkouts = rows }
+        if let hours = await health.standHours(on: today) { standHours = hours }
         if let workouts = await health.dailyWorkoutMinutes(from: start, through: today) { healthWorkoutMinutes = workouts }
         if let sleep = await health.dailySleep(from: start, through: today), !sleep.isEmpty { healthSleep = sleep }
         guard let totals = await health.dailySteps(from: start, through: today), !totals.isEmpty else { return }
         healthSteps = totals
         stepsLastUpdated = Date()
-        if var updated = engine, updated.syncHealthSteps(totals) {
-            engine = updated
-            persist()
+        if var updated = engine {
+            let a = updated.recordDailySteps(totals), b = updated.syncHealthSteps(totals)
+            if a || b { engine = updated; persist() }
         }
     }
 
