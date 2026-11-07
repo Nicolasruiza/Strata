@@ -379,6 +379,13 @@ extension Engine {
         logCardio("jumps", CardioEntry(date: "", type: "", landings: Double(Config.landingsPerJumpDay)))
         return "Jumps logged"
     }
+    /// Sets logged so far on one jumps warm-up move; kept on the workout, not on the screen.
+    public mutating func setJumpSets(_ id: String, _ n: Int) {
+        guard db.active != nil else { return }
+        var m = db.active!.jumps ?? [:]
+        if n > 0 { m[id] = n } else { m.removeValue(forKey: id) }
+        db.active!.jumps = m.isEmpty ? nil : m
+    }
     public mutating func skipJumps() { db.active?.jumpsSeen = 1 }
 
     // MARK: finishing (app.js endSession)

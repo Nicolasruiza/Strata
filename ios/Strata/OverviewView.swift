@@ -63,16 +63,24 @@ struct OverviewView: View {
         }
     }
 
+    /// "2 of 8 sets done" once something is logged, else the plan line.
+    private func jumpsMeta() -> String {
+        guard let e = model.engine, let A = e.db.active else { return "Pogo hops 3 × 10 · Box jumps 3 × 5" }
+        let list = JumpsView.items(e, A), sets = A.jumps ?? [:]
+        let total = list.reduce(0) { $0 + $1.sets }, done = list.reduce(0) { $0 + min($1.sets, sets[$1.k] ?? 0) }
+        return done > 0 ? "\(done) of \(total) sets done" : "Pogo hops 3 × 10 · Box jumps 3 × 5"
+    }
+
     private func jumpsRow(_ done: Bool) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Warm-up · Bone").font(.inter(size: 20, weight: .heavy)).tracking(-0.2).padding(.top, 8)
             Button {
-                model.jumpSets = [:]; model.jumpWeights = [:]; model.jumpStep = 0
+                model.jumpWeights = [:]; model.jumpStep = 0
                 model.mutate { $0.db.active?.jumpsSeen = 0; return nil }
             } label: {
                 HStack(spacing: 12) {
                     Thumb(path: "img/pogo.jpg")
-                    VStack(alignment: .leading, spacing: 2) { Text("Jumps warm-up").nameStyle(); Text("Pogo hops 3 × 10 · Box jumps 3 × 5").metaStyle() }
+                    VStack(alignment: .leading, spacing: 2) { Text("Jumps warm-up").nameStyle(); Text(jumpsMeta()).metaStyle() }
                     Spacer(minLength: 0)
                     if done { CheckDot(color: Theme.mint) } else { IconView(d: Icon.chev, size: 16, color: Theme.muted, line: 2.4) }
                 }

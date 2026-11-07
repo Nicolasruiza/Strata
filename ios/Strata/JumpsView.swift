@@ -17,7 +17,7 @@ struct JumpsView: View {
         if let e = model.engine, let A = e.db.active { main(e, A) } else { Color.clear }
     }
 
-    private func items(_ e: Engine, _ A: ActiveWorkout) -> [Item] {
+    static func items(_ e: Engine, _ A: ActiveWorkout) -> [Item] {
         let ids = e.warmIds(A.day)
         let warm = (e.plan[A.day]?.blocks ?? []).flatMap(\.items).filter { ids.contains($0.id) }
         return [
@@ -34,15 +34,16 @@ struct JumpsView: View {
         }
     }
 
-    private func weight(_ e: Engine, _ it: Item) -> Double { model.jumpWeights[it.k] ?? e.lastOf(it.k)?.w ?? 0 }
+    private func weight(_ e: Engine, _ it: Item) -> Double { model.jumpWeights[it.k] ?? e.db.active?.entries[it.k]?.w ?? e.lastOf(it.k)?.w ?? 0 }
 
     @ViewBuilder private func main(_ e: Engine, _ A: ActiveWorkout) -> some View {
-        let list = items(e, A)
+        let list = Self.items(e, A)
+        let sets = A.jumps ?? [:]
         let step = min(model.jumpStep, list.count - 1)
         let it = list[step]
-        let done = model.jumpSets[it.k] ?? 0
+        let done = sets[it.k] ?? 0
         let last = step == list.count - 1
-        let allDone = list.allSatisfy { (model.jumpSets[$0.k] ?? 0) >= $0.sets }
+        let allDone = list.allSatisfy { (sets[$0.k] ?? 0) >= $0.sets }
         ScrollView {
             VStack(spacing: 0) {
                 ZStack(alignment: .top) {
@@ -88,7 +89,7 @@ struct JumpsView: View {
                 Button("Skip") { model.mutate { $0.rest = nil; $0.skipJumps(); return nil } }.buttonStyle(StrataButtonStyle())
             } right: {
                 if last {
-                    Button(allDone ? "Done · start lifting" : "Mark done · start lifting") { finish(e, list) }
+                    Button(allDone ? "Done · start lifting" : "Start lifting") { finish(e, A, list) }
                         .buttonStyle(StrataButtonStyle(kind: allDone ? .mint : .plain))
                 } else {
                     Button("Next exercise") { model.mutate { $0.rest = nil; return nil }; model.jumpStep = step + 1 }
@@ -103,8 +104,8 @@ struct JumpsView: View {
         else { model.mutate { $0.rest = nil; $0.skipJumps(); return nil } }
     }
 
-    private func finish(_ e: Engine, _ list: [Item]) {
-        let sets = model.jumpSets
+    private func finish(_ e: Engine, _ A: ActiveWorkout, _ list: [Item]) {
+        let sets = A.jumps ?? [:]
         var weights: [String: Double] = [:]
         for it in list where it.weighted && (sets[it.k] ?? 0) > 0 { weights[it.k] = weight(e, it) }
         model.mutate { $0.rest = nil; return $0.completeJumps(sets: sets, weights: weights) }
@@ -185,7 +186,7 @@ struct JumpsView: View {
 
     /// Logging a set starts the rest, like a lift. Nothing to rest for after the very last set of the warm-up.
     private func log(_ it: Item, _ i: Int, next: String?) {
-        model.jumpSets[it.k] = i + 1
+        model.mutate { $0.setJumpSets(it.k, i + 1); return nil }
         let lastOfWarmup = i + 1 >= it.sets && next == nil
         if lastOfWarmup { model.mutate { $0.rest = nil; return nil }; return }
         let upNext = i + 1 < it.sets ? "Set \(i + 2) of \(it.sets)" : next
@@ -193,7 +194,6 @@ struct JumpsView: View {
     }
 
     private func undo(_ it: Item, _ i: Int) {
-        model.jumpSets[it.k] = i
-        model.mutate { $0.rest = nil; return nil }
+        model.mutate { $0.setJumpSets(it.k, i); $0.rest = nil; return nil }
     }
 }

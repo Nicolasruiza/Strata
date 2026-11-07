@@ -137,7 +137,7 @@ struct PreviewView: View {
         }
     }
     private func begin() {
-        model.jumpSets = [:]; model.jumpWeights = [:]; model.jumpStep = 0
+        model.jumpWeights = [:]; model.jumpStep = 0
         model.mutate { $0.begin(day: day); return nil }
     }
 

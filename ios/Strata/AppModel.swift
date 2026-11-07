@@ -32,7 +32,6 @@ final class AppModel: ObservableObject {
     @Published var vo2N: Int?
     @Published var location: LocationState = .waiting
     @Published var blockSheetOpen = false
-    @Published var jumpSets: [String: Int] = [:]
     @Published var jumpWeights: [String: Double] = [:]
     @Published var jumpStep = 0
     @Published var swapOpen = false

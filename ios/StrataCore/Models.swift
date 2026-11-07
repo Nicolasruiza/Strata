@@ -176,9 +176,11 @@ public struct ActiveWorkout: Codable, Equatable {
     public var busy: [String: Double]?
     public var cd: Int?
     public var jumpsSeen: Int?
+    /// iOS: sets logged so far on the jumps warm-up (pogo, box, plan warm-up moves), so leaving and coming back keeps them.
+    public var jumps: [String: Int]?
 
     enum CodingKeys: String, CodingKey {
-        case day, date, started, entries, lowEnergy, swaps, prog, idx, view, exT, extra, warm, busy, cd, jumpsSeen
+        case day, date, started, entries, lowEnergy, swaps, prog, idx, view, exT, extra, warm, busy, cd, jumpsSeen, jumps
     }
     public init(day: Int, date: String, started: Double?, entries: OrderedDict<Entry> = OrderedDict(), lowEnergy: Bool?, swaps: [String: String] = [:], prog: [String: Prog] = [:], idx: Int? = 0) {
         self.day = day; self.date = date; self.started = started; self.entries = entries
@@ -201,6 +203,7 @@ public struct ActiveWorkout: Codable, Equatable {
         busy = try c.decodeIfPresent([String: Double].self, forKey: .busy)
         cd = try c.decodeIfPresent(Int.self, forKey: .cd)
         jumpsSeen = try c.decodeIfPresent(Int.self, forKey: .jumpsSeen)
+        jumps = try c.decodeIfPresent([String: Int].self, forKey: .jumps)
     }
 }
 

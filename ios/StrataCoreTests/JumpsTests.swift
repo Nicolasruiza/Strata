@@ -23,3 +23,19 @@ final class JumpsTests: XCTestCase {
         XCTAssertEqual(e.db.active?.entries["sl_rdl"]?.w, 0)
     }
 }
+
+final class JumpsProgressTests: XCTestCase {
+    func testLoggedSetsSurviveLeavingAndComingBack() {
+        let profile = Profile(name: "Nico", initials: "NI", gender: "male", plan: "nr", bw: 194, exp: "trained")
+        var e = Engine(profile: profile, db: AppData.fresh(), nowMs: 1_793_000_000_000, tz: TimeZone(secondsFromGMT: 0)!)
+        e.begin(day: 4)
+        e.setJumpSets("pogo", 3); e.setJumpSets("sl_rdl", 2)
+        _ = e.completeJumps(sets: e.db.active!.jumps ?? [:])
+        e.db.active!.jumpsSeen = 0                       // reopening the warm-up from the overview
+        XCTAssertEqual(e.db.active?.jumps, ["pogo": 3, "sl_rdl": 2])
+        e.setJumpSets("pogo", 2)
+        XCTAssertEqual(e.db.active?.jumps?["pogo"], 2)
+        e.setJumpSets("pogo", 0); e.setJumpSets("sl_rdl", 0)
+        XCTAssertNil(e.db.active?.jumps)
+    }
+}
