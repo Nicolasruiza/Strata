@@ -58,6 +58,9 @@ struct DetailView: View {
                             .padding(.leading, 16).padding(.top, 14 + safeTop)
                     }
                     VStack(spacing: 12) {
+                        if let c = e.celebration(forSession: index), let sum = e.sessionSummary(c, derivedNext: true), !sum.rows.isEmpty {
+                            SummaryCards.nextTime(e, sum: sum, s: s)
+                        }
                         if e.isLegs(s.day) || j {
                             HStack(spacing: 12) {
                                 ZStack { Circle().fill(Theme.mint.opacity(0.16)); IconView(d: Icon.bone, size: 20, color: Theme.mint) }.frame(width: 40, height: 40)
@@ -86,6 +89,9 @@ struct DetailView: View {
                                 Spacer(minLength: 0)
                                 Chip(text: "Skipped")
                             }.padding(4).card(tight: true, dashed: true)
+                        }
+                        if let c = e.celebration(forSession: index), let cmp = e.sessionSummary(c, derivedNext: true)?.compare {
+                            SummaryCards.compare(e, cmp: cmp, s: s)
                         }
                         Button("Delete this session") { confirmDelete = true }.buttonStyle(LinkButtonStyle(color: Color(hex: "#FF8A70"))).frame(maxWidth: .infinity)
                     }.padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 40)

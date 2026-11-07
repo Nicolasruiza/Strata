@@ -23,7 +23,6 @@ struct TodayView: View {
                     CompactRings(st: st)
                     InsightCard(insights: e.insights(health: healthSignals(today: t)))
                     mainCard(e, slot: slot, selDate: selDate, isToday: isToday, lp: slots[sel], st: st, mon: mon)
-                    rotationCard(e, slot: slot, lp: slots[sel], t: t)
                     if isToday && e.db.active == nil { MobilityCard(e: e) }
                     if isToday && e.db.active == nil { otherOptions(slot) }
                     if isToday { todayLog(e, t: t) }
@@ -238,28 +237,6 @@ struct TodayView: View {
     }
 
     // MARK: "Next lift in your rotation", "Cardio first", "Log a walk"
-
-    @ViewBuilder
-    private func rotationCard(_ e: Engine, slot: String, lp: LiftSlot?, t: String) -> some View {
-        let mainIsNext = slot == "lift" && lp?.status == "planned"
-        if e.db.active == nil && !mainIsNext {
-            let nd = e.nextDay()
-            HStack(spacing: 12) {
-                ZStack { Circle().fill(Theme.violet.opacity(0.18)); IconView(d: Icon.dumbbell, size: 20, color: Theme.violet) }.frame(width: 40, height: 40)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Next lift in your rotation").labelStyle()
-                    Text(e.plan[nd]?.name ?? "").nameStyle().padding(.top, 2)
-                    Text("\(e.requiredItems(nd).count) main lifts · ~\(jsMinutes(e.minutesFor(nd))) min\(e.isLegs(nd) ? " · jumps first" : "")").metaStyle()
-                }
-                Spacer(minLength: 0)
-                Button(e.liftedOn(t) != nil ? "Preview" : "Open") { model.go(.preview(day: nd)) }
-                    .buttonStyle(StrataButtonStyle(small: true, hPad: 16)).fixedSize()
-            }
-            .padding(.horizontal, 14).padding(.vertical, 12)
-            .background(RoundedRectangle(cornerRadius: Theme.Radius.card).fill(Theme.glass))
-            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.card).strokeBorder(Theme.line))
-        }
-    }
 
     @ViewBuilder
     private func otherOptions(_ slot: String) -> some View {
