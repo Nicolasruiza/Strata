@@ -65,6 +65,8 @@ final class AppModel: ObservableObject {
     /// Health workouts by day (minutes each), Strata's own already left out. Duplicates of a Strata log are removed when read.
     @Published private(set) var healthWorkoutMinutes: [String: [Double]] = [:]
     @Published private(set) var todayWorkouts: [HealthWorkoutRow] = []
+    /// Heart rate and calories of the Health workout that is today's Strata lift, if there is one.
+    @Published private(set) var todayLiftStats: WorkoutDetail?
     @Published private(set) var vo2: [Vo2Reading] = []
     private var watchRevision = 0
     private var handledWatchCommands: Set<UUID> = []
@@ -120,6 +122,9 @@ final class AppModel: ObservableObject {
         guard let start = calendar.date(byAdding: .day, value: -55, to: today) else { return }
         if let readings = await health.vo2Readings(from: calendar.date(byAdding: .day, value: -365, to: today) ?? start, through: today) { vo2 = readings }
         if let rows = await health.workouts(on: today) { todayWorkouts = rows }
+        if let e = engine, let lift = e.db.history.last(where: { $0.date == e.today }) {
+            todayLiftStats = await health.workoutDetail(on: e.today, minutes: lift.min, strength: true)
+        } else { todayLiftStats = nil }
         if let hours = await health.standHours(on: today) { standHours = hours }
         if let workouts = await health.dailyWorkoutMinutes(from: start, through: today) { healthWorkoutMinutes = workouts }
         if let sleep = await health.dailySleep(from: start, through: today), !sleep.isEmpty { healthSleep = sleep }

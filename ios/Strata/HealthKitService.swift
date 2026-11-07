@@ -31,6 +31,8 @@ struct WorkoutDetail: Equatable {
     let maxHR: Double?
     let distanceKm: Double?
     let ascendedM: Double?
+    /// Active energy burned during the workout, in kcal.
+    var kcal: Double? = nil
 }
 
 /// A whole day from Health: steps and average heart rate per hour, plus distance and floors.
@@ -116,7 +118,7 @@ final class HealthKitService: HealthService {
     private func authorize() async -> Bool {
         guard available else { return false }
         do {
-            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType, waistType], read: Set<HKObjectType>([stepType, standType, waistType, sleepType, vo2Type, hrType, flightsType, HKObjectType.workoutType()] + distanceTypes))
+            try await store.requestAuthorization(toShare: [HKObjectType.workoutType(), hrType, waistType], read: Set<HKObjectType>([stepType, standType, waistType, sleepType, vo2Type, hrType, flightsType, HKQuantityType(.activeEnergyBurned), HKObjectType.workoutType()] + distanceTypes))
             return store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized
         } catch { return false }
     }
@@ -477,10 +479,16 @@ final class HealthKitService: HealthService {
 
     /// The Health workout on `day` whose length is closest to `minutes` (Strata's own saved
     /// workouts are included: they carry the heart-rate samples), with its heart-rate curve.
-    func workoutDetail(on ymd: String, minutes: Double?) async -> WorkoutDetail? {
+    func workoutDetail(on ymd: String, minutes: Double?, strength: Bool = false) async -> WorkoutDetail? {
         guard available, let from = civilDay(ymd), let to = Calendar.current.date(byAdding: .day, value: 1, to: from) else { return nil }
-        guard let found = await samples(HKObjectType.workoutType(), HKQuery.predicateForSamples(withStart: from, end: to)) as? [HKWorkout],
+        guard var found = await samples(HKObjectType.workoutType(), HKQuery.predicateForSamples(withStart: from, end: to)) as? [HKWorkout],
               !found.isEmpty else { return nil }
+        // A lifting session is matched against strength workouts only (a walk the same day is not it).
+        if strength {
+            let lifts = found.filter { $0.workoutActivityType == .traditionalStrengthTraining || $0.workoutActivityType == .functionalStrengthTraining }
+            if lifts.isEmpty { return nil }
+            found = lifts
+        }
         let w = found.min { abs($0.duration / 60 - (minutes ?? $0.duration / 60)) < abs($1.duration / 60 - (minutes ?? $1.duration / 60)) } ?? found[0]
 
         let bpm = HKUnit.count().unitDivided(by: .minute())
@@ -501,9 +509,11 @@ final class HealthKitService: HealthService {
             if let m = w.statistics(for: type)?.sumQuantity()?.doubleValue(for: .meter()), m > 0 { km = m / 1000; break }
         }
         let up = (w.metadata?[HKMetadataKeyElevationAscended] as? HKQuantity)?.doubleValue(for: .meter())
+        let kcal = w.statistics(for: HKQuantityType(.activeEnergyBurned))?.sumQuantity()?.doubleValue(for: .kilocalorie())
+            ?? w.totalEnergyBurned?.doubleValue(for: .kilocalorie())
         return WorkoutDetail(start: w.startDate, minutes: w.duration / 60, hr: curve,
                              avgHR: values.isEmpty ? nil : values.reduce(0, +) / Double(values.count), maxHR: values.max(),
-                             distanceKm: km, ascendedM: up)
+                             distanceKm: km, ascendedM: up, kcal: kcal.flatMap { $0 > 0 ? $0 : nil })
     }
 
     /// Hourly steps and heart rate for a civil day, with the day's distance and floors climbed.

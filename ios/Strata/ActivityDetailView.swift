@@ -63,6 +63,7 @@ struct ActivityDetailView: View {
             tile("Distance", workout?.distanceKm.map { "\(Fmt.fmtFixed($0, 1)) km" })
             tile("Climb", elev.map { "+\(jsMinutes($0.rounded())) m" })
         }
+        if let k = workout?.kcal { HStack(spacing: 10) { tile("Active kcal", Fmt.nf(k.rounded())) } }
         if let z = c?.zones, z.reduce(0, +) > 0 { zonesCard(z) }
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 2) { Text("Heart rate").nameStyle(); Text("bpm over the session · Apple Health").metaStyle() }

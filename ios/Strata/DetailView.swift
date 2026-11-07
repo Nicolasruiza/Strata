@@ -33,6 +33,7 @@ struct DetailView: View {
     @Environment(\.safeTop) private var safeTop
     let index: Int
     @State private var confirmDelete = false
+    @State private var workout: WorkoutDetail?
 
     var body: some View {
         let e = model.engine!
@@ -61,6 +62,7 @@ struct DetailView: View {
                         if let c = e.celebration(forSession: index), let sum = e.sessionSummary(c, derivedNext: true), !sum.rows.isEmpty {
                             SummaryCards.nextTime(e, sum: sum, s: s)
                         }
+                        if let w = workout, w.avgHR != nil || w.kcal != nil { HealthStatsCard(workout: w) }
                         if e.isLegs(s.day) || j {
                             HStack(spacing: 12) {
                                 ZStack { Circle().fill(Theme.mint.opacity(0.16)); IconView(d: Icon.bone, size: 20, color: Theme.mint) }.frame(width: 40, height: 40)
@@ -97,6 +99,7 @@ struct DetailView: View {
                     }.padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 40)
                 }.frame(maxWidth: Theme.maxWidth)
             }
+            .task(id: s.date) { workout = await model.health.workoutDetail(on: s.date, minutes: s.min, strength: true) }
             .alert(e.deleteSessionPrompt, isPresented: $confirmDelete) {
                 Button("Delete", role: .destructive) { model.mutate { $0.deleteSession(index) }; model.go(.history) }
                 Button("Cancel", role: .cancel) {}

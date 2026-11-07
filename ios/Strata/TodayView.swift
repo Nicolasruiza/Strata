@@ -309,12 +309,17 @@ struct TodayView: View {
     private func ownRow(_ e: Engine, _ it: HistoryItem, first: Bool) -> some View {
         let r = e.historyRow(it)
         let lift = r.icon == "lift" || r.icon == "home"
+        var meta = r.meta
+        if it.kind == "lift", it.date == e.today, let w = model.todayLiftStats {
+            let extra = [w.avgHR.map { "\(jsMinutes($0.rounded())) bpm" }, w.kcal.map { "\(Fmt.nf($0.rounded())) kcal" }].compactMap { $0 }
+            if !extra.isEmpty { meta += " · " + extra.joined(separator: " · ") }
+        }
         return Button {
             if it.kind == "lift" { model.go(.detail(index: it.index)) }
             else { model.sheet = .editCardio(date: it.date, type: it.kind) }
         } label: {
             logRow(icon: r.icon == "lift" ? Icon.dumbbell : r.icon == "home" ? Icon.home : r.icon == "heart" ? Icon.heart : Icon.walk,
-                   tint: lift ? Theme.violet : Theme.coral, name: r.name, meta: r.meta, right: r.right, first: first, chevron: true)
+                   tint: lift ? Theme.violet : Theme.coral, name: r.name, meta: meta, right: r.right, first: first, chevron: true)
         }.buttonStyle(.plain)
     }
 
