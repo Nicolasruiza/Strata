@@ -191,3 +191,9 @@ Web quirk seen while comparing (not ported, not changed): opening the web app wi
 
 ## Health workouts that duplicate a Strata log (iOS only)
 - [x] Today's log and the Progress cardio minutes hide Apple Health workouts that are the same session as something Strata logged: each Strata lift that day hides one Health strength workout; each Strata cardio entry hides one Health workout within 5 min of its length (office walks and jumps never hide anything). Matching is by kind and size because a finished Strata session keeps no start time
+
+## Heart rate and calories on a lift session (iOS only)
+A Strata lift is the same effort as the Apple Health strength workout it hides (see "Health duplicates"). The session
+detail now shows that workout's average/max heart rate, active kcal and HR curve in an "Apple Health" card; Today's
+lift row adds avg bpm and kcal to its meta. Matching is by day and closest length among strength workouts only.
+Cardio detail also shows active kcal. Active energy burned was added to the HealthKit read set. No web equivalent.
