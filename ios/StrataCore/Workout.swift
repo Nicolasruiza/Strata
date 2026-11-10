@@ -386,6 +386,13 @@ extension Engine {
         if n > 0 { m[id] = n } else { m.removeValue(forKey: id) }
         db.active!.jumps = m.isEmpty ? nil : m
     }
+    /// The warm-up move picked for the second slot; unknown ids fall back to the default.
+    public var jumpAlt: Config.Jumps.Alt { Config.Jumps.alts.first { $0.id == db.jumpAlt } ?? Config.Jumps.alts[0] }
+    public var jumpsPlanText: String { "Pogo hops 3 × 10 · \(jumpAlt.name) \(jumpAlt.plan)" }
+    public mutating func setJumpAlt(_ id: String) {
+        guard Config.Jumps.alts.contains(where: { $0.id == id }) else { return }
+        db.jumpAlt = id
+    }
     public mutating func skipJumps() { db.active?.jumpsSeen = 1 }
 
     // MARK: finishing (app.js endSession)

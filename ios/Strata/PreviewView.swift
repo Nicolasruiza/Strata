@@ -146,7 +146,7 @@ struct PreviewView: View {
             HStack { Text("Warm-up · Bone · 5 min").labelStyle(Theme.mint); Spacer(); Text("Do first").smallStyle() }
             if legs {
                 warmRow(img: "img/pogo.jpg", name: "Pogo hops", meta: "3 × 10", yt: "rc_pogo", first: true)
-                warmRow(img: "img/box_jump.jpg", name: "Box jumps", meta: "3 × 5 · step down", yt: "rc_box", first: false)
+                warmRow(img: model.engine!.jumpAlt.img, name: model.engine!.jumpAlt.name, meta: model.engine!.jumpAlt.plan, yt: "jalt_" + model.engine!.jumpAlt.id, first: false)
             }
             ForEach(Array(warm.enumerated()), id: \.element.id) { i, ex in
                 warmRow(img: e.catalog.imageName(of: ex.id), name: Fmt.cleanN(ex.n), meta: "2 × \(ex.r ?? 0)\(Fmt.perLeg(ex)) · balance", yt: ex.id, first: !legs && i == 0)

@@ -242,7 +242,7 @@ struct ProgressScreen: View {
 
     /// The last 7 days ending today, oldest first, so the chart always has recent nights
     /// (a Monday-to-Sunday week would be empty every Monday). 0 where Health has nothing.
-    /// Days of Daily Mobility (at least one full session). A bonus count: no target, nothing is ever "missed".
+    /// Days with a full Mobility routine. A bonus count: no target, nothing is ever "missed".
     private func mobilityCard(_ e: Engine, labels wl: [String]) -> some View {
         let monday = Dates.mondayOf(e.today)
         let weeks = (0..<8).map { Dates.weekDates(Dates.addDays(monday, -7 * (7 - $0))) }
@@ -274,7 +274,7 @@ struct ProgressScreen: View {
                     }.frame(maxWidth: .infinity)
                 }
             }.padding(.top, 14)
-            Text("Brighter dot: both Morning and Evening. Dots run Monday (top) to Sunday.").smallStyle().padding(.top, 10)
+            Text("Dots run Monday (top) to Sunday.").smallStyle().padding(.top, 10)
         }.card()
     }
 

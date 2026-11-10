@@ -59,7 +59,7 @@ struct HistoryView: View {
         return weeks
     }
 
-    /// One line per day with any Daily Mobility check-off, newest first. Morning and evening are shown apart.
+    /// One line per day with any Mobility check-off, newest first.
     @ViewBuilder
     private func mobilityRows(_ e: Engine, m: String, firstIsTop: Bool) -> some View {
         let week = Dates.weekDates(m)
@@ -71,8 +71,8 @@ struct HistoryView: View {
                     .font(.inter(size: 12)).foregroundStyle(Theme.muted).lineSpacing(2).frame(width: 46, alignment: .leading)
                 ZStack { Circle().fill(Theme.mint.opacity(0.18)); IconView(d: Icon.walk, size: 20, color: Theme.mint, line: 2.2) }.frame(width: 40, height: 40)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Daily mobility").nameStyle()
-                    Text(Config.Mobility.sessions.map { "\($0.label) \(e.mobilityCount(date: d, session: $0.id))/\(total)" }.joined(separator: " · ")).metaStyle()
+                    Text("Mobility").nameStyle()
+                    Text("\(e.mobilityCount(date: d, session: Config.Mobility.sessions[0].id))/\(total) exercises").metaStyle()
                 }
                 Spacer(minLength: 0)
             }

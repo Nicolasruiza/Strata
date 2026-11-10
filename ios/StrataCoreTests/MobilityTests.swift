@@ -17,11 +17,12 @@ final class MobilityTests: XCTestCase {
         XCTAssertNil(e.db.mobility)
     }
 
-    func testMorningAndEveningAreSeparate() {
+    func testThereIsOnlyOneRoutine() {
         var e = engine()
-        for ex in Config.Mobility.exercises { e.toggleMobility(session: "evening", ex: ex.id) }
-        XCTAssertTrue(e.mobilitySessionComplete(date: e.today, session: "evening"))
-        XCTAssertFalse(e.mobilitySessionComplete(date: e.today, session: "morning"))
+        XCTAssertEqual(Config.Mobility.sessions.count, 1)
+        XCTAssertFalse(e.toggleMobility(session: "evening", ex: "glide"))   // no evening round any more
+        for ex in Config.Mobility.exercises { e.toggleMobility(session: "morning", ex: ex.id) }
+        XCTAssertTrue(e.mobilitySessionComplete(date: e.today, session: "morning"))
         XCTAssertEqual(e.mobilitySessionsDone(date: e.today), 1)
         XCTAssertEqual(e.mobilityDays(in: [e.today, Dates.addDays(e.today, -1)]), 1)
     }
@@ -45,8 +46,8 @@ final class MobilityTests: XCTestCase {
 
     func testSetsAreClamped() {
         var e = engine()
-        e.setMobilitySets(session: "evening", ex: "itband", sets: 9)   // itband is 1 set
-        XCTAssertEqual(e.mobilitySets(date: e.today, session: "evening", ex: "itband"), 1)
+        e.setMobilitySets(session: "morning", ex: "itband", sets: 9)   // itband is 1 set
+        XCTAssertEqual(e.mobilitySets(date: e.today, session: "morning", ex: "itband"), 1)
     }
 
     func testPartialSessionDoesNotCountAsADay() {

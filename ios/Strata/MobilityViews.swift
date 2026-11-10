@@ -10,37 +10,31 @@ struct MobilityCard: View {
 
     var body: some View {
         let total = Config.Mobility.exercises.count
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 12) {
-                ZStack { Circle().fill(mobTint.opacity(0.18)); IconView(d: Icon.walk, size: 20, color: mobTint, line: 2.2) }.frame(width: 40, height: 40)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Daily mobility").nameStyle()
-                    Text("Back and legs · optional, a bonus").metaStyle()
-                }
-                Spacer(minLength: 0)
-            }
-            ForEach(Config.Mobility.sessions) { s in
-                let n = e.mobilityCount(date: e.today, session: s.id)
-                Button { model.go(.mobility(session: s.id)) } label: {
-                    HStack(spacing: 10) {
-                        Text(s.label).font(.inter(size: 15, weight: .semibold))
-                        Spacer(minLength: 0)
-                        HStack(spacing: 4) {
-                            ForEach(0..<total, id: \.self) { i in
-                                Circle().fill(i < n ? mobTint : Color.white.opacity(0.14)).frame(width: 9, height: 9)
-                            }
-                        }
-                        Text("\(n)/\(total)").font(.inter(size: 15, weight: .semibold)).monospacedDigit()
-                            .foregroundStyle(n == total ? mobTint : Theme.text).frame(minWidth: 30, alignment: .trailing)
-                        IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4)
+        let s = Config.Mobility.sessions[0]
+        let n = e.mobilityCount(date: e.today, session: s.id)
+        Button { model.go(.mobility(session: s.id)) } label: {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 12) {
+                    ZStack { Circle().fill(mobTint.opacity(0.18)); IconView(d: Icon.walk, size: 20, color: mobTint, line: 2.2) }.frame(width: 40, height: 40)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Mobility").nameStyle()
+                        Text("Optional, a bonus").metaStyle()
                     }
-                    .padding(.vertical, 12)
-                    .overlay(alignment: .top) { Rectangle().fill(Theme.line).frame(height: 1) }
-                    .contentShape(Rectangle())
-                }.buttonStyle(.plain).padding(.top, s.id == "morning" ? 10 : 0)
-                .accessibilityLabel("\(s.label), \(n) of \(total) done")
+                    Spacer(minLength: 0)
+                    HStack(spacing: 4) {
+                        ForEach(0..<total, id: \.self) { i in
+                            Circle().fill(i < n ? mobTint : Color.white.opacity(0.14)).frame(width: 9, height: 9)
+                        }
+                    }
+                    Text("\(n)/\(total)").font(.inter(size: 15, weight: .semibold)).monospacedDigit()
+                        .foregroundStyle(n == total ? mobTint : Theme.text)
+                    IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4)
+                }
+                Text(Config.Mobility.longevityNote).font(.inter(size: 13)).foregroundStyle(Theme.muted)
             }
-        }.card()
+            .contentShape(Rectangle())
+        }.buttonStyle(.plain).card()
+        .accessibilityLabel("Mobility, \(n) of \(total) done")
     }
 }
 
@@ -56,13 +50,12 @@ struct MobilityView: View {
     }
 
     private func main(_ e: Engine) -> some View {
-        let label = Config.Mobility.sessions.first { $0.id == session }?.label ?? ""
         let checked = e.mobilityChecked(date: e.today, session: session)
         let total = Config.Mobility.exercises.count
         return ScrollView {
             VStack(spacing: 0) {
                 ZStack(alignment: .topLeading) {
-                    Hero(eyebrow: "Mobility · \(checked.count) of \(total)", title: "\(label) routine",
+                    Hero(eyebrow: "Mobility · \(checked.count) of \(total)", title: "Mobility routine",
                          sub: "Tick each set as you finish it.", short: true, brand: false)
                     GlassButton(action: { model.go(.today) }, accessibility: "Back") {
                         IconView(d: "M15 5l-7 7 7 7", size: 18, color: .white, line: 2.4)

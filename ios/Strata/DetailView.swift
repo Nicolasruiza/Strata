@@ -66,7 +66,7 @@ struct DetailView: View {
                         if e.isLegs(s.day) || j {
                             HStack(spacing: 12) {
                                 ZStack { Circle().fill(Theme.mint.opacity(0.16)); IconView(d: Icon.bone, size: 20, color: Theme.mint) }.frame(width: 40, height: 40)
-                                VStack(alignment: .leading, spacing: 2) { Text("Jumps warm-up").nameStyle(); Text("Pogo hops 3 × 10 · Box jumps 3 × 5").metaStyle() }
+                                VStack(alignment: .leading, spacing: 2) { Text("Jumps warm-up").nameStyle(); Text(e.jumpsPlanText).metaStyle() }
                                 Spacer(minLength: 0)
                                 WebSwitch(isOn: Binding(get: { j }, set: { _ in model.mutate { $0.toggleSessionJumps(index); return nil } }), label: "Jumps done")
                             }.padding(4).card(tight: true)

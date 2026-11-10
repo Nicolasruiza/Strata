@@ -284,7 +284,7 @@ function restBanner(){
 }
 /* "2 of 8 sets done" once something is logged, else the plan line */
 function jumpsMeta(){const A=DB.active, sets=A.jumps||{}, items=jumpItems(), total=items.reduce((a,x)=>a+x.sets,0), done=items.reduce((a,x)=>a+Math.min(x.sets,sets[x.k]||0),0);
-  return done>0?`${done} of ${total} sets done`:'Pogo hops 3 × 10 · Box jumps 3 × 5'}
+  return done>0?`${done} of ${total} sets done`:jumpsPlanTxt()}
 function overviewView(){
   const A=DB.active, L=liftList(), req=requiredItems(A.day), done=req.filter(x=>exState(x)==='done').length, nx=nextUp();
   const el=Math.floor((Date.now()-(A.started||Date.now()))/1000), legs=isLegs(A.day), jumps=cardioOn(A.date,'jumps');

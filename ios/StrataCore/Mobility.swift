@@ -18,7 +18,7 @@ extension Engine {
     public func mobilitySessionComplete(date: String, session: String) -> Bool {
         mobilityCount(date: date, session: session) == Config.Mobility.exercises.count
     }
-    /// Complete sessions that day, 0 to 2.
+    /// Complete sessions that day, 0 or 1.
     public func mobilitySessionsDone(date: String) -> Int {
         Config.Mobility.sessions.filter { mobilitySessionComplete(date: date, session: $0.id) }.count
     }
