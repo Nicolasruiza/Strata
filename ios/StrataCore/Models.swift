@@ -300,9 +300,12 @@ public struct AppData: Codable, Equatable {
     /// Daily step totals from Apple Health, every day (iOS only; the web ignores it). The weekly walking average reads it.
     public var steps: [String: Int]?
 
+    /// Which move fills the second warm-up slot ("stepup" when unset). Web keeps the same `jumpAlt`.
+    public var jumpAlt: String?
+
     enum CodingKeys: String, CodingKey {
         case next, history, active, holds, cycleStarts, focus, injuries, cycleAnchor, cardio, age
-        case officeDays, rcOffice, waist, skips, live, mobility, steps
+        case officeDays, rcOffice, waist, skips, live, mobility, steps, jumpAlt
     }
 
     public init() {}
@@ -336,6 +339,7 @@ public struct AppData: Codable, Equatable {
         live = try c.decodeIfPresent(LiveCardio.self, forKey: .live)
         mobility = try c.decodeIfPresent([MobilityDone].self, forKey: .mobility)
         steps = try c.decodeIfPresent([String: Int].self, forKey: .steps)
+        jumpAlt = try c.decodeIfPresent(String.self, forKey: .jumpAlt)
         // `demoSensors` is a web testing switch: read nothing, write nothing.
     }
 }

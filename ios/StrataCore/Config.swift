@@ -177,6 +177,25 @@ extension Config {
     public enum Jumps {
         public static let restSec: [String: Double] = ["pogo": 30, "box": 60]
         public static let defaultRestSec = 30.0
+        /// The second warm-up move is a pick. Step-ups are the default: quiet in a busy gym. Box jumps stay on the list.
+        public struct Alt: Equatable, Identifiable {
+            public let id: String, name: String, img: String
+            public let sets: Int, reps: Int
+            public let perLeg: Bool
+            public let rest: Double
+            public let how: String
+            public var plan: String { "\(sets) × \(reps)\(perLeg ? " / leg" : "")" }
+        }
+        public static let alts = [
+            Alt(id: "stepup", name: "Fast step-ups", img: "img/step_up.jpg", sets: 3, reps: 5, perLeg: true, rest: 45,
+                how: "Knee-high bench or step. Drive the knee up, step up fast, stand tall, then lower slowly. Finish one leg, then switch. 45 s rest."),
+            Alt(id: "heel", name: "Heel drops", img: "img/pogo.jpg", sets: 3, reps: 10, perLeg: false, rest: 30,
+                how: "Rise onto your toes, then let your heels drop to the floor with a firm thud. Quick and quiet. 30 s rest."),
+            Alt(id: "skater", name: "Skater hops", img: "img/pogo.jpg", sets: 3, reps: 10, perLeg: false, rest: 45,
+                how: "Small side-to-side bounds, landing on one foot and holding a beat. Stay low and in control. 45 s rest."),
+            Alt(id: "box", name: "Box jumps", img: "img/box_jump.jpg", sets: 3, reps: 5, perLeg: false, rest: 60,
+                how: "Low box, 30–40 cm. Jump up, land soft, stand tall, then step down. 60 s rest."),
+        ]
         /// Optional load on a warm-up move (e.g. a kettlebell on the single-leg RDL), in lb.
         public static let weightStep = 5.0
     }
@@ -204,8 +223,8 @@ extension Config {
             }
         }
 
-        /// Morning and evening each repeat the same exercises.
-        public static let sessions = [Session(id: "morning", label: "Morning"), Session(id: "evening", label: "Evening")]
+        /// One routine. (The id stays "morning" so check-offs already stored keep counting; there is no evening round any more.)
+        public static let sessions = [Session(id: "morning", label: "Mobility")]
 
         public static let exercises: [Exercise] = [
             Exercise(id: "glide", name: "Sciatic nerve glide", category: "Nerve mobility",
@@ -236,6 +255,7 @@ extension Config {
                      cue: "Keep the raised knee straight and make a small, controlled movement across the body.",
                      startImage: "mob_belt_start", finishImage: "mob_belt_finish"),
         ]
+        public static let longevityNote = "Mobility is key to longevity. Try these every now and then."
         public static let safetyNote = "Move gently. If pain increases or spreads, stop and check with your clinician."
     }
 }

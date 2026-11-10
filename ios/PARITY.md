@@ -197,3 +197,7 @@ A Strata lift is the same effort as the Apple Health strength workout it hides (
 detail now shows that workout's average/max heart rate, active kcal and HR curve in an "Apple Health" card; Today's
 lift row adds avg bpm and kcal to its meta. Matching is by day and closest length among strength workouts only.
 Cardio detail also shows active kcal. Active energy burned was added to the HealthKit read set. No web equivalent.
+
+## Mobility: one optional routine; jumps: a pick instead of fixed box jumps
+- [x] Mobility is a single routine (no Morning/Evening). Card on Move: "Mobility · Optional, a bonus" + "Mobility is key to longevity. Try these every now and then." Stored check-offs keep counting (the id stays `morning`); evening-only history from before is no longer counted. Still outside rings and streaks. iOS only.
+- [x] The second warm-up slot is a pick: Fast step-ups 3 × 5 / leg (default), Heel drops 3 × 10, Skater hops 3 × 10, Box jumps 3 × 5. "Swap exercise" chips on the jumps screen; the choice is stored as `jumpAlt` (web `DB.jumpAlt`, iOS `AppData.jumpAlt`) and shown in the preview, overview and session detail. Pogo hops stay. Logged sets use the same `box` slot, so counts and landings are unchanged. Heel drops and skater hops reuse the pogo photo; form videos search YouTube by name.

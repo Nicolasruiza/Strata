@@ -11,6 +11,7 @@ struct JumpsView: View {
         var k: String, name: String, img: String?, sets: Int, reps: Int, perLeg: Bool, how: String, yt: String
         var rest: Double
         var weighted: Bool
+        var isAlt = false
     }
 
     var body: some View {
@@ -24,9 +25,8 @@ struct JumpsView: View {
             Item(k: "pogo", name: "Pogo hops", img: "img/pogo.jpg", sets: 3, reps: 10, perLeg: false,
                  how: "Bounce on the balls of your feet, knees almost straight, quick and light. 30 s rest between sets.",
                  yt: "rc_pogo", rest: Config.Jumps.restSec["pogo"] ?? Config.Jumps.defaultRestSec, weighted: false),
-            Item(k: "box", name: "Box jumps", img: "img/box_jump.jpg", sets: 3, reps: 5, perLeg: false,
-                 how: "Low box, 30–40 cm. Jump up, land soft, stand tall, then step down. 60 s rest.",
-                 yt: "rc_box", rest: Config.Jumps.restSec["box"] ?? Config.Jumps.defaultRestSec, weighted: false),
+            Item(k: "box", name: e.jumpAlt.name, img: e.jumpAlt.img, sets: e.jumpAlt.sets, reps: e.jumpAlt.reps, perLeg: e.jumpAlt.perLeg,
+                 how: e.jumpAlt.how, yt: "jalt_" + e.jumpAlt.id, rest: e.jumpAlt.rest, weighted: false, isAlt: true),
         ] + warm.map { ex in
             Item(k: ex.id, name: Fmt.cleanN(ex.n).replacingOccurrences(of: ", bodyweight", with: ""),
                  img: e.catalog.imageName(of: ex.id), sets: 2, reps: ex.r ?? 0, perLeg: !Fmt.perLeg(ex).isEmpty,
@@ -73,6 +73,7 @@ struct JumpsView: View {
                     Text(it.name).font(.inter(size: 30, weight: .heavy)).tracking(-0.75).padding(.top, -6)
                     Text("\(it.sets) sets × \(it.reps)\(it.perLeg ? " / leg" : "")").metaStyle().padding(.top, -10)
                     Text(it.how).bodyStyle()
+                    if it.isAlt { swapCard(e) }
                     if it.weighted { weightCard(e, it) }
                     RestBanner(idle: (big: done >= it.sets ? "All sets logged" : "Set \(done + 1) of \(it.sets)", meta: done >= it.sets ? "On to the next exercise" : "Log it when you finish"))
                     ForEach(0..<it.sets, id: \.self) { i in setRow(e, it, i, done: done, next: nextLabel(list, step)) }
@@ -132,6 +133,23 @@ struct JumpsView: View {
             Spacer(minLength: 0)
             stepButton("M5 12h14", "Less weight") { model.jumpWeights[it.k] = max(0, w - Config.Jumps.weightStep) }
             stepButton("M12 5v14M5 12h14", "More weight") { model.jumpWeights[it.k] = min(Engine.maximumTypedWeight, w + Config.Jumps.weightStep) }
+        }.padding(.horizontal, 16).padding(.vertical, 14)
+         .background(RoundedRectangle(cornerRadius: 22).fill(Theme.glass))
+         .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(Theme.line))
+    }
+
+    private func swapCard(_ e: Engine) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Swap exercise").metaStyle()
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(Config.Jumps.alts) { a in
+                        Button(a.name) { model.mutate { $0.setJumpAlt(a.id); return nil } }
+                            .buttonStyle(StrataButtonStyle(kind: a.id == e.jumpAlt.id ? .mint : .plain, small: true))
+                            .accessibilityAddTraits(a.id == e.jumpAlt.id ? .isSelected : [])
+                    }
+                }
+            }
         }.padding(.horizontal, 16).padding(.vertical, 14)
          .background(RoundedRectangle(cornerRadius: 22).fill(Theme.glass))
          .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(Theme.line))

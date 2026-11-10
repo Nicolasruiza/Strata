@@ -368,7 +368,7 @@ function previewView(){
     ${!g.ok&&!DB.active?`<div class="warnbox">${g.msg}</div>`:''}
     ${legs||warm.length?`<section class="card" style="border-color:rgba(74,222,128,.35)"><div class="rowh"><span class="label" style="color:var(--mint)">Warm-up · Bone · 5 min</span><span class="small">Do first</span></div>
       ${legs?`<div class="row"><img class="thumb sm" src="img/pogo.jpg" alt=""><div class="grow"><div class="name">Pogo hops</div><div class="meta">3 × 10</div></div><button class="gbtn" data-yt="rc_pogo" aria-label="Watch pogo hops form" style="min-width:40px;height:40px;padding:0">${I.play.replace('<svg','<svg width="14" height="14"')}</button></div>
-      <div class="row"><img class="thumb sm" src="img/box_jump.jpg" alt=""><div class="grow"><div class="name">Box jumps</div><div class="meta">3 × 5 · step down</div></div><button class="gbtn" data-yt="rc_box" aria-label="Watch box jump form" style="min-width:40px;height:40px;padding:0">${I.play.replace('<svg','<svg width="14" height="14"')}</button></div>`:''}
+      <div class="row"><img class="thumb sm" src="${jumpAlt().img}" alt=""><div class="grow"><div class="name">${jumpAlt().n}</div><div class="meta">${jumpAlt().sets} × ${jumpAlt().reps}${jumpAlt().per}</div></div><button class="gbtn" data-yt="jalt_${jumpAlt().id}" aria-label="Watch form" style="min-width:40px;height:40px;padding:0">${I.play.replace('<svg','<svg width="14" height="14"')}</button></div>`:''}
       ${warm.map(ex=>`<div class="row"><img class="thumb sm" src="${imgOf(ex.id)}" alt=""><div class="grow"><div class="name">${esc(cleanN(ex.n))}</div><div class="meta">2 × ${ex.r}${perLeg(ex)} · balance</div></div><button class="gbtn" data-yt="${ex.id}" aria-label="Watch form" style="min-width:40px;height:40px;padding:0">${I.play.replace('<svg','<svg width="14" height="14"')}</button></div>`).join('')}</section>`:''}
     <section class="card"><span class="label">Main lifts</span><div style="margin-top:4px">${req.map(row).join('')}</div></section>
     ${bonus.length&&!low?`<section class="card" style="border-style:dashed"><div class="rowh"><span class="label">Bonus · if time</span><span class="small">+${bonus.length*6} min</span></div>
@@ -387,10 +387,18 @@ function begin(day){
 let jumpSets={}, jumpW={}, jumpStep=0;
 /* rest between sets (from the cues in the exercise text), and the optional load step on warm-up moves like the single-leg RDL */
 const JUMPS_REST={pogo:30,box:60}, JUMPS_REST_DEFAULT=30, JUMPS_W_STEP=5;
+/* the second warm-up move is a pick: step-ups by default (quiet in a busy gym); box jumps stay available */
+const JUMP_ALTS=[
+  {id:'stepup',n:'Fast step-ups',img:'img/step_up.jpg',sets:3,reps:5,per:' / leg',rest:45,how:'Knee-high bench or step. Drive the knee up, step up fast, stand tall, then lower slowly. Finish one leg, then switch. 45 s rest.'},
+  {id:'heel',n:'Heel drops',img:'img/pogo.jpg',sets:3,reps:10,per:'',rest:30,how:'Rise onto your toes, then let your heels drop to the floor with a firm thud. Quick and quiet. 30 s rest.'},
+  {id:'skater',n:'Skater hops',img:'img/pogo.jpg',sets:3,reps:10,per:'',rest:45,how:'Small side-to-side bounds, landing on one foot and holding a beat. Stay low and in control. 45 s rest.'},
+  {id:'box',n:'Box jumps',img:'img/box_jump.jpg',sets:3,reps:5,per:'',rest:60,how:'Low box, 30–40 cm. Jump up, land soft, stand tall, then step down. 60 s rest.'}];
+const jumpAlt=()=>JUMP_ALTS.find(a=>a.id===DB.jumpAlt)||JUMP_ALTS[0];
+const jumpsPlanTxt=()=>{const a=jumpAlt(); return `Pogo hops 3 × 10 · ${a.n} ${a.sets} × ${a.reps}${a.per}`};
 function jumpItems(){
   const A=DB.active, warm=PLAN[A.day].blocks.filter(b=>/^warm-up/i.test(b.t)).flatMap(b=>b.items);
   return [{k:'pogo',n:'Pogo hops',img:'img/pogo.jpg',sets:3,reps:10,per:'',how:'Bounce on the balls of your feet, knees almost straight, quick and light. 30 s rest between sets.',yt:'rc_pogo',rest:JUMPS_REST.pogo},
-          {k:'box',n:'Box jumps',img:'img/box_jump.jpg',sets:3,reps:5,per:'',how:'Low box, 30–40 cm. Jump up, land soft, stand tall, then step down. 60 s rest.',yt:'rc_box',rest:JUMPS_REST.box}]
+          {k:'box',n:jumpAlt().n,img:jumpAlt().img,sets:jumpAlt().sets,reps:jumpAlt().reps,per:jumpAlt().per,how:jumpAlt().how,yt:'jalt_'+jumpAlt().id,rest:jumpAlt().rest,alt:true}]
     .concat(warm.map(ex=>({k:ex.id,n:cleanN(ex.n).replace(', bodyweight',''),img:imgOf(ex.id),sets:2,reps:ex.r,per:perLeg(ex),how:cueOf(ex.id),yt:ex.id,rest:JUMPS_REST_DEFAULT,weighted:true})));
 }
 const jumpWeight=it=>{const A=DB.active; return jumpW[it.k]!=null?jumpW[it.k]:(A.entries[it.k]&&A.entries[it.k].w)||(lastOf(it.k)||{}).w||0};
@@ -417,6 +425,7 @@ function jumpsView(){
     <section class="card tight"><div style="display:flex;gap:14px"><img src="${it.img}" alt="${esc(it.n)}" style="width:112px;height:112px;object-fit:cover;border-radius:16px;flex:none;background:#1b1e28">
       <div class="grow" style="display:flex;flex-direction:column;gap:6px;min-width:0"><div class="label">How</div><div style="font-size:14px;line-height:1.4;color:#E6E8EE">${it.how}</div></div></div></section>
     <button class="btn sm" data-yt="${it.yt}">${I.play.replace('<svg','<svg width="14" height="14"')}Form video</button>
+    ${it.alt?`<div class="card tight" style="padding:10px"><div class="label" style="text-align:center">Swap exercise</div><div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px">${JUMP_ALTS.map(a=>`<button class="btn sm ${a.id===jumpAlt().id?'mint':''}" data-jalt="${a.id}" style="width:auto;padding:0 14px">${a.n}</button>`).join('')}</div></div>`:''}
     ${weightCard}${restBanner()||`<div class="wcard" style="display:flex;align-items:center;gap:12px;border-color:var(--line)"><div class="grow"><div class="label" style="color:var(--mint)">Ready</div><b style="font-size:30px">${done>=it.sets?'All sets logged':`Set ${done+1} of ${it.sets}`}</b><div class="meta">${done>=it.sets?'On to the next exercise':'Log it when you finish'}</div></div><span class="btn sm" style="width:auto;padding:0 14px;visibility:hidden">+30 s</span><span class="btn sm" style="width:auto;padding:0 14px;visibility:hidden">Skip</span></div>`}${rows}</main>
     <div class="dock"><button class="btn" id="skipJumps">Skip</button>${last
       ?`<button class="btn ${allDone?'mint':''} w2" id="jumpsDone">${allDone?'Done · start lifting':'Start lifting'}</button>`
@@ -889,7 +898,7 @@ function detailView(){
       <div style="display:flex;gap:6px;width:100%;padding-left:38px;margin-top:6px">${e.reps.map((r,k)=>`<input class="ein" type="number" inputmode="numeric" value="${r==null?'':r}" data-dr="${id}|${k}" aria-label="Set ${k+1}">`).join('')}<span class="small" style="align-self:center">${isSec(ex)?'s':''}</span></div></div>`};
   return hero({left:backBtn('detBack'),cls:'short',eyebrow:fmtD(s.date,{weekday:'long',month:'short',day:'numeric',year:'numeric'}),title:nm,sub:`${s.min?s.min+' min · ':''}${nf(s.vol||0)} lb moved${s.lowEnergy?' · lighter day':''}`})
    +`<main class="wrap">
-    ${isLegs(s.day)||j?`<section class="card tight"><div class="tg" style="padding:4px"><span class="ico m">${I.bone}</span><div class="grow"><div class="name">Jumps warm-up</div><div class="meta">Pogo hops 3 × 10 · Box jumps 3 × 5</div></div>
+    ${isLegs(s.day)||j?`<section class="card tight"><div class="tg" style="padding:4px"><span class="ico m">${I.bone}</span><div class="grow"><div class="name">Jumps warm-up</div><div class="meta">${jumpsPlanTxt()}</div></div>
       <button class="sw ${j?'on':''}" id="detJumps" role="switch" aria-checked="${!!j}" aria-label="Jumps done"></button></div></section>`:''}
     <section class="card"><div class="rowh"><span class="label">Main lifts</span><span class="small">Tap a number to edit</span></div><div style="margin-top:4px">${main.map(row).join('')||'<div class="empty">None</div>'}</div></section>
     ${extra.length?`<section class="card"><span class="label">Bonus & extras</span><div style="margin-top:4px">${extra.map(row).join('')}</div></section>`
@@ -1058,7 +1067,8 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#sheet')||e.target.closest('#tabs'))return;
   const t=e.target.closest('button'); if(!t)return;
   const ds=t.dataset, id=t.id;
-  if(ds.yt){e.preventDefault();openVid({id:ds.yt,n:''});return}
+  if(ds.jalt){DB.jumpAlt=ds.jalt; save(); render(); return}
+  if(ds.yt){e.preventDefault();openVid({id:ds.yt,n:ds.yt.startsWith('jalt_')?(JUMP_ALTS.find(a=>'jalt_'+a.id===ds.yt)||{}).n:''});return}
   if(id==='back'){go(prevScr&&TABS.some(x=>x[0]===prevScr)?prevScr:'today');return}
   if(ds.wd!=null){selDay=+ds.wd===wdOf(today())?null:+ds.wd;render();return}
   if(ds.preview){previewDay=+ds.preview;go('preview');return}

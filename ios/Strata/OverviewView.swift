@@ -65,10 +65,10 @@ struct OverviewView: View {
 
     /// "2 of 8 sets done" once something is logged, else the plan line.
     private func jumpsMeta() -> String {
-        guard let e = model.engine, let A = e.db.active else { return "Pogo hops 3 × 10 · Box jumps 3 × 5" }
+        guard let e = model.engine, let A = e.db.active else { return "Pogo hops 3 × 10" }
         let list = JumpsView.items(e, A), sets = A.jumps ?? [:]
         let total = list.reduce(0) { $0 + $1.sets }, done = list.reduce(0) { $0 + min($1.sets, sets[$1.k] ?? 0) }
-        return done > 0 ? "\(done) of \(total) sets done" : "Pogo hops 3 × 10 · Box jumps 3 × 5"
+        return done > 0 ? "\(done) of \(total) sets done" : e.jumpsPlanText
     }
 
     private func jumpsRow(_ done: Bool) -> some View {
