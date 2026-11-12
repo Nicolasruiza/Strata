@@ -318,7 +318,7 @@ function slotCard(slot,date,isToday,lp,st){
   if(slot==='z2'||slot==='walk'){
     const t=CTYPE[slot], c=weekDates(mondayOf(date)).map(d=>cardioOn(d,t)).find(Boolean), hr=rcHR();
     return `<section class="card"><div class="label" style="color:var(--coral)">${when} · Heart</div><div class="title2">${SLOT_NAME[slot]}</div>
-      <p class="p">${slot==='z2'?`<b>45–60 min</b> at a pace where you can talk in full sentences. Treadmill 5.5 km/h at 8% incline.${hr?` Target <b>${hr.z2[0]}–${hr.z2[1]} bpm</b>.`:''}`:'Easy pace outside, <b>45–90 min</b>. Or full rest if you feel beaten up.'}</p>
+      <p class="p">${slot==='z2'?`<b>45–60 min</b> at a pace where you can talk in full sentences. Treadmill 5.5 km/h at 8% incline, or pick the bike, elliptical, rower or an outdoor walk.${hr?` Target <b>${hr.z2[0]}–${hr.z2[1]} bpm</b>.`:''}`:'Easy pace outside, <b>45–90 min</b>. Or full rest if you feel beaten up.'}</p>
       ${c?`<div class="name" style="margin-top:12px;color:var(--coral)">Done · ${c.min} min on ${fmtD(c.date,{weekday:'long'})}</div>`
         :(isToday?`${(DB.officeOff||[]).includes(date)?`<button class="link" data-yesoffice="${date}" style="display:block;margin:10px 0 0">Actually, I'm going to the office</button>`:''}<button class="btn coral" data-wo="pick" style="margin-top:14px">Start</button><div class="small" style="margin-top:10px">Already did it? Log the minutes:</div>${minutesInput(slot)}`:'')}</section>`;
   }

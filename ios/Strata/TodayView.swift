@@ -169,7 +169,7 @@ struct TodayView: View {
                 Text("\(w) · Heart").labelStyle(Theme.coral)
                 Text(e.catalog.slotName[slot] ?? "").title2Style().padding(.top, 4).padding(.bottom, 2)
                 RichText(markdown: slot == "z2"
-                    ? "**45–60 min** at a pace where you can talk in full sentences. Treadmill 5.5 km/h at 8% incline." + (hr.map { " Target **\($0.z2[0])–\($0.z2[1]) bpm**." } ?? "")
+                    ? "**45–60 min** at a pace where you can talk in full sentences. Treadmill 5.5 km/h at 8% incline, or pick the bike, elliptical, rower or an outdoor walk." + (hr.map { " Target **\($0.z2[0])–\($0.z2[1]) bpm**." } ?? "")
                     : "Easy pace outside, **45–90 min**. Or full rest if you feel beaten up.").bodyStyle().padding(.top, 8)
                 if let c = c {
                     Text("Done · \(jsMinutes(c.min ?? 0)) min on \(Dates.fmtD(c.date, .init(weekday: .long)))").nameStyle(color: Theme.coral).padding(.top, 12)
