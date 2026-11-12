@@ -99,7 +99,17 @@ function officeDays(){
   const on=!!DB.rcOffice;
   return on?[2,4]:[];
 }
-function weekPlan(){
+/* an office day marked "not going" (DB.officeOff, dates) is a Zone 2 walk for that date's week */
+function weekPlan(mon){
+  const w=basePlan(); weekDates(mon||mondayOf(today())).forEach(d=>{ if((DB.officeOff||[]).includes(d)&&w[wdOf(d)]==='office')w[wdOf(d)]='z2'; });
+  return w;
+}
+function skipOffice(date){
+  if(basePlan()[wdOf(date)]!=='office'||cardioOn(date,'office'))return false;
+  DB.officeOff=DB.officeOff||[]; if(!DB.officeOff.includes(date))DB.officeOff.push(date); save(); return true;
+}
+function undoSkipOffice(date){DB.officeOff=(DB.officeOff||[]).filter(d=>d!==date); if(!DB.officeOff.length)delete DB.officeOff; save()}
+function basePlan(){
   const w={1:'lift',2:'z2',3:'lift',4:'vo2',5:'lift',6:'lift',0:'walk'}, off=officeDays();
   if(off.length){
     let moved=false;
@@ -164,7 +174,7 @@ function streak(){
 }
 /* each lift slot this week gets its own workout: past = what was logged, future continues the rotation */
 function liftSlots(mon){
-  const ds=weekDates(mon), wp=weekPlan(), t=today(), n=DAYS().length, out={}; let next=nextDay();
+  const ds=weekDates(mon), wp=weekPlan(mon), t=today(), n=DAYS().length, out={}; let next=nextDay();
   WD_ORDER.forEach((w,i)=>{
     if(wp[w]!=='lift')return;
     const d=ds[i], h=liftedOn(d);
@@ -229,7 +239,7 @@ function render(){
 
 /* ===================== TODAY ===================== */
 function todayView(){
-  const t=today(), mon=mondayOf(t), wp=weekPlan(), slots=liftSlots(mon), ds=weekDates(mon), st=weekStats(mon);
+  const t=today(), mon=mondayOf(t), wp=weekPlan(mon), slots=liftSlots(mon), ds=weekDates(mon), st=weekStats(mon);
   const sel=selDay==null?wdOf(t):selDay, selDate=ds[WD_ORDER.indexOf(sel)], slot=wp[sel], isToday=selDate===t;
   const strip=WD_ORDER.map((w,i)=>{
     const s=wp[w], d=ds[i], sk=skipOn(d);
@@ -294,7 +304,8 @@ function slotCard(slot,date,isToday,lp,st){
     return `<section class="card"><div class="label" style="color:var(--coral)">${when} · Heart</div><div class="title2">Office day</div>
       <p class="p">Your walks to and from work are today's cardio. Aim for <b>10,000 steps</b> at a pace where you could talk but not sing.</p>
       ${c?`<div class="rowh" style="margin-top:14px"><span class="name" style="color:var(--coral)">${nf(c.steps||0)} steps logged</span><button class="link" data-editc="${date}|office">Edit</button></div>`
-        :(isToday||date<today()?stepsInput(date):'')}</section>`;
+        :(isToday||date<today()?stepsInput(date):'')}
+      ${!c&&isToday?`<button class="link" data-nooffice="${date}" style="display:block;margin:10px 0 0">Not going to the office today</button>`:''}</section>`;
   }
   if(slot==='vo2'){
     const c=weekDates(mondayOf(date)).map(d=>cardioOn(d,'4x4')).find(Boolean);
@@ -309,7 +320,7 @@ function slotCard(slot,date,isToday,lp,st){
     return `<section class="card"><div class="label" style="color:var(--coral)">${when} · Heart</div><div class="title2">${SLOT_NAME[slot]}</div>
       <p class="p">${slot==='z2'?`<b>45–60 min</b> at a pace where you can talk in full sentences. Treadmill 5.5 km/h at 8% incline.${hr?` Target <b>${hr.z2[0]}–${hr.z2[1]} bpm</b>.`:''}`:'Easy pace outside, <b>45–90 min</b>. Or full rest if you feel beaten up.'}</p>
       ${c?`<div class="name" style="margin-top:12px;color:var(--coral)">Done · ${c.min} min on ${fmtD(c.date,{weekday:'long'})}</div>`
-        :(isToday?`<button class="btn coral" data-wo="pick" style="margin-top:14px">Start</button><div class="small" style="margin-top:10px">Already did it? Log the minutes:</div>${minutesInput(slot)}`:'')}</section>`;
+        :(isToday?`${(DB.officeOff||[]).includes(date)?`<button class="link" data-yesoffice="${date}" style="display:block;margin:10px 0 0">Actually, I'm going to the office</button>`:''}<button class="btn coral" data-wo="pick" style="margin-top:14px">Start</button><div class="small" style="margin-top:10px">Already did it? Log the minutes:</div>${minutesInput(slot)}`:'')}</section>`;
   }
   return `<section class="card"><div class="label">${when}</div><div class="title2">Rest</div><p class="p">Recovery is where the adaptation happens.</p></section>`;
 }
@@ -683,7 +694,7 @@ function ringsLine(st){
   return `Still to go: ${left.join(', ')}.`;
 }
 function nextCard(fromDate){
-  const t=fromDate, mon=mondayOf(t), wp=weekPlan(), slots=liftSlots(mon);
+  const t=fromDate, mon=mondayOf(t), wp=weekPlan(mon), slots=liftSlots(mon);
   for(let i=1;i<=7;i++){
     const d=addDays(t,i), w=wdOf(d), s=wp[w]; if(s==='rest')continue;
     let name, sub, col;
@@ -1067,6 +1078,8 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#sheet')||e.target.closest('#tabs'))return;
   const t=e.target.closest('button'); if(!t)return;
   const ds=t.dataset, id=t.id;
+  if(ds.nooffice){if(skipOffice(ds.nooffice)){render(); toast('No office today. A Zone 2 walk instead')} return}
+  if(ds.yesoffice){undoSkipOffice(ds.yesoffice); render(); toast('Back to your office day'); return}
   if(ds.jalt){DB.jumpAlt=ds.jalt; save(); render(); return}
   if(ds.yt){e.preventDefault();openVid({id:ds.yt,n:ds.yt.startsWith('jalt_')?(JUMP_ALTS.find(a=>'jalt_'+a.id===ds.yt)||{}).n:''});return}
   if(id==='back'){go(prevScr&&TABS.some(x=>x[0]===prevScr)?prevScr:'today');return}
