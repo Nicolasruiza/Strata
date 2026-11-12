@@ -216,6 +216,29 @@ struct TodayView: View {
                 RichText(markdown: "No workout today. Sleep, fluids, an easy walk only if you feel like it. Your rotation waits: **\(e.plan[e.nextDay()]?.name ?? "")** is still next.").bodyStyle().padding(.top, 8)
             }.card()
             if isToday { undo }
+        } else if sk.why == "office" {
+            let c = e.cardioOn(date, "office")
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(w) · Heart").labelStyle(Theme.coral)
+                Text("Office day").title2Style().padding(.top, 4).padding(.bottom, 2)
+                RichText(markdown: "Walk there and back. Around **\(Fmt.nf(Double(Config.Insights.stepsMinDaily))) steps** across the day is plenty." + (sk.slot == "lift" ? " **\(e.plan[e.nextDay()]?.name ?? "")** moves to your next lift day." : "")).bodyStyle().padding(.top, 8)
+                if let c = c {
+                    HStack {
+                        Text("\(Fmt.nf(c.steps ?? 0)) steps logged").nameStyle(color: Theme.coral)
+                        Spacer()
+                        Button("Edit") { model.sheet = .editCardio(date: date, type: "office") }.buttonStyle(LinkButtonStyle())
+                    }.padding(.top, 14)
+                } else if isToday {
+                    HStack(spacing: 10) {
+                        StepField(title: nil, placeholder: "7,000", text: $steps, keyboard: .numberPad, alignRight: false)
+                        Button("Log steps") {
+                            model.mutate { $0.logSteps(date: date, input: steps) }
+                            steps = ""
+                        }.buttonStyle(StrataButtonStyle(kind: .coral, hPad: 22, height: 44)).fixedSize()
+                    }.padding(.top, 14)
+                }
+            }.card()
+            if isToday && c == nil { undo }
         } else if let H = e.catalog.home[sk.key] {
             let col = Theme.ring(H.ring), lbl = ["m": "Muscle", "h": "Heart", "b": "Bone + Muscle"][H.ring]!
             VStack(alignment: .leading, spacing: 0) {

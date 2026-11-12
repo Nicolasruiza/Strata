@@ -74,6 +74,7 @@ struct SettingsView: View {
                         }
                     }.card()
 
+                    if !off.isEmpty {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Office days").labelStyle()
                         Text("Walking to work is your easy cardio on these days. With 2 office days the 4×4 moves to Sunday.")
@@ -81,6 +82,7 @@ struct SettingsView: View {
                         DayChips(selected: off) { d in model.mutate { $0.toggleOfficeDay(d); return nil } }
                         Text("Lift days are Mon, Wed, Fri, Sat. An office day on a lift day keeps the lift.").font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 10)
                     }.card()
+                    }
 
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Heart zones").labelStyle()

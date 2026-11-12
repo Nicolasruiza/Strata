@@ -204,3 +204,7 @@ Cardio detail also shows active kcal. Active energy burned was added to the Heal
 
 ## "Not going to the office today"
 - [x] On a planned office day (nothing logged yet) the Office card has "Not going to the office today". That date becomes a Zone 2 walk for its week only (`officeOff` dates; web `DB.officeOff`, iOS `AppData.officeOff`); next week's office day is untouched. The Zone 2 card has "Actually, I'm going to the office" to undo. `weekPlan(mon)` takes the week (this week by default). Web + iOS.
+
+## Office is a "Can't train today?" reason, not a setting
+- [x] "Can't train today?" gains "I need to go to the office / Walk there and back instead" (not offered on a configured office day). It skips the day like the other reasons (a lift moves to the next lift day), shows an Office day card ("Walk there and back. Around 7,000 steps…") with a steps field; logged steps are the usual `office` entry and count toward Heart. Undo as for the others.
+- [x] The Office days picker is gone from onboarding. Settings shows it only for people who already have office days saved (their plan keeps working; their "Not going to the office today" button stays). `SKIP_WHY` (and the generated catalog + fixture) gained the `office` reason. Web + iOS.

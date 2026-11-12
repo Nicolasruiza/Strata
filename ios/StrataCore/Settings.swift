@@ -26,8 +26,9 @@ extension Engine {
     public mutating func skipToday(why: String) -> String {
         let t = today, slot = weekPlan()[Dates.weekday(t)] ?? "rest"
         var s = db.skips ?? [:]
-        s[t] = Skip(why: why, slot: slot, key: homeKey(slot: slot, date: t), day: slot == "lift" ? nextDay() : nil, done: nil)
+        s[t] = Skip(why: why, slot: slot, key: why == "office" ? "walk" : homeKey(slot: slot, date: t), day: slot == "lift" ? nextDay() : nil, done: nil)
         db.skips = s
+        if why == "office" { return "Walk there and back. About \(Fmt.nf(Double(Config.Insights.stepsMinDaily))) steps is plenty" }
         return why == "sick" ? "Rest day. The rotation waits." : "Here's a home version"
     }
 
