@@ -9,7 +9,7 @@ struct TodayView: View {
 
     var body: some View {
         let e = model.engine!
-        let t = e.today, mon = Dates.mondayOf(t), wp = e.weekPlan(), slots = e.liftSlots(mon), ds = Dates.weekDates(mon), st = e.weekStats(mon)
+        let t = e.today, mon = Dates.mondayOf(t), wp = e.weekPlan(mon), slots = e.liftSlots(mon), ds = Dates.weekDates(mon), st = e.weekStats(mon)
         let sel = model.selDay ?? Dates.weekday(t)
         let selDate = ds[Engine.wdOrder.firstIndex(of: sel)!], slot = wp[sel] ?? "rest", isToday = selDate == t
         let streak = e.streak()
@@ -122,6 +122,10 @@ struct TodayView: View {
                 Text("\(w) · Heart").labelStyle(Theme.coral)
                 Text("Office day").title2Style().padding(.top, 4).padding(.bottom, 2)
                 RichText(markdown: "Your walks to and from work are today's cardio. Aim for **10,000 steps** at a pace where you could talk but not sing.").bodyStyle().padding(.top, 8)
+                if c == nil && isToday {
+                    Button("Not going to the office today") { model.mutate { $0.skipOffice(date) } }
+                        .buttonStyle(LinkButtonStyle()).padding(.top, 10)
+                }
                 if let c = c {
                     HStack {
                         Text("\(Fmt.nf(c.steps ?? 0)) steps logged").nameStyle(color: Theme.coral)
@@ -170,6 +174,10 @@ struct TodayView: View {
                 if let c = c {
                     Text("Done · \(jsMinutes(c.min ?? 0)) min on \(Dates.fmtD(c.date, .init(weekday: .long)))").nameStyle(color: Theme.coral).padding(.top, 12)
                 } else if isToday {
+                    if e.officeSkipped(date) {
+                        Button("Actually, I'm going to the office") { model.mutate { $0.undoSkipOffice(date) ; return "Back to your office day" } }
+                            .buttonStyle(LinkButtonStyle()).padding(.top, 10)
+                    }
                     Button("Start") { model.navigate(.pickCardio) }.buttonStyle(StrataButtonStyle(kind: .coral)).padding(.top, 14)
                     Text("Already did it? Log the minutes:").smallStyle().padding(.top, 10)
                     HStack(spacing: 10) {

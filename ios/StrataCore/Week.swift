@@ -50,8 +50,33 @@ extension Engine {
         return (db.rcOffice ?? false) ? [2, 4] : []
     }
 
-    /// `weekPlan()`: weekday (0 = Sun) → slot.
-    public func weekPlan() -> [Int: String] {
+    /// `weekPlan(mon)`: weekday (0 = Sun) → slot, for the week starting `mon` (this week when nil).
+    /// An office day marked "not going" turns into a Zone 2 walk for that date's week.
+    public func weekPlan(_ mon: String? = nil) -> [Int: String] {
+        var w = basePlan()
+        for d in Dates.weekDates(mon ?? Dates.mondayOf(today)) where (db.officeOff ?? []).contains(d) {
+            let wd = Dates.weekday(d)
+            if w[wd] == "office" { w[wd] = "z2" }
+        }
+        return w
+    }
+
+    /// Not going to the office on `date`: the day becomes a Zone 2 walk. Only for a planned office day with nothing logged.
+    public mutating func skipOffice(_ date: String) -> String? {
+        guard basePlan()[Dates.weekday(date)] == "office", cardioOn(date, "office") == nil else { return nil }
+        var o = db.officeOff ?? []
+        if !o.contains(date) { o.append(date) }
+        db.officeOff = o
+        return "No office today. A Zone 2 walk instead"
+    }
+    public mutating func undoSkipOffice(_ date: String) -> String {
+        db.officeOff = (db.officeOff ?? []).filter { $0 != date }
+        if db.officeOff?.isEmpty == true { db.officeOff = nil }
+        return "Back to your office day"
+    }
+    public func officeSkipped(_ date: String) -> Bool { (db.officeOff ?? []).contains(date) }
+
+    func basePlan() -> [Int: String] {
         var w: [Int: String] = [1: "lift", 2: "z2", 3: "lift", 4: "vo2", 5: "lift", 6: "lift", 0: "walk"]
         let off = officeDays()
         if !off.isEmpty {
@@ -152,7 +177,7 @@ extension Engine {
     /// `liftSlots(mon)`: each lift slot this week gets its own workout. Skipped days keep the
     /// rotation where it was.
     public func liftSlots(_ mon: String) -> [Int: LiftSlot] {
-        let ds = Dates.weekDates(mon), wp = weekPlan(), t = today, n = days.count
+        let ds = Dates.weekDates(mon), wp = weekPlan(mon), t = today, n = days.count
         var out: [Int: LiftSlot] = [:]
         var next = nextDay()
         for (i, w) in Engine.wdOrder.enumerated() {
@@ -200,7 +225,7 @@ extension Engine {
 
     /// `nextCard(fromDate)` as data.
     public func nextCard(from t: String) -> NextCard? {
-        let mon = Dates.mondayOf(t), wp = weekPlan(), slots = liftSlots(mon)
+        let mon = Dates.mondayOf(t), wp = weekPlan(mon), slots = liftSlots(mon)
         for i in 1...7 {
             let d = Dates.addDays(t, i), w = Dates.weekday(d)
             guard let s = wp[w], s != "rest" else { continue }
@@ -314,7 +339,7 @@ public struct WeekStripItem: Codable, Equatable {
 extension Engine {
     /// The seven day buttons of the week strip on Today (`todayView`).
     public func weekStrip() -> [WeekStripItem] {
-        let t = today, mon = Dates.mondayOf(t), wp = weekPlan(), slots = liftSlots(mon), ds = Dates.weekDates(mon)
+        let t = today, mon = Dates.mondayOf(t), wp = weekPlan(mon), slots = liftSlots(mon), ds = Dates.weekDates(mon)
         let KC = ["m": "#9C8CFF", "h": "#FF6B4A", "b": "#4ADE80"]
         return Engine.wdOrder.enumerated().map { (i, w) in
             let s = wp[w] ?? "rest", d = ds[i], sk = skipOn(d)
