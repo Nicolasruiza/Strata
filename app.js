@@ -128,7 +128,7 @@ const isLegs=d=>/^legs/i.test((PLAN[d]&&PLAN[d].name)||'');
 
 /* ---------- can't train: skip a day, keep momentum at home ---------- */
 const skipOn=date=>(DB.skips||{})[date];
-const SKIP_WHY=[['time','Short on time','Busy day, but I have 15–20 minutes'],['away','Can\'t get to the gym','Travel, family, gym closed'],['sick','Sick or run down','Rest is the right call']];
+const SKIP_WHY=[['time','Short on time','Busy day, but I have 15–20 minutes'],['away','Can\'t get to the gym','Travel, family, gym closed'],['office','I need to go to the office','Walk there and back instead'],['sick','Sick or run down','Rest is the right call']];
 /* home plans: no equipment beyond a backpack; ~15–20 min */
 const HOME={
   legs:{name:'Home legs + bone',min:18,ring:'b',moves:[
@@ -339,6 +339,10 @@ function homeCard(date,isToday){
   const undo=`<button class="link" id="undoSkip" data-d="${date}" style="display:block;margin:4px auto 0">Undo · I can train after all</button>`;
   if(sk.why==='sick')return `<section class="card"><div class="label">${when} · Rest</div><div class="title2">Recover first</div>
     <p class="p">No workout today. Sleep, fluids, an easy walk only if you feel like it. Your rotation waits: <b>${PLAN[nextDay()].name}</b> is still next.</p></section>${isToday?undo:''}`;
+  if(sk.why==='office'){const c=cardioOn(date,'office'), nd=PLAN[nextDay()].name;
+    return `<section class="card"><div class="label" style="color:var(--coral)">${when} · Heart</div><div class="title2">Office day</div>
+      <p class="p">Walk there and back. Around <b>7,000 steps</b> across the day is plenty.${sk.slot==='lift'?` <b>${nd}</b> moves to your next lift day.`:''}</p>
+      ${c?`<div class="rowh" style="margin-top:14px"><span class="name" style="color:var(--coral)">${nf(c.steps||0)} steps logged</span><button class="link" data-editc="${date}|office">Edit</button></div>`:(isToday?stepsInput(date):'')}</section>${isToday&&!c?undo:''}`}
   const H=HOME[sk.key], col=KC[H.ring], lbl={m:'Muscle',h:'Heart',b:'Bone + Muscle'}[H.ring];
   const lift=sk.slot==='lift', nd=PLAN[nextDay()].name;
   return `<section class="card" style="border-color:${col}55"><div class="label" style="color:${col}">${when} · At home · ${lbl}</div>
@@ -351,7 +355,7 @@ function homeCard(date,isToday){
 function cantTrainSheet(){
   openSheet(`<div class="label">Today</div><div class="title2" style="font-size:20px">Can't train today?</div>
     <p class="p" style="margin-top:4px">No problem. Nothing is lost: the rotation just waits.</p>
-    ${SKIP_WHY.map(([k,n,m])=>`<button class="opt" data-why="${k}"><div class="grow"><div class="name">${n}</div><div class="meta">${m}</div></div>${I.chev}</button>`).join('')}`);
+    ${SKIP_WHY.filter(([k])=>!(k==='office'&&weekPlan()[wdOf(today())]==='office')).map(([k,n,m])=>`<button class="opt" data-why="${k}"><div class="grow"><div class="name">${n}</div><div class="meta">${m}</div></div>${I.chev}</button>`).join('')}`);
 }
 function otherOptions(slot){
   const opts=[];
@@ -930,9 +934,9 @@ function settingsView(){
     <section class="card"><span class="label">Injury flags</span><p class="note" style="margin:6px 0 4px">Flagging one holds every lift that loads it and adds safer substitutes.</p>
       ${INJ_SHOW.map(([k,l])=>`<div class="tg"><div class="grow"><div class="name" style="font-size:15px">${l}</div>${on(k)?`<div class="meta">Since ${fmtD(DB.injuries.find(i=>i.key===k).since,{month:'short',day:'numeric'})} · ${DB.injuries.find(i=>i.key===k).ids.length} lifts on hold</div>`:''}</div>
         <button class="sw ${on(k)?'on':''}" data-inj="${k}" role="switch" aria-checked="${on(k)}" aria-label="${l}"></button></div>`).join('')}</section>
-    <section class="card"><span class="label">Office days</span><p class="note" style="margin:6px 0 10px">Walking to work is your easy cardio on these days. With 2 office days the 4×4 moves to Sunday.</p>
+    ${off.length?`<section class="card"><span class="label">Office days</span><p class="note" style="margin:6px 0 10px">Walking to work is your easy cardio on these days. With 2 office days the 4×4 moves to Sunday.</p>
       <div class="daychips">${[1,2,3,4,5].map(d=>`<button data-off="${d}" class="${off.includes(d)?'on':''}" aria-pressed="${off.includes(d)}" aria-label="${WD_L[d]}">${WD_S[d][0]}</button>`).join('')}</div>
-      <p class="note" style="margin:10px 0 0">Lift days are Mon, Wed, Fri, Sat. An office day on a lift day keeps the lift.</p></section>
+      <p class="note" style="margin:10px 0 0">Lift days are Mon, Wed, Fri, Sat. An office day on a lift day keeps the lift.</p></section>`:''}
     <section class="card"><span class="label">Heart zones</span>
       <div class="tg"><div class="grow name" style="font-size:15px">Age</div>
         <div class="step" style="padding:4px;gap:10px"><button data-age="-1" aria-label="Younger" style="width:40px;height:40px">−</button><div class="v"><b style="font-size:22px">${DB.age||'—'}</b></div><button data-age="1" aria-label="Older" style="width:40px;height:40px">+</button></div></div>
@@ -963,7 +967,7 @@ function onboardView(){
       <p class="note" style="margin:8px 0 0">Optional. In Lift Log: More → Export data, then pick that file here. Weights carry over, so nothing restarts.</p>`}</section>`:''}
     <section class="card"><div class="tg" style="padding:0"><div class="grow"><div class="name">Age</div><div class="meta">For heart-rate targets</div></div>
       <label class="step" style="padding:4px 12px"><span class="sr">Age</span><input id="obAge" type="number" inputmode="numeric" min="14" max="99" value="${o.age||''}" placeholder="—" style="width:70px;font-size:22px"></label></div></section>
-    <section class="card"><span class="label">Office days</span><p class="note" style="margin:6px 0 10px">Days you walk to work. Optional.</p><div class="daychips">${[1,2,3,4,5].map(d=>`<button data-ooff="${d}" class="${o.off.includes(d)?'on':''}" aria-pressed="${o.off.includes(d)}" aria-label="${WD_L[d]}">${WD_S[d][0]}</button>`).join('')}</div></section></main>
+</main>
    <div class="dock"><button class="btn primary" id="obGo" ${ready?'':'disabled'}>${ready?'Get started':'Add your name and gender'}</button></div>`;
 }
 function newProfile(name,gender){

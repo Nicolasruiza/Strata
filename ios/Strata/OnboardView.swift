@@ -47,15 +47,6 @@ struct OnboardView: View {
                             .font(.inter(size: 22))
                     }.card()
 
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("Office days").labelStyle()
-                        Text("Days you walk to work. Optional.").font(.inter(size: 13)).foregroundStyle(Theme.muted).padding(.top, 6).padding(.bottom, 10)
-                        DayChips(selected: o.off) { d in
-                            var off = o.off
-                            if let i = off.firstIndex(of: d) { off.remove(at: i) } else { off.append(d) }
-                            model.onboard?.off = off.sorted()
-                        }
-                    }.card()
                 }
                 .padding(.horizontal, Theme.gutter).padding(.top, 14).padding(.bottom, 130)
             }

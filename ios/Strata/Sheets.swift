@@ -9,7 +9,8 @@ struct CantTrainSheet: View {
             Text("Today").labelStyle()
             Text("Can't train today?").title2Style(20).padding(.top, 4)
             Text("No problem. Nothing is lost: the rotation just waits.").bodyStyle().padding(.top, 4)
-            ForEach(Catalog.shared.skipWhy, id: \.self) { w in
+            let inOffice = model.engine.map { ($0.weekPlan()[Dates.weekday($0.today)] ?? "") == "office" } ?? false
+            ForEach(Catalog.shared.skipWhy.filter { !($0[0] == "office" && inOffice) }, id: \.self) { w in
                 Button {
                     model.mutate { $0.skipToday(why: w[0]) }
                     model.selDay = nil

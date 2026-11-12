@@ -2630,6 +2630,11 @@
    "Travel, family, gym closed"
   ],
   [
+   "office",
+   "I need to go to the office",
+   "Walk there and back instead"
+  ],
+  [
    "sick",
    "Sick or run down",
    "Rest is the right call"
