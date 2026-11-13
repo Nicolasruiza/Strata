@@ -345,6 +345,7 @@ function focusView(){
     <h1 class="wh1" style="font-size:30px;margin-top:8px">${esc(cleanN(ex.n))}</h1>
     <div class="meta" style="margin-top:-8px">${n} sets × ${repLbl(ex,orig.r)}${perLeg(ex)}${ex!==orig?' · swapped':''}</div>
     ${orig.injured?`<div class="warnbox">On hold for your injury flag. Go light or swap it.</div>`:''}
+    <div class="grid2"><button class="btn sm" data-yt="${ex.id}">${I.play.replace('<svg','<svg width="14" height="14"')}Form video</button>${(ALT_OF[orig.id]||[]).length?`<button class="btn sm" id="swapBtn">${I.swap.replace('<svg','<svg width="16" height="16"')}Swap</button>`:'<span></span>'}</div>
     <div class="wcard" style="display:flex;align-items:center;gap:10px"><div class="grow"><div class="meta">Last time</div><b style="font-size:20px">${last?`${last.w} × ${last.reps.map(r=>r==null?'–':r).join('/')}`:'No history yet'}</b></div>
       <span class="wtrend ${tr.c}">${tr.i}${tr.t}</span></div>
     ${restBanner()}
@@ -354,10 +355,9 @@ function focusView(){
     ${[...Array(n).keys()].map(setRow).join('')}
     ${isSec(ex)&&cur<n&&!(hold&&hold.id===ex.id)?`<button class="link" data-wo="log" style="align-self:flex-start;padding:0">Log without timer</button>`:''}
     <div class="grid2"><button class="btn sm" data-wo="addset">${WIC.plus}Set</button><button class="btn sm" data-wo="warm">${WIC.plus}Warm-up</button></div>
-    <div class="grid2"><button class="btn sm" data-yt="${ex.id}">${I.play.replace('<svg','<svg width="14" height="14"')}Form video</button>${(ALT_OF[orig.id]||[]).length?`<button class="btn sm" id="swapBtn">${I.swap.replace('<svg','<svg width="16" height="16"')}Swap</button>`:'<span></span>'}</div>
     <button class="btn violet" data-wo="busy" style="background:rgba(156,140,255,.85)">${WIC.busy}Machine busy</button>
     </div></div>
-  <div class="dock"><button class="btn" data-wo="sdiscard">Discard</button><button class="btn violet w2" data-wo="exdone">Complete</button></div>`;
+  <div class="dock"><button class="btn" data-wo="exreset">Reset exercise</button><button class="btn violet w2" data-wo="exall">Mark all complete</button></div>`;
 }
 /* Strength screens replace the old one-at-a-time lift view. Same data (DB.active), new layout. */
 function liftView(){ return DB.active&&DB.active.view==='focus'?focusView():overviewView(); }
@@ -467,6 +467,13 @@ document.addEventListener('click',e=>{
     const alt=blk&&blk.items.find(x=>x!==orig&&exState(x)!=='done');
     if(alt){toast(`Switched to ${cleanN(shownEx(alt).n)}. ${cleanN(shownEx(orig).n)} comes back up in ${WCFG.busyMin} min.`);openEx(L.indexOf(alt));return}
     save(); if((ALT_OF[orig.id]||[]).length){toast('Nothing else left in this block. Swap to free equipment?');swapSheet();}else toast('Nothing else left in this block. Wait a minute, it frees up.');return}
+  if(k==='exall'){const L=liftList(),orig=L[curIdx()],ex=shownEx(orig),n=setsOf(orig),p=progOf(orig)||{w:A.lowEnergy?loEnergyW(ex,wOf(ex)):wOf(ex),reps:[]};
+    const r=p.reps.length&&p.reps[p.reps.length-1]!=null?p.reps[p.reps.length-1]:orig.r;
+    while(p.reps.length<n)p.reps.push(r);
+    A.prog[ex.id]=p;A.entries[ex.id]={w:p.w,reps:p.reps.slice(0,n)};rest=null;A.view='list';woReps=null;save();render();window.scrollTo({top:0});return}
+  if(k==='exreset'){const L=liftList(),orig=L[curIdx()],ex=shownEx(orig);
+    if(!confirm('Clear everything logged for this exercise?'))return;
+    delete A.prog[ex.id];delete A.entries[ex.id];if(A.extra)delete A.extra[ex.id];if(A.warm)delete A.warm[ex.id];rest=null;woReps=null;save();render();return}
   if(k==='exdone'){const L=liftList(),orig=L[curIdx()],ex=shownEx(orig),p=progOf(orig),n=setsOf(orig);
     if(p&&p.reps.length&&p.reps.length<n){if(!confirm(`${n-p.reps.length} set${n-p.reps.length>1?'s':''} not logged. Mark this exercise done anyway?`))return;A.entries[ex.id]={w:p.w,reps:p.reps.slice()}}
     A.view='list';woReps=null;save();render();window.scrollTo({top:0});return}
