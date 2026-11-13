@@ -5,8 +5,7 @@ import StrataCore
 struct FocusView: View {
     @EnvironmentObject var model: AppModel
     @Environment(\.safeTop) private var safeTop
-    @State private var confirmDiscard = false
-    @State private var partialPrompt: String?
+    @State private var confirmReset = false
 
     var body: some View {
         if let e = model.engine, let A = e.db.active { main(e, A) } else { Color.clear }
@@ -60,15 +59,6 @@ struct FocusView: View {
                     Text(Fmt.cleanN(ex.n)).font(.inter(size: 30, weight: .heavy)).tracking(-0.75).padding(.top, -6)
                     Text("\(n) sets × \(Fmt.repLbl(ex, orig.r.map(Double.init)))\(Fmt.perLeg(ex))\(ex.id != orig.id ? " · swapped" : "")").metaStyle().padding(.top, -10)
                     if orig.isInjured { WarnBox(markdown: "On hold for your injury flag. Go light or swap it.") }
-                    lastCard(last: last, trend: tr)
-                    RestBanner(idle: (big: reps.count >= n ? "All sets logged" : "Set \(reps.count + 1) of \(n)", meta: reps.count >= n ? "Tap Complete when you are done" : "Log it when you finish"))
-                    weightCard(w: w, plate: plate, ex: ex)
-                    ForEach(Array(warm.enumerated()), id: \.offset) { i, s in warmRow(i, s, ex) }
-                    ForEach(0..<n, id: \.self) { i in setRow(i, cur: reps.count, reps: reps, w: w, ex: ex, orig: orig, low: low).id("set-\(i)") }
-                    HStack(spacing: 10) {
-                        Button { model.mutate { $0.addExtraSet() } } label: { plusLabel("Set") }.buttonStyle(StrataButtonStyle(small: true))
-                        Button { model.warmOpen = true } label: { plusLabel("Warm-up") }.buttonStyle(StrataButtonStyle(small: true))
-                    }
                     HStack(spacing: 10) {
                         Button { model.openFormVideo(id: ex.id, name: ex.n) } label: {
                             HStack(spacing: 6) { SVGPathShape(d: "M8 5v14l11-7z").fill(Color.white).frame(width: 14, height: 14); Text("Form video") }
@@ -78,6 +68,15 @@ struct FocusView: View {
                                 HStack(spacing: 6) { IconView(d: "M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7", size: 16, color: .white, line: 2.2); Text("Swap") }
                             }.buttonStyle(StrataButtonStyle(small: true))
                         } else { Color.clear.frame(maxWidth: .infinity) }
+                    }
+                    lastCard(last: last, trend: tr)
+                    RestBanner(idle: (big: reps.count >= n ? "All sets logged" : "Set \(reps.count + 1) of \(n)", meta: reps.count >= n ? "Tap Complete when you are done" : "Log it when you finish"))
+                    weightCard(w: w, plate: plate, ex: ex)
+                    ForEach(Array(warm.enumerated()), id: \.offset) { i, s in warmRow(i, s, ex) }
+                    ForEach(0..<n, id: \.self) { i in setRow(i, cur: reps.count, reps: reps, w: w, ex: ex, orig: orig, low: low).id("set-\(i)") }
+                    HStack(spacing: 10) {
+                        Button { model.mutate { $0.addExtraSet() } } label: { plusLabel("Set") }.buttonStyle(StrataButtonStyle(small: true))
+                        Button { model.warmOpen = true } label: { plusLabel("Warm-up") }.buttonStyle(StrataButtonStyle(small: true))
                     }
                     Button { busy() } label: {
                         HStack(spacing: 8) { IconView(d: "M4 7v10M20 7v10M4 12h16M7 9v6M17 9v6", size: 18, color: .white, line: 1.9); Text("Machine busy") }
@@ -91,17 +90,15 @@ struct FocusView: View {
         }
         .ignoresSafeArea(edges: .top)
         .safeAreaInset(edge: .bottom) {
-            WorkoutDock(discard: { confirmDiscard = true }) {
-                Button("Complete") { complete() }.buttonStyle(StrataButtonStyle(kind: .violet))
+            DockRow {
+                Button("Reset exercise") { confirmReset = true }.buttonStyle(StrataButtonStyle())
+            } right: {
+                Button("Mark all complete") { model.mutate { $0.markAllComplete(); return nil } }.buttonStyle(StrataButtonStyle(kind: .violet))
             }
         }
-        .alert(discardMessage, isPresented: $confirmDiscard) {
-            Button("Discard", role: .destructive) { model.mutate { $0.discardWorkout(); return nil } }
+        .alert("Clear everything logged for this exercise?", isPresented: $confirmReset) {
+            Button("Reset", role: .destructive) { model.mutate { $0.resetExercise(); return nil } }
             Button("Cancel", role: .cancel) {}
-        }
-        .alert(partialPrompt ?? "", isPresented: Binding(get: { partialPrompt != nil }, set: { if !$0 { partialPrompt = nil } })) {
-            Button("Mark done") { partialPrompt = nil; model.mutate { $0.completeExercise(confirmedPartial: true); return nil } }
-            Button("Cancel", role: .cancel) { partialPrompt = nil }
         }
     }
 
@@ -109,10 +106,6 @@ struct FocusView: View {
         HStack(spacing: 6) { IconView(d: "M12 5v14M5 12h14", size: 18, color: .white, line: 1.9); Text(t) }
     }
 
-    private func complete() {
-        if let p = model.engine!.completeExercisePrompt() { partialPrompt = p }
-        else { model.mutate { $0.completeExercise(confirmedPartial: false); return nil } }
-    }
     private func busy() {
         model.mutate { e in
             let r = e.markBusy()
