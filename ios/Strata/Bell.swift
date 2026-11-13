@@ -32,8 +32,8 @@ final class Bell {
     }()
 
     func ring() {
-        // .ambient + mixWithOthers: plays over music without stopping it, and follows the silent switch.
-        try? AVAudioSession.sharedInstance().setCategory(.ambient, options: [.mixWithOthers])
+        // .playback + mixWithOthers: rings even with the silent switch on, and plays over music without stopping it.
+        try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
         try? AVAudioSession.sharedInstance().setActive(true)
         player = try? AVAudioPlayer(data: Self.wav)
         player?.volume = 0.8
