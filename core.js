@@ -850,6 +850,20 @@ function cue(){
     g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.45); o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime+.5);
   }catch(e){}
 }
+/* Soft but firm bell: three inharmonic partials with a quick attack and a long, gentle decay. Used when a rest between exercises ends. */
+function bell(){
+  try{ navigator.vibrate&&navigator.vibrate([160,80,160]); }catch(e){}
+  try{
+    const C=window.AudioContext||window.webkitAudioContext; if(!C)return;
+    const ctx=cue.ctx||(cue.ctx=new C()); if(ctx.state==='suspended')ctx.resume();
+    const t=ctx.currentTime;
+    [[660,.34,1.6],[1320,.16,1.1],[1980,.07,.7]].forEach(([f,v,d])=>{
+      const o=ctx.createOscillator(), g=ctx.createGain(); o.type='sine'; o.frequency.value=f;
+      g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v,t+.01); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+      o.connect(g).connect(ctx.destination); o.start(t); o.stop(t+d+.05);
+    });
+  }catch(e){}
+}
 async function lockScreen(on){
   try{
     if(on&&navigator.wakeLock&&!wakeLock){ wakeLock=await navigator.wakeLock.request('screen'); }

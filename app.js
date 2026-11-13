@@ -600,7 +600,7 @@ function tickLift(){
   }
   if(!rest)return;
   const rem=(rest.endAt-Date.now())/1000;
-  if(rem<=0&&!rest.beeped){rest.beeped=true;cue();render();return}
+  if(rem<=0&&!rest.beeped){rest.beeped=true;bell();render();return}
   if(rem<-15){rest=null;render();return}
   const c=$('#restClock'); if(c)c.textContent=mmss(Math.ceil(Math.max(0,rem)));
   const a=$('#restArc'); if(a&&rem>0){const C=2*Math.PI*62;a.setAttribute('stroke-dasharray',`${(C*rem/rest.total).toFixed(1)} ${C.toFixed(1)}`)}
