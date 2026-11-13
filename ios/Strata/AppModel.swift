@@ -422,6 +422,9 @@ extension AppModel {
     /// `cue()`: haptic (the web also beeps and vibrates). The watch gets the same cue.
     func cue() { UINotificationFeedbackGenerator().notificationOccurred(.warning); health.bridge.sendCue() }
 
+    /// End of a rest: haptic + soft bell (web `bell()`), and the watch cue.
+    func restBell() { UINotificationFeedbackGenerator().notificationOccurred(.warning); Bell.shared.ring(); health.bridge.sendCue() }
+
     /// `tickLift`: beep once when rest ends, drop the banner 15 s later.
     func ensureRestTicker() {
         guard restTicker == nil else { return }
@@ -439,7 +442,7 @@ extension AppModel {
         guard var e = engine, var r = e.rest else { return }
         e.nowMs = Self.nowMs()
         let rem = (r.endAt - e.nowMs) / 1000
-        if rem <= 0 && !r.beeped { r.beeped = true; e.rest = r; engine = e; cue(); return }
+        if rem <= 0 && !r.beeped { r.beeped = true; e.rest = r; engine = e; restBell(); return }
         if rem < -15 { e.rest = nil; engine = e; return }
         engine = e
     }
