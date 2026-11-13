@@ -474,14 +474,14 @@ function liftView(){
   const segs=L.map((x,i)=>`<button class="${isLogged(x)?'done':''} ${i===idx?'cur':''} ${reqIds.has(x.id)?'':'bonus'}" data-goto="${i}" aria-label="${esc(cleanN(shownEx(x).n))}${isLogged(x)?', done':''}"></button>`).join('');
   /* progression: computed from real history, never invented */
   const last=lastOf(ex.id), held=(DB.holds&&DB.holds[ex.id])||A.lowEnergy, canUp=ex.inc&&!held;
-  const nextW=canUp?progressedWeight(ex,baseW):baseW;
+  const nextW=canUp?progressedWeight(ex,baseW):baseW, capped=canUp&&atDbMax(ex,baseW);
   const lastTxt=last?`${last.w} × ${last.reps.map(r=>r==null?'–':r).join('/')}`:'None yet';
   const progCard=`<section class="card tight" style="display:flex;gap:10px;align-items:stretch;padding:12px 14px">
     <div class="grow"><div class="label">Last time</div><div class="name" style="margin-top:4px">${lastTxt}</div></div>
     <div class="grow" style="border-left:1px solid var(--line);padding-left:12px"><div class="label">Today</div><div class="name" style="margin-top:4px">${wLbl(ex,baseW)}</div></div>
     <div style="flex:1.3;border-radius:14px;padding:8px 10px;background:${canUp?'rgba(156,140,255,.12)':'rgba(245,181,68,.1)'};border:1px solid ${canUp?'rgba(156,140,255,.4)':'rgba(245,181,68,.35)'}">
-      <div class="label" style="color:${canUp?'var(--violet)':'var(--amber)'}">${canUp?'Hit all sets':A.lowEnergy?'Lighter day':'On hold'}</div>
-      <div class="name" style="margin-top:4px">${canUp?`${nextW} lb next`:'Weight stays'}</div></div></section>`;
+      <div class="label" style="color:${canUp?'var(--violet)':'var(--amber)'}">${capped?'Dumbbell max':canUp?'Hit all sets':A.lowEnergy?'Lighter day':'On hold'}</div>
+      <div class="name" style="margin-top:4px">${capped?'Add reps or slow it':canUp?`${nextW} lb next`:'Weight stays'}</div></div></section>`;
   /* media slot: same size in every state */
   const resting=rest&&(rest.endAt-Date.now())>-1000;
   const s=imgOf(ex.id), plate=ex.bar?plateTxt(ex,w):(ex.each?`${w} lb in each hand`:ex.plates?sledTxt(w):'');
@@ -937,6 +937,9 @@ function settingsView(){
     ${off.length?`<section class="card"><span class="label">Office days</span><p class="note" style="margin:6px 0 10px">Walking to work is your easy cardio on these days. With 2 office days the 4×4 moves to Sunday.</p>
       <div class="daychips">${[1,2,3,4,5].map(d=>`<button data-off="${d}" class="${off.includes(d)?'on':''}" aria-pressed="${off.includes(d)}" aria-label="${WD_L[d]}">${WD_S[d][0]}</button>`).join('')}</div>
       <p class="note" style="margin:10px 0 0">Lift days are Mon, Wed, Fri, Sat. An office day on a lift day keeps the lift.</p></section>`:''}
+    <section class="card"><span class="label">Equipment</span>
+      <div class="tg"><div class="grow"><div class="name" style="font-size:15px">Heaviest dumbbell</div><div class="meta">Dumbbell lifts stop adding weight here. Add reps, slow the lowering, or swap the exercise.</div></div>
+        <div class="step" style="padding:4px;gap:10px"><button data-dbmax="-5" aria-label="Lighter" style="width:40px;height:40px">−</button><div class="v"><b style="font-size:22px">${DB.maxDb?DB.maxDb+' lb':'None'}</b></div><button data-dbmax="5" aria-label="Heavier" style="width:40px;height:40px">+</button></div></div></section>
     <section class="card"><span class="label">Heart zones</span>
       <div class="tg"><div class="grow name" style="font-size:15px">Age</div>
         <div class="step" style="padding:4px;gap:10px"><button data-age="-1" aria-label="Younger" style="width:40px;height:40px">−</button><div class="v"><b style="font-size:22px">${DB.age||'—'}</b></div><button data-age="1" aria-label="Older" style="width:40px;height:40px">+</button></div></div>
@@ -1165,6 +1168,8 @@ document.addEventListener('click',e=>{
       const msg=`Flag ${INJURIES[k].label.toLowerCase()}? ${ids.length} lift${ids.length===1?'':'s'} go on hold.${c.drops.length?` ${c.drops.slice(0,3).map(d=>`${d.area} ${fmtSets(d.from)}→${fmtSets(d.to)}`).join(', ')} sets/week.`:''}`;
       if(confirm(msg))applyInjury(k)} return}
   if(ds.off){const d=+ds.off, off=officeDays().slice(); const i=off.indexOf(d); if(i>=0)off.splice(i,1); else off.push(d); DB.officeDays=off.sort(); save(); render(); return}
+  if(ds.dbmax){const d=+ds.dbmax, c=DB.maxDb;
+    DB.maxDb=c?(c+d<20?null:Math.min(300,c+d)):95; save(); render(); return}
   if(ds.age){DB.age=Math.min(99,Math.max(14,(DB.age||40)+(+ds.age))); save(); render(); return}
   if(id==='exportBtn'){const payload=Object.assign({app:'strata',profile:profile.id,profileName:profile.name,planKey:profile.plan},DB);
     const b=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}), a=document.createElement('a');

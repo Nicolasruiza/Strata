@@ -89,6 +89,10 @@ extension Engine {
     public mutating func adjustAge(_ dir: Int) {
         db.age = min(Config.Heart.maxAge, max(Config.Heart.minAge, (db.age ?? 0) != 0 ? db.age! + Double(dir) : Config.defaultAge + Double(dir)))
     }
+    /// Heaviest dumbbell stepper (web `data-dbmax`): first tap sets 95 lb, steps of 5, below 20 clears it.
+    public mutating func adjustMaxDb(_ d: Double) {
+        if let c = db.maxDb, c != 0 { db.maxDb = c + d < 20 ? nil : min(300, c + d) } else { db.maxDb = 95 }
+    }
     public mutating func toggleOfficeDay(_ d: Int) {
         var off = officeDays()
         if let i = off.firstIndex(of: d) { off.remove(at: i) } else { off.append(d) }
