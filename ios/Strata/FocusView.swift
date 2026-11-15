@@ -63,7 +63,7 @@ struct FocusView: View {
                         Button { model.openFormVideo(id: ex.id, name: ex.n) } label: {
                             HStack(spacing: 6) { SVGPathShape(d: "M8 5v14l11-7z").fill(Color.white).frame(width: 14, height: 14); Text("Form video") }
                         }.buttonStyle(StrataButtonStyle(small: true))
-                        if !(e.ap.altOf[orig.id] ?? []).isEmpty {
+                        if !e.swapOptions(orig).isEmpty {
                             Button { model.swapOpen = true } label: {
                                 HStack(spacing: 6) { IconView(d: "M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7", size: 16, color: .white, line: 2.2); Text("Swap") }
                             }.buttonStyle(StrataButtonStyle(small: true))

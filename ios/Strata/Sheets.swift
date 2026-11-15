@@ -23,6 +23,49 @@ struct CantTrainSheet: View {
     }
 }
 
+/// "I want something else" (web `elseSheet()`): today's own pick replaces the weekday's plan.
+struct SomethingElseSheet: View {
+    @EnvironmentObject var model: AppModel
+    var body: some View {
+        if let e = model.engine { content(e) } else { Color.clear }
+    }
+    @ViewBuilder private func content(_ e: Engine) -> some View {
+        let t = e.today, mon = Dates.mondayOf(t), cur = e.weekPlan(mon)[Dates.weekday(t)] ?? "rest"
+        let nd = e.nextDay(), owed = e.liftOwed(mon)
+        var opts: [(String, String, String)] = []
+        let _ = {
+            if cur != "lift" && e.liftedOn(t) == nil {
+                opts.append(("lift", "Lift: \(e.plan[nd]?.name ?? "")",
+                             "\(owed ? "Missed earlier this week · " : "")\(e.requiredItems(nd).count) main lifts · ~\(jsMinutes(e.minutesFor(nd))) min\(e.isLegs(nd) ? " · jumps first" : "")"))
+            }
+            if cur != "z2" { opts.append(("z2", "Zone 2 walk", "45–60 min, conversational. Treadmill at incline works great.")) }
+            if cur != "vo2" && !e.slotDone("vo2", t, mon) { opts.append(("vo2", "4×4 intervals", "4 minutes hard, 3 easy, repeated.")) }
+            if cur != "walk" { opts.append(("walk", "Long walk", "Easy pace outside, 45–90 min.")) }
+        }()
+        SheetChrome {
+            Text("Today").labelStyle()
+            Text("What do you feel like?").title2Style(20).padding(.top, 4)
+            Text("Your pick replaces today's plan. Nothing is lost: the rotation and your weekly goals stay as they are.").bodyStyle().padding(.top, 4)
+            ForEach(opts, id: \.0) { o in
+                Button {
+                    model.mutate { $0.setSlotOver(t, o.0); return ["lift": "Today is a lift day", "z2": "Zone 2 today. Treadmill incline works", "vo2": "4×4 today", "walk": "Long walk today"][o.0] }
+                    model.selDay = nil; model.sheet = nil
+                } label: {
+                    OptRow(title: o.1, meta: o.2) { IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4) }
+                }.buttonStyle(.plain).padding(.top, 8)
+            }
+            if e.db.slotOver?[t] != nil {
+                Button {
+                    model.mutate { $0.clearSlotOver(t); return "Back to the plan" }
+                    model.selDay = nil; model.sheet = nil
+                } label: {
+                    OptRow(title: "Back to the plan", meta: e.catalog.slotName[e.basePlan()[Dates.weekday(t)] ?? "rest"]) { IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4) }
+                }.buttonStyle(.plain).padding(.top, 8)
+            }
+        }
+    }
+}
+
 /// "Log a walk" sheet
 struct WalkSheet: View {
     @EnvironmentObject var model: AppModel

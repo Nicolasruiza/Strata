@@ -35,6 +35,7 @@ struct TodayView: View {
         .sheet(item: $model.sheet) { s in
             switch s {
             case .cantTrain: CantTrainSheet()
+            case .somethingElse: SomethingElseSheet()
             case .walk: WalkSheet()
             case .editCardio(let d, let ty): EditCardioSheet(date: d, type: ty)
             }
@@ -59,10 +60,35 @@ struct TodayView: View {
         } else {
             slotCard(e, slot: slot, date: selDate, isToday: isToday, lp: lp)
             if isToday && slot != "rest" && !e.slotDone(slot, selDate, mon) {
-                Button("Can't train today?") { model.sheet = .cantTrain }
-                    .buttonStyle(LinkButtonStyle()).frame(maxWidth: .infinity).padding(.top, -6)
+                HStack(spacing: 22) {
+                    Button(e.db.slotOver?[selDate] != nil ? "Swap again" : "Swap for something else") { model.sheet = .somethingElse }
+                        .buttonStyle(LinkButtonStyle())
+                    Button("Can't train today?") { model.sheet = .cantTrain }.buttonStyle(LinkButtonStyle())
+                }.frame(maxWidth: .infinity).padding(.top, -6)
+            }
+            if e.db.active == nil && !(slot == "lift" && lp?.status == "planned") {
+                nextLiftCard(e, isToday: isToday, mon: mon)
             }
         }
+    }
+
+    /// "Next lift in your rotation" (web `nextCardHTML`). When a lift this week was skipped or missed it offers to catch up today.
+    private func nextLiftCard(_ e: Engine, isToday: Bool, mon: String) -> some View {
+        let nd = e.nextDay(), owed = e.liftOwed(mon), t = e.today
+        let catchUp = owed && isToday && e.liftedOn(t) == nil
+        return HStack(spacing: 12) {
+            IconView(d: Icon.dumbbell, size: 20, color: Theme.violet, line: 1.9)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(owed ? "Missed lift. Catch up today?" : "Next lift in your rotation").labelStyle()
+                Text(e.plan[nd]?.name ?? "").nameStyle().padding(.top, 2)
+                Text("\(e.requiredItems(nd).count) main lifts · ~\(jsMinutes(e.minutesFor(nd))) min\(e.isLegs(nd) ? " · jumps first" : "")").metaStyle()
+            }
+            Spacer(minLength: 0)
+            Button(catchUp ? "Do it today" : (e.liftedOn(t) != nil ? "Preview" : "Open")) {
+                if catchUp { model.mutate { $0.setSlotOver(t, "lift"); return "Today is now a lift day" }; model.selDay = nil }
+                else { model.go(.preview(day: nd)) }
+            }.buttonStyle(StrataButtonStyle(small: true, hPad: 16)).fixedSize()
+        }.padding(.horizontal, 14).padding(.vertical, 12).card()
     }
 
     private func when(_ e: Engine, _ date: String, _ isToday: Bool) -> String {
@@ -216,6 +242,25 @@ struct TodayView: View {
                 RichText(markdown: "No workout today. Sleep, fluids, an easy walk only if you feel like it. Your rotation waits: **\(e.plan[e.nextDay()]?.name ?? "")** is still next.").bodyStyle().padding(.top, 8)
             }.card()
             if isToday { undo }
+        } else if sk.why == "time" || sk.why == "pain" {
+            let walk = e.db.cardio.first { $0.date == date && ($0.type == "walk" || $0.type == "z2") }
+            let pain = sk.why == "pain"
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(w) · Skipped").labelStyle()
+                Text(pain ? "Rest what hurts" : "Not today, and that is fine").title2Style().padding(.top, 4).padding(.bottom, 2)
+                RichText(markdown: (pain ? "Nothing is lost. If it feels okay, an easy walk is good for recovery." : "Nothing is lost.")
+                         + " **\(e.plan[e.nextDay()]?.name ?? "")** stays next in your rotation." + (pain ? "" : " A 20–30 minute walk still counts for your heart. Try one today.")).bodyStyle().padding(.top, 8)
+                if let wk = walk {
+                    HStack {
+                        Text("Walk logged · \(jsMinutes(wk.min ?? 0)) min").nameStyle(color: Theme.coral)
+                        Spacer()
+                        Button("Edit") { model.sheet = .editCardio(date: date, type: wk.type) }.buttonStyle(LinkButtonStyle())
+                    }.padding(.top, 14)
+                } else if isToday {
+                    Button("Log a walk") { model.sheet = .walk }.buttonStyle(StrataButtonStyle(kind: .coral)).padding(.top, 14)
+                }
+            }.card()
+            if isToday && walk == nil { undo }
         } else if sk.why == "office" {
             let c = e.cardioOn(date, "office")
             VStack(alignment: .leading, spacing: 0) {

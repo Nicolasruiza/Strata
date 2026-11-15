@@ -54,11 +54,30 @@ extension Engine {
     /// An office day marked "not going" turns into a Zone 2 walk for that date's week.
     public func weekPlan(_ mon: String? = nil) -> [Int: String] {
         var w = basePlan()
-        for d in Dates.weekDates(mon ?? Dates.mondayOf(today)) where (db.officeOff ?? []).contains(d) {
+        for d in Dates.weekDates(mon ?? Dates.mondayOf(today)) {
             let wd = Dates.weekday(d)
-            if w[wd] == "office" { w[wd] = "z2" }
+            if let o = db.slotOver?[d] { w[wd] = o; continue }      // "I want something else": the day's own choice wins
+            if (db.officeOff ?? []).contains(d), w[wd] == "office" { w[wd] = "z2" }
         }
         return w
+    }
+
+    /// `setSlotOver`: today's slot is the user's pick. The rotation and the ring goals are untouched.
+    public mutating func setSlotOver(_ date: String, _ slot: String) {
+        var o = db.slotOver ?? [:]
+        if slot == basePlan()[Dates.weekday(date)] { o[date] = nil } else { o[date] = slot }
+        db.slotOver = o.isEmpty ? nil : o
+    }
+    public mutating func clearSlotOver(_ date: String) {
+        var o = db.slotOver ?? [:]
+        o[date] = nil
+        db.slotOver = o.isEmpty ? nil : o
+    }
+    /// `liftOwed`: a lift slot earlier this week was skipped or missed while the muscle ring is still open.
+    public func liftOwed(_ mon: String) -> Bool {
+        let wp = weekPlan(mon)
+        guard weekStats(mon).m < Config.RingGoals.muscle else { return false }
+        return Dates.weekDates(mon).contains { $0 < today && wp[Dates.weekday($0)] == "lift" && liftedOn($0) == nil }
     }
 
     /// Not going to the office on `date`: the day becomes a Zone 2 walk. Only for a planned office day with nothing logged.
@@ -76,7 +95,7 @@ extension Engine {
     }
     public func officeSkipped(_ date: String) -> Bool { (db.officeOff ?? []).contains(date) }
 
-    func basePlan() -> [Int: String] {
+    public func basePlan() -> [Int: String] {
         var w: [Int: String] = [1: "lift", 2: "z2", 3: "lift", 4: "vo2", 5: "lift", 6: "lift", 0: "walk"]
         let off = officeDays()
         if !off.isEmpty {
@@ -347,8 +366,9 @@ extension Engine {
                 : (catalog.ctype[s].map { cardioOn(d, $0) != nil } ?? false)
             if let sk = sk, !gymDone {
                 let ring = catalog.home[sk.key]?.ring ?? "h"
-                return WeekStripItem(w: w, kind: "skip", label: sk.why == "sick" ? "Rest" : "Home",
-                                     color: sk.why == "sick" ? "#6E7385" : KC[ring]!, done: (sk.done ?? 0) != 0, today: d == t)
+                let quiet = sk.why == "sick" || sk.why == "time" || sk.why == "pain"
+                return WeekStripItem(w: w, kind: "skip", label: sk.why == "sick" ? "Rest" : (sk.why == "time" || sk.why == "pain") ? "Skip" : "Home",
+                                     color: quiet ? "#6E7385" : KC[ring]!, done: (sk.done ?? 0) != 0, today: d == t)
             }
             let col = s == "lift" ? KC["m"]! : heartSlots.contains(s) ? KC["h"]! : "#6E7385"
             let lab: String

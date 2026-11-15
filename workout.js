@@ -345,7 +345,7 @@ function focusView(){
     <h1 class="wh1" style="font-size:30px;margin-top:8px">${esc(cleanN(ex.n))}</h1>
     <div class="meta" style="margin-top:-8px">${n} sets × ${repLbl(ex,orig.r)}${perLeg(ex)}${ex!==orig?' · swapped':''}</div>
     ${orig.injured?`<div class="warnbox">On hold for your injury flag. Go light or swap it.</div>`:''}
-    <div class="grid2"><button class="btn sm" data-yt="${ex.id}">${I.play.replace('<svg','<svg width="14" height="14"')}Form video</button>${(ALT_OF[orig.id]||[]).length?`<button class="btn sm" id="swapBtn">${I.swap.replace('<svg','<svg width="16" height="16"')}Swap</button>`:'<span></span>'}</div>
+    <div class="grid2"><button class="btn sm" data-yt="${ex.id}">${I.play.replace('<svg','<svg width="14" height="14"')}Form video</button>${swapOptions(orig).length?`<button class="btn sm" id="swapBtn">${I.swap.replace('<svg','<svg width="16" height="16"')}Swap</button>`:'<span></span>'}</div>
     <div class="wcard" style="display:flex;align-items:center;gap:10px"><div class="grow"><div class="meta">Last time</div><b style="font-size:20px">${last?`${last.w} × ${last.reps.map(r=>r==null?'–':r).join('/')}`:'No history yet'}</b></div>
       <span class="wtrend ${tr.c}">${tr.i}${tr.t}</span></div>
     ${restBanner()}
@@ -466,7 +466,7 @@ document.addEventListener('click',e=>{
     A.busy=A.busy||{};A.busy[orig.id]=Date.now();
     const alt=blk&&blk.items.find(x=>x!==orig&&exState(x)!=='done');
     if(alt){toast(`Switched to ${cleanN(shownEx(alt).n)}. ${cleanN(shownEx(orig).n)} comes back up in ${WCFG.busyMin} min.`);openEx(L.indexOf(alt));return}
-    save(); if((ALT_OF[orig.id]||[]).length){toast('Nothing else left in this block. Swap to free equipment?');swapSheet();}else toast('Nothing else left in this block. Wait a minute, it frees up.');return}
+    save(); if(swapOptions(orig).length){toast('Nothing else left in this block. Swap to free equipment?');swapSheet();}else toast('Nothing else left in this block. Wait a minute, it frees up.');return}
   if(k==='exall'){const L=liftList(),orig=L[curIdx()],ex=shownEx(orig),n=setsOf(orig),p=progOf(orig)||{w:A.lowEnergy?loEnergyW(ex,wOf(ex)):wOf(ex),reps:[]};
     const r=p.reps.length&&p.reps[p.reps.length-1]!=null?p.reps[p.reps.length-1]:orig.r;
     while(p.reps.length<n)p.reps.push(r);

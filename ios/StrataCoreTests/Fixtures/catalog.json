@@ -2621,23 +2621,18 @@
  "skipWhy": [
   [
    "time",
-   "Short on time",
-   "Busy day, but I have 15–20 minutes"
+   "No time",
+   "Busy day. A short walk still counts"
   ],
   [
-   "away",
-   "Can't get to the gym",
-   "Travel, family, gym closed"
+   "pain",
+   "Pain or injury",
+   "Rest what hurts. Nothing is lost"
   ],
   [
    "office",
    "I need to go to the office",
    "Walk there and back instead"
-  ],
-  [
-   "sick",
-   "Sick or run down",
-   "Rest is the right call"
   ]
  ],
  "cardioActs": {

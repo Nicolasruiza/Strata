@@ -306,10 +306,12 @@ public struct AppData: Codable, Equatable {
     public var officeOff: [String]?
     /// Heaviest dumbbell the gym has (lb). Dumbbell lifts stop adding weight there. Web keeps the same `maxDb`.
     public var maxDb: Double?
+    /// "I want something else": a date's own slot, replacing the weekday's plan. Web keeps the same `slotOver`.
+    public var slotOver: [String: String]?
 
     enum CodingKeys: String, CodingKey {
         case next, history, active, holds, cycleStarts, focus, injuries, cycleAnchor, cardio, age
-        case officeDays, rcOffice, waist, skips, live, mobility, steps, jumpAlt, officeOff, maxDb
+        case officeDays, rcOffice, waist, skips, live, mobility, steps, jumpAlt, officeOff, maxDb, slotOver
     }
 
     public init() {}
@@ -346,6 +348,7 @@ public struct AppData: Codable, Equatable {
         jumpAlt = try c.decodeIfPresent(String.self, forKey: .jumpAlt)
         officeOff = try c.decodeIfPresent([String].self, forKey: .officeOff)
         maxDb = try c.decodeIfPresent(Double.self, forKey: .maxDb)
+        slotOver = try c.decodeIfPresent([String: String].self, forKey: .slotOver)
         // `demoSensors` is a web testing switch: read nothing, write nothing.
     }
 }
