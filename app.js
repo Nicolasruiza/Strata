@@ -138,7 +138,7 @@ const isLegs=d=>/^legs/i.test((PLAN[d]&&PLAN[d].name)||'');
 
 /* ---------- can't train: skip a day, keep momentum at home ---------- */
 const skipOn=date=>(DB.skips||{})[date];
-const SKIP_WHY=[['time','Short on time','Busy day, but I have 15–20 minutes'],['away','Can\'t get to the gym','Travel, family, gym closed'],['office','I need to go to the office','Walk there and back instead'],['sick','Sick or run down','Rest is the right call']];
+const SKIP_WHY=[['time','No time','Busy day. A short walk still counts'],['pain','Pain or injury','Rest what hurts. Nothing is lost'],['office','I need to go to the office','Walk there and back instead']];
 /* home plans: no equipment beyond a backpack; ~15–20 min */
 const HOME={
   legs:{name:'Home legs + bone',min:18,ring:'b',moves:[
@@ -255,9 +255,9 @@ function todayView(){
     const s=wp[w], d=ds[i], sk=skipOn(d);
     const gymDone=s==='lift'?!!liftedOn(d):s==='office'?!!cardioOn(d,'office'):!!cardioOn(d,CTYPE[s]);
     if(sk&&!gymDone){
-      const hc=sk.why==='sick'?'#6E7385':KC[HOME[sk.key].ring];
+      const quiet=sk.why==='sick'||sk.why==='time'||sk.why==='pain', hc=quiet?'#6E7385':KC[HOME[sk.key].ring];
       return `<button class="wd skip ${d===t?'today':''} ${w===sel?'sel':''} ${sk.done?'done':''}" data-wd="${w}" aria-label="${WD_L[w]}: couldn't train${sk.done?', home session done':''}">
-        ${WD_S[w].slice(0,1)}<i style="color:${hc};${sk.done?`background:${hc};color:#0E1018`:''}">${sk.done?I.check:''}</i><b>${sk.why==='sick'?'Rest':'Home'}</b></button>`;
+        ${WD_S[w].slice(0,1)}<i style="color:${hc};${sk.done?`background:${hc};color:#0E1018`:''}">${sk.done?I.check:''}</i><b>${sk.why==='sick'?'Rest':sk.why==='time'||sk.why==='pain'?'Skip':'Home'}</b></button>`;
     }
     const realDone=gymDone;
     const col=s==='lift'?KC.m:HEART.has(s)?KC.h:'#6E7385';
@@ -272,7 +272,7 @@ function todayView(){
     main=`<section class="card" style="border-color:rgba(156,140,255,.45)"><div class="label" style="color:var(--violet)">In progress</div>
       <div class="title2">${PLAN[A.day].name}</div><div class="meta">${n} of ${req.length} main lifts logged</div>
       <div style="margin-top:14px"><button class="btn violet" id="resume">Resume workout</button></div></section>`;
-  } else main=skipOn(selDate)&&!slotDone(slot,selDate,mon)?homeCard(selDate,isToday):slotCard(slot,selDate,isToday,slots[sel],st)+(isToday&&slot!=='rest'&&!slotDone(slot,selDate,mon)?`<button class="link" id="cantTrain" style="display:block;margin:-6px auto 0">Can't train today?</button><button class="link" id="elseBtn" style="display:block;margin:2px auto 0">${(DB.slotOver||{})[t]?'Something else (change)':'I want something else'}</button>`:'');
+  } else main=skipOn(selDate)&&!slotDone(slot,selDate,mon)?homeCard(selDate,isToday):slotCard(slot,selDate,isToday,slots[sel],st)+(isToday&&slot!=='rest'&&!slotDone(slot,selDate,mon)?`<div style="display:flex;justify-content:center;gap:22px;margin:-6px 0 0"><button class="link" id="elseBtn">${(DB.slotOver||{})[t]?'Swap again':'Swap for something else'}</button><button class="link" id="cantTrain">Can't train today?</button></div>`:'');
   const others=isToday&&!DB.active?otherOptions(slot):'';
   const lpSel=slots[sel], mainIsNext=slot==='lift'&&lpSel&&lpSel.status==='planned';
   const nd=nextDay(), owed=liftOwed(mon), nextCardHTML=!DB.active&&!mainIsNext?`<section class="card tight" style="display:flex;align-items:center;gap:12px;padding:12px 14px">
@@ -349,6 +349,11 @@ function homeCard(date,isToday){
   const undo=`<button class="link" id="undoSkip" data-d="${date}" style="display:block;margin:4px auto 0">Undo · I can train after all</button>`;
   if(sk.why==='sick')return `<section class="card"><div class="label">${when} · Rest</div><div class="title2">Recover first</div>
     <p class="p">No workout today. Sleep, fluids, an easy walk only if you feel like it. Your rotation waits: <b>${PLAN[nextDay()].name}</b> is still next.</p></section>${isToday?undo:''}`;
+  if(sk.why==='time'||sk.why==='pain'){
+    const nd=PLAN[nextDay()].name, w=(DB.cardio||[]).find(x=>x.date===date&&(x.type==='walk'||x.type==='z2'));
+    return `<section class="card"><div class="label">${when} · Skipped</div><div class="title2">${sk.why==='pain'?'Rest what hurts':'Not today, and that is fine'}</div>
+      <p class="p">${sk.why==='pain'?'Nothing is lost. If it feels okay, an easy walk is good for recovery.':'Nothing is lost.'} <b>${nd}</b> stays next in your rotation. ${sk.why==='pain'?'':'A 20–30 minute walk still counts for your heart. Try one today.'}</p>
+      ${w?`<div class="rowh" style="margin-top:14px"><span class="name" style="color:var(--coral)">Walk logged · ${w.min||0} min</span><button class="link" data-editc="${date}|${w.type}">Edit</button></div>`:(isToday?`<div style="margin-top:14px"><button class="btn coral" data-sheet="walk">Log a walk</button></div>`:'')}</section>${isToday?undo:''}`}
   if(sk.why==='office'){const c=cardioOn(date,'office'), nd=PLAN[nextDay()].name;
     return `<section class="card"><div class="label" style="color:var(--coral)">${when} · Heart</div><div class="title2">Office day</div>
       <p class="p">Walk there and back. Around <b>7,000 steps</b> across the day is plenty.${sk.slot==='lift'?` <b>${nd}</b> stays next in your rotation. Pick it any day from Today.`:''}</p>
@@ -1088,9 +1093,9 @@ $('#sheet').addEventListener('click',e=>{
   const wy=e.target.closest('[data-why]');
   if(wy){const t=today(), slot=weekPlan()[wdOf(t)];
     DB.skips=DB.skips||{};
-    DB.skips[t]={why:wy.dataset.why,slot,key:homeKey(slot,t),day:slot==='lift'?nextDay():null};
+    DB.skips[t]={why:wy.dataset.why,slot,key:['time','pain'].includes(wy.dataset.why)?'walk':homeKey(slot,t),day:slot==='lift'?nextDay():null};
     save(); closeSheet(); selDay=null; render();
-    toast(wy.dataset.why==='sick'?'Rest day. The rotation waits.':'Here\'s a home version'); return}
+    toast(wy.dataset.why==='sick'?'Rest day. The rotation waits.':['time','pain'].includes(wy.dataset.why)?'Skipped. Nothing is lost. Try a walk today':'Here\'s a home version'); return}
   const wk=e.target.closest('[data-walk]');
   if(wk){const v=+$('#wMin').value||0; if(!v)return; logCardio(wk.dataset.walk,{min:v}); closeSheet(); render(); toast(`Walk logged · ${v} min`); return}
 });

@@ -366,8 +366,9 @@ extension Engine {
                 : (catalog.ctype[s].map { cardioOn(d, $0) != nil } ?? false)
             if let sk = sk, !gymDone {
                 let ring = catalog.home[sk.key]?.ring ?? "h"
-                return WeekStripItem(w: w, kind: "skip", label: sk.why == "sick" ? "Rest" : "Home",
-                                     color: sk.why == "sick" ? "#6E7385" : KC[ring]!, done: (sk.done ?? 0) != 0, today: d == t)
+                let quiet = sk.why == "sick" || sk.why == "time" || sk.why == "pain"
+                return WeekStripItem(w: w, kind: "skip", label: sk.why == "sick" ? "Rest" : (sk.why == "time" || sk.why == "pain") ? "Skip" : "Home",
+                                     color: quiet ? "#6E7385" : KC[ring]!, done: (sk.done ?? 0) != 0, today: d == t)
             }
             let col = s == "lift" ? KC["m"]! : heartSlots.contains(s) ? KC["h"]! : "#6E7385"
             let lab: String

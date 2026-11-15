@@ -60,10 +60,11 @@ struct TodayView: View {
         } else {
             slotCard(e, slot: slot, date: selDate, isToday: isToday, lp: lp)
             if isToday && slot != "rest" && !e.slotDone(slot, selDate, mon) {
-                Button("Can't train today?") { model.sheet = .cantTrain }
-                    .buttonStyle(LinkButtonStyle()).frame(maxWidth: .infinity).padding(.top, -6)
-                Button(e.db.slotOver?[selDate] != nil ? "Something else (change)" : "I want something else") { model.sheet = .somethingElse }
-                    .buttonStyle(LinkButtonStyle()).frame(maxWidth: .infinity).padding(.top, -10)
+                HStack(spacing: 22) {
+                    Button(e.db.slotOver?[selDate] != nil ? "Swap again" : "Swap for something else") { model.sheet = .somethingElse }
+                        .buttonStyle(LinkButtonStyle())
+                    Button("Can't train today?") { model.sheet = .cantTrain }.buttonStyle(LinkButtonStyle())
+                }.frame(maxWidth: .infinity).padding(.top, -6)
             }
             if e.db.active == nil && !(slot == "lift" && lp?.status == "planned") {
                 nextLiftCard(e, isToday: isToday, mon: mon)
@@ -241,6 +242,25 @@ struct TodayView: View {
                 RichText(markdown: "No workout today. Sleep, fluids, an easy walk only if you feel like it. Your rotation waits: **\(e.plan[e.nextDay()]?.name ?? "")** is still next.").bodyStyle().padding(.top, 8)
             }.card()
             if isToday { undo }
+        } else if sk.why == "time" || sk.why == "pain" {
+            let walk = e.db.cardio.first { $0.date == date && ($0.type == "walk" || $0.type == "z2") }
+            let pain = sk.why == "pain"
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(w) · Skipped").labelStyle()
+                Text(pain ? "Rest what hurts" : "Not today, and that is fine").title2Style().padding(.top, 4).padding(.bottom, 2)
+                RichText(markdown: (pain ? "Nothing is lost. If it feels okay, an easy walk is good for recovery." : "Nothing is lost.")
+                         + " **\(e.plan[e.nextDay()]?.name ?? "")** stays next in your rotation." + (pain ? "" : " A 20–30 minute walk still counts for your heart. Try one today.")).bodyStyle().padding(.top, 8)
+                if let wk = walk {
+                    HStack {
+                        Text("Walk logged · \(jsMinutes(wk.min ?? 0)) min").nameStyle(color: Theme.coral)
+                        Spacer()
+                        Button("Edit") { model.sheet = .editCardio(date: date, type: wk.type) }.buttonStyle(LinkButtonStyle())
+                    }.padding(.top, 14)
+                } else if isToday {
+                    Button("Log a walk") { model.sheet = .walk }.buttonStyle(StrataButtonStyle(kind: .coral)).padding(.top, 14)
+                }
+            }.card()
+            if isToday && walk == nil { undo }
         } else if sk.why == "office" {
             let c = e.cardioOn(date, "office")
             VStack(alignment: .leading, spacing: 0) {

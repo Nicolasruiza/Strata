@@ -230,7 +230,7 @@ const Q = {   // pure queries: `ret` only
     return {stats:W8.map(m=>weekStats(m)), cardio:W8.map(m=>{const ds=weekDates(m);return (DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type!=='jumps').length}),
       steps:W8.map(m=>{const ds=weekDates(m), s=(DB.cardio||[]).filter(c=>ds.includes(c.date)&&c.type==='office'&&c.steps);return s.length?Math.round(s.reduce((a,c)=>a+c.steps,0)/s.length):0})}})()`,
   // copied from todayView() in app.js (the week strip); keep in sync
-  weekStrip: `(()=>{const t=today(), mon=mondayOf(t), wp=weekPlan(), slots=liftSlots(mon), ds=weekDates(mon); return WD_ORDER.map((w,i)=>{const s=wp[w], d=ds[i], sk=skipOn(d); const gymDone=s==='lift'?!!liftedOn(d):s==='office'?!!cardioOn(d,'office'):!!cardioOn(d,CTYPE[s]); if(sk&&!gymDone){return {w,kind:'skip',label:sk.why==='sick'?'Rest':'Home',color:sk.why==='sick'?'#6E7385':KC[HOME[sk.key].ring],done:!!sk.done,today:d===t}} const lp=slots[w]; const col=s==='lift'?KC.m:HEART.has(s)?KC.h:'#6E7385'; const lab=s==='lift'?(lp&&lp.day?PLAN[lp.day].name.replace('Upper','Up').replace('Legs','Leg'):'—'):({office:'Office',z2:'Z2',vo2:'4×4',walk:'Walk',rest:'Rest'}[s]); return {w,kind:'normal',label:lab,color:col,done:gymDone,today:d===t}})})()`,
+  weekStrip: `(()=>{const t=today(), mon=mondayOf(t), wp=weekPlan(), slots=liftSlots(mon), ds=weekDates(mon); return WD_ORDER.map((w,i)=>{const s=wp[w], d=ds[i], sk=skipOn(d); const gymDone=s==='lift'?!!liftedOn(d):s==='office'?!!cardioOn(d,'office'):!!cardioOn(d,CTYPE[s]); if(sk&&!gymDone){return {w,kind:'skip',label:sk.why==='sick'?'Rest':sk.why==='time'||sk.why==='pain'?'Skip':'Home',color:(sk.why==='sick'||sk.why==='time'||sk.why==='pain')?'#6E7385':KC[HOME[sk.key].ring],done:!!sk.done,today:d===t}} const lp=slots[w]; const col=s==='lift'?KC.m:HEART.has(s)?KC.h:'#6E7385'; const lab=s==='lift'?(lp&&lp.day?PLAN[lp.day].name.replace('Upper','Up').replace('Legs','Leg'):'—'):({office:'Office',z2:'Z2',vo2:'4×4',walk:'Walk',rest:'Rest'}[s]); return {w,kind:'normal',label:lab,color:col,done:gymDone,today:d===t}})})()`,
   greet: `greet()`,
   // copied from vo2View() / vo2DoneView() in app.js
   vo2Ramp: `(()=>{const c=(DB.cardio||[]).filter(x=>x.type==='4x4').length; return c<3?\`Ramp-up session \${c+1} of 3: 3 intervals at the low end of the range.\`:'Full 4×4. Add speed or incline when the last interval feels easier than the first.'})()`,
@@ -620,7 +620,7 @@ function buildCases(S) {
   }
 
   // can't train today, home sessions
-  for (const sc of ['nr_steady', 'nr_empty', 'sa_steady', 'nr_skips']) for (const nk of ['mon', 'wed', 'sat', 'sun', 'thu', 'sunFallBack']) for (const why of ['time', 'away', 'sick'])
+  for (const sc of ['nr_steady', 'nr_empty', 'sa_steady', 'nr_skips']) for (const nk of ['mon', 'wed', 'sat', 'sun', 'thu', 'sunFallBack']) for (const why of ['time', 'pain', 'away', 'sick'])
     addClick(`why-${why}`, sc, nk, {sheet: true, dataset: {why}});
   for (const d of ['2026-10-31', '2026-11-01', '2026-10-29', '2026-11-02']) {
     addClick('homeDone', 'nr_skips', 'sat', {id: 'homeDone', dataset: {d}});
