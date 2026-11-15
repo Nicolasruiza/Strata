@@ -707,7 +707,15 @@ const lastOf=id=>{for(let i=DB.history.length-1;i>=0;i--){const e=DB.history[i].
   if(e)return{...e,date:DB.history[i].date}}return null};
 const INVERSE_LOAD_IDS=new Set(['alt_assist_pullup','alt_assist_pullup2']);
 const inverseLoad=ex=>!!(ex&&INVERSE_LOAD_IDS.has(ex.id));
-const progressedWeight=(ex,w)=>inverseLoad(ex)?Math.max(0,w-ex.inc):w+ex.inc;
+/* Heaviest dumbbell the gym has (Settings). Dumbbell lifts stop climbing there: add reps, slow the lowering, or swap. */
+const isDumbbell=ex=>!!(ex&&(ex.each||/dumbbell|goblet|kettlebell/i.test(ex.n||'')));
+const dbMaxOf=ex=>(DB.maxDb&&isDumbbell(ex)&&!inverseLoad(ex))?DB.maxDb:null;
+const atDbMax=(ex,w)=>{const m=dbMaxOf(ex);return m!=null&&w>=m};
+const progressedWeight=(ex,w)=>{
+  if(inverseLoad(ex))return Math.max(0,w-ex.inc);
+  const m=dbMaxOf(ex), n=w+ex.inc;
+  return m!=null&&n>m?Math.max(w,m):n;
+};
 const wOf=ex=>{
   const next=DB.next[ex.id];
   /* Repair an already-saved target produced by the old assisted-pull-up bug. */

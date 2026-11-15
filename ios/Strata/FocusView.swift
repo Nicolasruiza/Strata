@@ -61,6 +61,9 @@ struct FocusView: View {
                     Text("\(n) sets × \(Fmt.repLbl(ex, orig.r.map(Double.init)))\(Fmt.perLeg(ex))\(ex.id != orig.id ? " · swapped" : "")").metaStyle().padding(.top, -10)
                     if orig.isInjured { WarnBox(markdown: "On hold for your injury flag. Go light or swap it.") }
                     lastCard(last: last, trend: tr)
+                    if (ex.inc ?? 0) != 0, !low, e.atDbMax(ex, baseW) {
+                        WarnBox(markdown: "**Dumbbell max (\(jsMinutes(baseW)) lb).** Add reps, slow the lowering, or swap the exercise.")
+                    }
                     RestBanner(idle: (big: reps.count >= n ? "All sets logged" : "Set \(reps.count + 1) of \(n)", meta: reps.count >= n ? "Tap Complete when you are done" : "Log it when you finish"))
                     weightCard(w: w, plate: plate, ex: ex)
                     ForEach(Array(warm.enumerated()), id: \.offset) { i, s in warmRow(i, s, ex) }
