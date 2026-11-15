@@ -141,13 +141,11 @@ struct JumpsView: View {
     private func swapCard(_ e: Engine) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Swap exercise").metaStyle()
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(Config.Jumps.alts) { a in
-                        Button(a.name) { model.mutate { $0.setJumpAlt(a.id); return nil } }
-                            .buttonStyle(StrataButtonStyle(kind: a.id == e.jumpAlt.id ? .mint : .plain, small: true))
-                            .accessibilityAddTraits(a.id == e.jumpAlt.id ? .isSelected : [])
-                    }
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
+                ForEach(Config.Jumps.alts) { a in
+                    Button(a.name) { model.mutate { $0.setJumpAlt(a.id); return nil } }
+                        .buttonStyle(StrataButtonStyle(kind: a.id == e.jumpAlt.id ? .mint : .plain, small: true))
+                        .accessibilityAddTraits(a.id == e.jumpAlt.id ? .isSelected : [])
                 }
             }
         }.padding(.horizontal, 16).padding(.vertical, 14)

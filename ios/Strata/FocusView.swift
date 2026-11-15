@@ -70,6 +70,9 @@ struct FocusView: View {
                         } else { Color.clear.frame(maxWidth: .infinity) }
                     }
                     lastCard(last: last, trend: tr)
+                    if (ex.inc ?? 0) != 0, !low, e.atDbMax(ex, baseW) {
+                        WarnBox(markdown: "**Dumbbell max (\(jsMinutes(baseW)) lb).** Add reps, slow the lowering, or swap the exercise.")
+                    }
                     RestBanner(idle: (big: reps.count >= n ? "All sets logged" : "Set \(reps.count + 1) of \(n)", meta: reps.count >= n ? "Tap Complete when you are done" : "Log it when you finish"))
                     weightCard(w: w, plate: plate, ex: ex)
                     ForEach(Array(warm.enumerated()), id: \.offset) { i, s in warmRow(i, s, ex) }

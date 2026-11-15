@@ -29,8 +29,23 @@ extension Engine {
 
     /// `progressedWeight`: assisted lifts get lighter as you progress.
     public func progressedWeight(_ ex: Ex, _ w: Double) -> Double {
-        inverseLoad(ex) ? max(0, w - (ex.inc ?? 0)) : w + (ex.inc ?? 0)
+        if inverseLoad(ex) { return max(0, w - (ex.inc ?? 0)) }
+        let n = w + (ex.inc ?? 0)
+        if let m = dbMax(ex), n > m { return max(w, m) }
+        return n
     }
+
+    /// `isDumbbell`: dumbbell, goblet and kettlebell lifts (each-hand lifts too).
+    public func isDumbbell(_ ex: Ex) -> Bool {
+        ex.isEach || ex.n.range(of: "dumbbell|goblet|kettlebell", options: [.regularExpression, .caseInsensitive]) != nil
+    }
+    /// `dbMaxOf`: the Settings cap for this exercise, if it is a dumbbell lift.
+    public func dbMax(_ ex: Ex) -> Double? {
+        guard let m = db.maxDb, m != 0, isDumbbell(ex), !inverseLoad(ex) else { return nil }
+        return m
+    }
+    /// `atDbMax`: the target weight has reached the cap, so more load is not on offer.
+    public func atDbMax(_ ex: Ex, _ w: Double) -> Bool { dbMax(ex).map { w >= $0 } ?? false }
 
     /// `wOf(ex)`: today's target weight. Also repairs a target saved by the old assisted-pull-up bug.
     public mutating func wOf(_ ex: Ex) -> Double {
