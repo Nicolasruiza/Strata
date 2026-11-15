@@ -351,6 +351,27 @@ extension Engine {
         woReps = nil
     }
 
+    /// Focus dock "Mark all complete": logs every unlogged set at the last logged reps (or the target) and goes back to the list.
+    public mutating func markAllComplete() {
+        let orig = liftList()[curIdx()], ex = shownEx(orig), n = setsOf(orig)
+        var p = progOf(orig) ?? Prog(w: baseWeight(ex), reps: [])
+        let r: Double? = (p.reps.last ?? nil) ?? orig.r.map(Double.init)
+        while p.reps.count < n { p.reps.append(r) }
+        db.active!.prog[ex.id] = p
+        db.active!.entries[ex.id] = Entry(w: p.w, reps: Array(p.reps.prefix(n)))
+        rest = nil; db.active!.view = "list"; woReps = nil
+    }
+
+    /// Focus dock "Reset exercise": clears the logged sets, extra sets and warm-ups of this exercise.
+    public mutating func resetExercise() {
+        let ex = shownEx(liftList()[curIdx()])
+        db.active!.prog[ex.id] = nil
+        db.active!.entries[ex.id] = nil
+        db.active!.extra?[ex.id] = nil
+        db.active!.warm?[ex.id] = nil
+        rest = nil; woReps = nil
+    }
+
     /// Swap sheet choice. `to == nil` returns to the planned lift. Returns the toast.
     public mutating func applySwap(to: String?) -> String {
         let orig = liftList()[curIdx()]

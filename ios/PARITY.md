@@ -211,3 +211,5 @@ Cardio detail also shows active kcal. Active energy burned was added to the Heal
 
 ## Heaviest dumbbell (Settings → Equipment)
 Web `DB.maxDb`, iOS `AppData.maxDb` (optional, default none). Dumbbell/goblet/kettlebell lifts (and each-hand lifts) stop progressing at the cap: `progressedWeight` returns `max(w, cap)`. The focus screen shows "Dumbbell max · add reps or slow it" instead of "N lb next". Stepper: first tap sets 95 lb, steps of 5, below 20 clears it.
+## Exercise screen dock
+Inside an exercise the dock is **Reset exercise** (confirm, clears sets, extra sets and warm-ups) and **Mark all complete** (logs the remaining sets at the last reps or the target, returns to the list). Discard and Complete workout live only on the list screen. Form video / Swap sit under the title, above the inputs. Web: `exreset` / `exall`; iOS: `Engine.resetExercise()` / `markAllComplete()`.
