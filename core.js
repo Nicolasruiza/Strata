@@ -634,6 +634,12 @@ function setActivePlan(){
     .map(a=>alts.find(y=>y.id===a.id)).filter(Boolean)});
 }
 
+/* Swap choices for a lift: the alternates minus any that are the same exercise under another name
+   (audited: the women's plan already plans these as the main lift), and minus identical names. */
+const ALT_SAME={sa_db_bench:['alt_db_bench'],sa_dead_bug:['alt_dead_bug'],sa_cs_row:['alt_cs_row'],sa_rope_tri:['alt_rope_tri'],
+  sa_rdl:['alt_db_rdl'],pallof:['alt_band_pallof'],sa_pallof:['alt_band_pallof'],sa_pulldown2:['alt_assist_pullup']};
+const swapOptions=orig=>(ALT_OF[orig.id]||[]).filter(a=>!(ALT_SAME[orig.id]||[]).includes(a.id)&&cleanN(a.n).toLowerCase()!==cleanN(orig.n).toLowerCase());
+
 /* ================= VOLUME ACCOUNTING ================= */
 function weekDays(){ return DAYS(); }
 /* Weekly sets per area. Injured exercises count as zero — that is the whole point:

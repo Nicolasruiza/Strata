@@ -354,7 +354,7 @@ function focusView(){
     ${[...Array(n).keys()].map(setRow).join('')}
     ${isSec(ex)&&cur<n&&!(hold&&hold.id===ex.id)?`<button class="link" data-wo="log" style="align-self:flex-start;padding:0">Log without timer</button>`:''}
     <div class="grid2"><button class="btn sm" data-wo="addset">${WIC.plus}Set</button><button class="btn sm" data-wo="warm">${WIC.plus}Warm-up</button></div>
-    <div class="grid2"><button class="btn sm" data-yt="${ex.id}">${I.play.replace('<svg','<svg width="14" height="14"')}Form video</button>${(ALT_OF[orig.id]||[]).length?`<button class="btn sm" id="swapBtn">${I.swap.replace('<svg','<svg width="16" height="16"')}Swap</button>`:'<span></span>'}</div>
+    <div class="grid2"><button class="btn sm" data-yt="${ex.id}">${I.play.replace('<svg','<svg width="14" height="14"')}Form video</button>${swapOptions(orig).length?`<button class="btn sm" id="swapBtn">${I.swap.replace('<svg','<svg width="16" height="16"')}Swap</button>`:'<span></span>'}</div>
     <button class="btn violet" data-wo="busy" style="background:rgba(156,140,255,.85)">${WIC.busy}Machine busy</button>
     </div></div>
   <div class="dock"><button class="btn" data-wo="sdiscard">Discard</button><button class="btn violet w2" data-wo="exdone">Complete</button></div>`;
@@ -466,7 +466,7 @@ document.addEventListener('click',e=>{
     A.busy=A.busy||{};A.busy[orig.id]=Date.now();
     const alt=blk&&blk.items.find(x=>x!==orig&&exState(x)!=='done');
     if(alt){toast(`Switched to ${cleanN(shownEx(alt).n)}. ${cleanN(shownEx(orig).n)} comes back up in ${WCFG.busyMin} min.`);openEx(L.indexOf(alt));return}
-    save(); if((ALT_OF[orig.id]||[]).length){toast('Nothing else left in this block. Swap to free equipment?');swapSheet();}else toast('Nothing else left in this block. Wait a minute, it frees up.');return}
+    save(); if(swapOptions(orig).length){toast('Nothing else left in this block. Swap to free equipment?');swapSheet();}else toast('Nothing else left in this block. Wait a minute, it frees up.');return}
   if(k==='exdone'){const L=liftList(),orig=L[curIdx()],ex=shownEx(orig),p=progOf(orig),n=setsOf(orig);
     if(p&&p.reps.length&&p.reps.length<n){if(!confirm(`${n-p.reps.length} set${n-p.reps.length>1?'s':''} not logged. Mark this exercise done anyway?`))return;A.entries[ex.id]={w:p.w,reps:p.reps.slice()}}
     A.view='list';woReps=null;save();render();window.scrollTo({top:0});return}

@@ -41,7 +41,7 @@ struct SwapSheet: View {
         let L = e.liftList(), orig = L[e.curIdx()]
         let reqIds = e.requiredItems(A.day).map(\.id)
         let pos = reqIds.firstIndex(of: orig.id)
-        let opts = [orig] + (e.ap.altOf[orig.id] ?? [])
+        let opts = [orig] + e.swapOptions(orig)
         let cur = A.swaps[orig.id] ?? orig.id
         SheetChrome {
             Text("\(pos.map { "Lift \($0 + 1) of \(reqIds.count)" } ?? "Bonus") · Swap").labelStyle()
@@ -57,7 +57,7 @@ struct SwapSheet: View {
                     model.swapOpen = false
                 } label: {
                     HStack(spacing: 12) {
-                        Thumb(path: e.catalog.imageName(of: o.id))
+                        Thumb(path: (o.id != orig.id && e.catalog.imageName(of: o.id) == e.catalog.imageName(of: orig.id)) ? nil : e.catalog.imageName(of: o.id))
                         VStack(alignment: .leading, spacing: 2) {
                             Text(Fmt.cleanN(o.n)).nameStyle()
                             Text("\(o.id == orig.id ? "Planned · " : "")\(Fmt.wLbl(o, w))").metaStyle()

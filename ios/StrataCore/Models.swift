@@ -304,10 +304,12 @@ public struct AppData: Codable, Equatable {
     public var jumpAlt: String?
     /// Office days (a date) the user is not going in. That day becomes a Zone 2 walk. Web keeps the same `officeOff`.
     public var officeOff: [String]?
+    /// "I want something else": a date's own slot, replacing the weekday's plan. Web keeps the same `slotOver`.
+    public var slotOver: [String: String]?
 
     enum CodingKeys: String, CodingKey {
         case next, history, active, holds, cycleStarts, focus, injuries, cycleAnchor, cardio, age
-        case officeDays, rcOffice, waist, skips, live, mobility, steps, jumpAlt, officeOff
+        case officeDays, rcOffice, waist, skips, live, mobility, steps, jumpAlt, officeOff, slotOver
     }
 
     public init() {}
@@ -343,6 +345,7 @@ public struct AppData: Codable, Equatable {
         steps = try c.decodeIfPresent([String: Int].self, forKey: .steps)
         jumpAlt = try c.decodeIfPresent(String.self, forKey: .jumpAlt)
         officeOff = try c.decodeIfPresent([String].self, forKey: .officeOff)
+        slotOver = try c.decodeIfPresent([String: String].self, forKey: .slotOver)
         // `demoSensors` is a web testing switch: read nothing, write nothing.
     }
 }

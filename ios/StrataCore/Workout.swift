@@ -325,7 +325,7 @@ extension Engine {
             if let tip = openEx(i) { toasts.append(tip) }
             return BusyResult(toasts: toasts, offerSwap: false, openedIndex: i)
         }
-        if !(ap.altOf[orig.id] ?? []).isEmpty {
+        if !swapOptions(orig).isEmpty {
             return BusyResult(toasts: ["Nothing else left in this block. Swap to free equipment?"], offerSwap: true, openedIndex: nil)
         }
         return BusyResult(toasts: ["Nothing else left in this block. Wait a minute, it frees up."], offerSwap: false, openedIndex: nil)
@@ -349,6 +349,19 @@ extension Engine {
         }
         db.active!.view = "list"
         woReps = nil
+    }
+
+    /// Web `ALT_SAME`: alternates that are the same exercise as the planned lift under another name (the women's plan
+    /// already plans them as the main lift), hidden from the swap choices.
+    static let altSame: [String: Set<String>] = [
+        "sa_db_bench": ["alt_db_bench"], "sa_dead_bug": ["alt_dead_bug"], "sa_cs_row": ["alt_cs_row"], "sa_rope_tri": ["alt_rope_tri"],
+        "sa_rdl": ["alt_db_rdl"], "pallof": ["alt_band_pallof"], "sa_pallof": ["alt_band_pallof"], "sa_pulldown2": ["alt_assist_pullup"],
+    ]
+    /// Web `swapOptions(orig)`.
+    public func swapOptions(_ orig: Ex) -> [Ex] {
+        let hide = Engine.altSame[orig.id] ?? []
+        let name = Fmt.cleanN(orig.n).lowercased()
+        return (ap.altOf[orig.id] ?? []).filter { !hide.contains($0.id) && Fmt.cleanN($0.n).lowercased() != name }
     }
 
     /// Swap sheet choice. `to == nil` returns to the planned lift. Returns the toast.

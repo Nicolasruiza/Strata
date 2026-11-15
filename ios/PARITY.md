@@ -208,3 +208,8 @@ Cardio detail also shows active kcal. Active energy burned was added to the Heal
 ## Office is a "Can't train today?" reason, not a setting
 - [x] "Can't train today?" gains "I need to go to the office / Walk there and back instead" (not offered on a configured office day). It skips the day like the other reasons (a lift moves to the next lift day), shows an Office day card ("Walk there and back. Around 7,000 steps…") with a steps field; logged steps are the usual `office` entry and count toward Heart. Undo as for the others.
 - [x] The Office days picker is gone from onboarding. Settings shows it only for people who already have office days saved (their plan keeps working; their "Not going to the office today" button stays). `SKIP_WHY` (and the generated catalog + fixture) gained the `office` reason. Web + iOS.
+
+## Swap audit, "I want something else", catch-up lift
+- `swapOptions(orig)` (web `swapOptions`, iOS `Engine.swapOptions`) = alternates minus the same exercise under another name (`ALT_SAME` / `Engine.altSame`) and minus identical names. An alternate that only borrows the planned lift's photo shows no thumbnail in the swap sheet.
+- Today's card has "I want something else": a per-date pick (`DB.slotOver` / `AppData.slotOver`, date → slot) that replaces the weekday's plan for that date only. Options: the next lift, Zone 2 (incline treadmill), 4×4, long walk; "Back to the plan" undoes it. Rotation and ring goals are untouched.
+- "Next lift in your rotation" card now on iOS too. When a lift slot earlier this week was skipped/missed and Muscle is still open (`liftOwed`) it reads "Missed lift. Catch up today?" with a "Do it today" button.
