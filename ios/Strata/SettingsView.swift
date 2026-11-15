@@ -85,6 +85,23 @@ struct SettingsView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 0) {
+                        Text("Equipment").labelStyle()
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Heaviest dumbbell").nameStyle(15)
+                                Text("Dumbbell lifts stop adding weight here. Add reps, slow the lowering, or swap the exercise.")
+                                    .font(.inter(size: 13)).foregroundStyle(Theme.muted)
+                            }
+                            Spacer()
+                            HStack(spacing: 10) {
+                                dbButton("−", "Lighter", -5)
+                                Text(e.db.maxDb.map { "\(jsMinutes($0)) lb" } ?? "None").font(.inter(size: 22, weight: .heavy)).monospacedDigit()
+                                dbButton("+", "Heavier", 5)
+                            }.padding(4).background(RoundedRectangle(cornerRadius: 16).fill(Color.black.opacity(0.25)))
+                        }.padding(.vertical, 12)
+                    }.card()
+
+                    VStack(alignment: .leading, spacing: 0) {
                         Text("Heart zones").labelStyle()
                         HStack {
                             Text("Age").nameStyle(15); Spacer()
@@ -185,6 +202,12 @@ struct SettingsView: View {
     }
     private func ageButton(_ t: String, _ label: String, _ dir: Int) -> some View {
         Button { model.mutate { $0.adjustAge(dir); return nil } } label: {
+            Text(t).font(.inter(size: 22, weight: .semibold)).frame(width: 40, height: 40)
+                .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.1)))
+        }.buttonStyle(.plain).accessibilityLabel(label)
+    }
+    private func dbButton(_ t: String, _ label: String, _ d: Double) -> some View {
+        Button { model.mutate { $0.adjustMaxDb(d); return nil } } label: {
             Text(t).font(.inter(size: 22, weight: .semibold)).frame(width: 40, height: 40)
                 .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.1)))
         }.buttonStyle(.plain).accessibilityLabel(label)
