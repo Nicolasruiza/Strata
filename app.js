@@ -100,14 +100,30 @@ function officeDays(){
   return on?[2,4]:[];
 }
 /* an office day marked "not going" (DB.officeOff, dates) is a Zone 2 walk for that date's week */
-function weekPlan(mon){
+function planNoCatch(mon){
   const w=basePlan(); weekDates(mon||mondayOf(today())).forEach(d=>{
     const o=(DB.slotOver||{})[d]; if(o){w[wdOf(d)]=o; return}   // "I want something else": the day's own choice wins
     if((DB.officeOff||[]).includes(d)&&w[wdOf(d)]==='office')w[wdOf(d)]='z2'; });
   return w;
 }
+/* a lift missed earlier this week while the muscle ring is open: today suggests it, unless today already has its own pick, a skip, or its cardio done */
+function catchUpToday(m,w){
+  const t=today(); if(m!==mondayOf(t))return false;
+  const s=w[wdOf(t)];
+  if(!s||s==='lift'||s==='rest'||s==='office'||(DB.slotOver||{})[t]||liftedOn(t)||skipOn(t))return false;
+  if(cardioOn(t,CTYPE[s]))return false;
+  if(weekStats(m).m>=RING_GOALS.m)return false;
+  return weekDates(m).some(d=>d<t&&w[wdOf(d)]==='lift'&&!liftedOn(d));
+}
+function weekPlan(mon){
+  const m=mon||mondayOf(today()), w=planNoCatch(m);
+  if(catchUpToday(m,w))w[wdOf(today())]='lift';
+  return w;
+}
+const isCatchUp=()=>{const m=mondayOf(today()); return catchUpToday(m,planNoCatch(m))};
+const planSlot=date=>planNoCatch(mondayOf(date))[wdOf(date)];
 /* "I want something else": today's slot is the user's pick (DB.slotOver, date -> slot). Nothing is lost: the rotation and the ring goals are untouched. */
-function setSlotOver(date,slot){ DB.slotOver=DB.slotOver||{}; if(slot===basePlan()[wdOf(date)])delete DB.slotOver[date]; else DB.slotOver[date]=slot; if(!Object.keys(DB.slotOver).length)delete DB.slotOver; save() }
+function setSlotOver(date,slot){ DB.slotOver=DB.slotOver||{}; DB.slotOver[date]=slot; save() }
 function clearSlotOver(date){ if(DB.slotOver){delete DB.slotOver[date]; if(!Object.keys(DB.slotOver).length)delete DB.slotOver; save()} }
 /* a lift slot earlier this week that was skipped or missed while the muscle ring is still open */
 function liftOwed(mon){
@@ -272,13 +288,13 @@ function todayView(){
     main=`<section class="card" style="border-color:rgba(156,140,255,.45)"><div class="label" style="color:var(--violet)">In progress</div>
       <div class="title2">${PLAN[A.day].name}</div><div class="meta">${n} of ${req.length} main lifts logged</div>
       <div style="margin-top:14px"><button class="btn violet" id="resume">Resume workout</button></div></section>`;
-  } else main=skipOn(selDate)&&!slotDone(slot,selDate,mon)?homeCard(selDate,isToday):slotCard(slot,selDate,isToday,slots[sel],st)+(isToday&&slot!=='rest'&&!slotDone(slot,selDate,mon)?`<div style="display:flex;justify-content:center;gap:22px;margin:-6px 0 0"><button class="link" id="elseBtn">${(DB.slotOver||{})[t]?'Swap again':'Swap for something else'}</button><button class="link" id="cantTrain">Can't train today?</button></div>`:'');
+  } else main=skipOn(selDate)&&!slotDone(slot,selDate,mon)?homeCard(selDate,isToday):slotCard(slot,selDate,isToday,slots[sel],st)+(isToday&&slot!=='rest'&&!slotDone(slot,selDate,mon)?`<div style="display:flex;gap:10px"><button class="btn sm" id="elseBtn">Swap workout</button><button class="btn sm" id="cantTrain">Can't train today?</button></div>`:'');
   const others=isToday&&!DB.active?otherOptions(slot):'';
   const lpSel=slots[sel], mainIsNext=slot==='lift'&&lpSel&&lpSel.status==='planned';
-  const nd=nextDay(), owed=liftOwed(mon), nextCardHTML=!DB.active&&!mainIsNext?`<section class="card tight" style="display:flex;align-items:center;gap:12px;padding:12px 14px">
-     <span class="ico v">${I.dumbbell}</span><div class="grow"><div class="label">${owed?'Missed lift. Catch up today?':'Next lift in your rotation'}</div><div class="name" style="margin-top:2px">${PLAN[nd].name}</div>
+  const nd=nextDay(), nextCardHTML=!DB.active&&!mainIsNext?`<section class="card tight" style="display:flex;align-items:center;gap:12px;padding:12px 14px">
+     <span class="ico v">${I.dumbbell}</span><div class="grow"><div class="label">Next lift in your rotation</div><div class="name" style="margin-top:2px">${PLAN[nd].name}</div>
      <div class="meta">${requiredItems(nd).length} main lifts · ~${minutesFor(nd)} min${isLegs(nd)?' · jumps first':''}</div></div>
-     <button class="btn sm" ${owed&&isToday&&!liftedOn(t)?`data-overnow="lift"`:`data-preview="${nd}"`} style="width:auto;padding:0 16px">${owed&&isToday&&!liftedOn(t)?'Do it today':liftedOn(t)?'Preview':'Open'}</button></section>`:'';
+     <button class="btn sm" data-preview="${nd}" style="width:auto;padding:0 16px">${liftedOn(t)?'Preview':'Open'}</button></section>`:'';
   const hl=st.all?'Full week done. Every layer got its dose.'
     :`${st.mt-st.m>0?`${st.mt-st.m} lift${st.mt-st.m>1?'s':''}`:''}${st.ht-st.h>0?`${st.mt-st.m>0?', ':''}${st.ht-st.h} heart session${st.ht-st.h>1?'s':''}`:''}${st.bt-st.b>0?`${(st.mt-st.m>0||st.ht-st.h>0)?', ':''}${st.bt-st.b} jump day${st.bt-st.b>1?'s':''}`:''} left this week.`;
   const sk=streak();
@@ -303,8 +319,9 @@ function slotCard(slot,date,isToday,lp,st){
         <div style="margin-top:14px"><button class="btn sm" data-detail="${DB.history.indexOf(h)}">View session</button></div></section>`;
     }
     const req=requiredItems(d), g=isToday?gateFor(d):null;
-    return `<section class="card"><div class="label" style="color:var(--violet)">${when} · Muscle${isLegs(d)?' + Bone':''}</div>
-      <div class="title2">${PLAN[d].name}</div><div class="meta">${req.length} main lifts · ~${minutesFor(d)} min${isLegs(d)?' · jumps first':''}</div>
+    const cu=isToday&&isCatchUp();
+    return `<section class="card"><div class="label" style="color:var(--violet)">${when} · ${cu?'Catch-up · ':''}Muscle${isLegs(d)?' + Bone':''}</div>
+      <div class="title2">${PLAN[d].name}</div>${cu?`<p class="p" style="margin:4px 0 0">You missed a lift earlier this week, so this is today's suggestion. Prefer ${SLOT_NAME[planSlot(today())]}? Tap Swap workout.</p>`:''}<div class="meta">${req.length} main lifts · ~${minutesFor(d)} min${isLegs(d)?' · jumps first':''}</div>
       <div style="display:flex;gap:6px;margin-top:12px">${req.map(ex=>{const s=imgOf(ex.id);return s?`<img class="thumb sm" src="${s}" alt="${esc(cleanN(ex.n))}">`:''}).join('')}</div>
       ${g&&!g.ok?`<div class="warnbox" style="margin-top:12px">${g.msg}</div>`:''}
       <div style="margin-top:14px"><button class="btn ${isToday?'violet':''}" data-preview="${d}">${isToday?'See workout':'Preview'}</button></div></section>`;
@@ -330,7 +347,7 @@ function slotCard(slot,date,isToday,lp,st){
     return `<section class="card"><div class="label" style="color:var(--coral)">${when} · Heart</div><div class="title2">${SLOT_NAME[slot]}</div>
       <p class="p">${slot==='z2'?`<b>45–60 min</b> at a pace where you can talk in full sentences. Treadmill 5.5 km/h at 8% incline, or pick the bike, elliptical, rower or an outdoor walk.${hr?` Target <b>${hr.z2[0]}–${hr.z2[1]} bpm</b>.`:''}`:'Easy pace outside, <b>45–90 min</b>. Or full rest if you feel beaten up.'}</p>
       ${c?`<div class="name" style="margin-top:12px;color:var(--coral)">Done · ${c.min} min on ${fmtD(c.date,{weekday:'long'})}</div>`
-        :(isToday?`${(DB.officeOff||[]).includes(date)?`<button class="link" data-yesoffice="${date}" style="display:block;margin:10px 0 0">Actually, I'm going to the office</button>`:''}<button class="btn coral" data-wo="pick" style="margin-top:14px">Start</button><div class="small" style="margin-top:10px">Already did it? Log the minutes:</div>${minutesInput(slot)}`:'')}</section>`;
+        :(isToday?`${(DB.officeOff||[]).includes(date)?`<button class="link" data-yesoffice="${date}" style="display:block;margin:10px 0 0">Actually, I'm going to the office</button>`:''}<button class="btn coral" data-wo="pick" style="margin-top:14px">Start</button><button class="link" data-sheet="walk" style="display:block;margin:10px auto 0">Already did it? Log it</button>`:'')}</section>`;
   }
   return `<section class="card"><div class="label">${when}</div><div class="title2">Rest</div><p class="p">Recovery is where the adaptation happens.</p></section>`;
 }
@@ -372,17 +389,32 @@ function cantTrainSheet(){
     <p class="p" style="margin-top:4px">No problem. Nothing is lost: the rotation just waits.</p>
     ${SKIP_WHY.filter(([k])=>!(k==='office'&&weekPlan()[wdOf(today())]==='office')).map(([k,n,m])=>`<button class="opt" data-why="${k}"><div class="grow"><div class="name">${n}</div><div class="meta">${m}</div></div>${I.chev}</button>`).join('')}`);
 }
-function elseSheet(){
-  const t=today(), mon=mondayOf(t), cur=weekPlan(mon)[wdOf(t)], nd=nextDay(), owed=liftOwed(mon);
-  const opts=[];
-  if(cur!=='lift'&&!liftedOn(t))opts.push(['lift',`Lift: ${PLAN[nd].name}`,`${owed?'Missed earlier this week · ':''}${requiredItems(nd).length} main lifts · ~${minutesFor(nd)} min${isLegs(nd)?' · jumps first':''}`]);
-  if(cur!=='z2')opts.push(['z2','Zone 2 walk','45–60 min, conversational. Treadmill at incline works great.']);
-  if(cur!=='vo2'&&!slotDone('vo2',t,mon))opts.push(['vo2','4×4 intervals','4 minutes hard, 3 easy, repeated.']);
-  if(cur!=='walk')opts.push(['walk','Long walk','Easy pace outside, 45–90 min.']);
-  openSheet(`<div class="label">Today</div><div class="title2" style="font-size:20px">What do you feel like?</div>
-    <p class="note" style="margin-top:4px">Your pick replaces today's plan. Nothing is lost: the rotation and your weekly goals stay as they are.</p>
-    ${opts.map(([k,n,m])=>`<button class="opt" data-over="${k}"><div class="grow"><div class="name">${n}</div><div class="meta">${m}</div></div>${I.chev}</button>`).join('')}
-    ${(DB.slotOver||{})[t]?`<button class="opt" data-overclear="1"><div class="grow"><div class="name">Back to the plan</div><div class="meta">${SLOT_NAME[basePlan()[wdOf(t)]]}</div></div>${I.chev}</button>`:''}`);
+function elseSheet(step){
+  const t=today(), mon=mondayOf(t), cur=weekPlan(mon)[wdOf(t)], nd=nextDay(), owed=liftOwed(mon)&&!liftedOn(t), plan=planSlot(t);
+  const rec=owed?'lift':plan, cat=x=>x==='lift'?'strength':x==='walk'?'walk':'cardio';
+  const row=(attrs,name,meta,on,col)=>`<button class="opt" ${attrs} style="${on?`border-color:${col};background:color-mix(in srgb,${col} 12%,transparent)`:'opacity:.78'}"><div class="grow"><div class="name">${name}${on?` <span class="small" style="color:${col};font-weight:700">· Recommended</span>`:''}</div><div class="meta">${meta}</div></div>${I.chev}</button>`;
+  const head=(t2,sub)=>`<div class="label">Today</div><div class="title2" style="font-size:20px">${t2}</div><p class="note" style="margin-top:4px">${sub}</p>`;
+  const back=`${step?`<button class="link" data-elsestep="" style="display:block;margin:12px auto 0">Back</button>`:''}${(DB.slotOver||{})[t]||isCatchUp()?`<button class="link" data-overclear="1" style="display:block;margin:${step?4:12}px auto 0">Keep the plan: ${SLOT_NAME[plan]}</button>`:''}`;
+  let h;
+  if(step==='strength'){
+    const last=d=>{const x=DB.history.filter(h=>h.day===d).map(h=>h.date).sort().pop(); return x?`Last done ${fmtD(x,{weekday:'long'})}`:'Not done yet'};
+    h=head('Which lift?','Your pick today. The rotation keeps going from the recommended one.')+DAYS().map(d=>row(`data-over="lift" data-day="${d}"`,PLAN[d].name,`${last(d)} · ${requiredItems(d).length} main lifts · ~${minutesFor(d)} min${isLegs(d)?' · jumps first':''}`,d===nd,'var(--violet)')).join('');
+  } else if(step==='cardio'){
+    h=head('Which cardio?','Pick the kind of session. You choose the machine next.')
+      +(slotDone('vo2',t,mon)?'':row('data-over="vo2"','4×4 intervals','4 minutes hard, 3 easy, repeated.',rec==='vo2','var(--coral)'))
+      +row('data-over="z2"','Zone 2 walk','45–60 min, conversational. Treadmill incline works great.',rec==='z2'||rec==='office','var(--coral)')
+      +row('data-elsepick="1"','Run, bike, swim, row…','Any cardio. Pick the activity on the next screen.',false,'var(--coral)');
+  } else if(step==='walk'){
+    h=head('Walk','Easy movement still counts for your heart.')
+      +row('data-over="walk"','Long walk','Easy pace outside, 45–90 min.',rec==='walk','var(--coral)')
+      +row('data-sheet="walk"','I already walked','Log the minutes.',false,'var(--coral)');
+  } else {
+    h=head('What do you feel like?','Your pick replaces today\'s plan. Nothing is lost: your weekly goals stay as they are.')
+      +row('data-elsestep="strength"','Strength',owed?'You missed a lift earlier this week.':'Upper and lower body lifts.',cat(rec)==='strength','var(--violet)')
+      +row('data-elsestep="cardio"','Cardio','4×4, Zone 2, run, bike, swim…',cat(rec)==='cardio','var(--coral)')
+      +row('data-elsestep="walk"','Walk','Easy walk, or log one you already did.',cat(rec)==='walk','var(--coral)');
+  }
+  openSheet(h+back);
 }
 function otherOptions(slot){
   const opts=[];
@@ -1089,10 +1121,14 @@ $('#sheet').addEventListener('click',e=>{
     if(k==='finish'){endSession();return}
     if(k==='low'){DB.active.lowEnergy=!DB.active.lowEnergy;save();render();toast(DB.active.lowEnergy?'Lighter day on':'Lighter day off');return}
     if(k==='discard'){if(confirm('Discard this workout? Nothing will be saved.')){DB.active=null;rest=null;save();go('today')}return}}
+  const es=e.target.closest('[data-elsestep]');
+  if(es){elseSheet(es.dataset.elsestep||undefined); return}
+  if(e.target.closest('[data-elsepick]')){closeSheet(); pickAct=null; go('pick'); return}
   const wo=e.target.closest('[data-over]');
-  if(wo){setSlotOver(today(),wo.dataset.over); closeSheet(); selDay=null; render();
+  if(wo){setSlotOver(today(),wo.dataset.over); closeSheet(); selDay=null;
+    if(wo.dataset.day!=null&&+wo.dataset.day!==nextDay()){previewDay=+wo.dataset.day; go('preview')} else render();
     toast({lift:'Today is a lift day',z2:'Zone 2 today. Treadmill incline works',vo2:'4×4 today',walk:'Long walk today'}[wo.dataset.over]||'Plan changed'); return}
-  if(e.target.closest('[data-overclear]')){clearSlotOver(today()); closeSheet(); selDay=null; render(); toast('Back to the plan'); return}
+  if(e.target.closest('[data-overclear]')){setSlotOver(today(),planSlot(today())); closeSheet(); selDay=null; render(); toast('Keeping the plan'); return}
   const wy=e.target.closest('[data-why]');
   if(wy){const t=today(), slot=weekPlan()[wdOf(t)];
     DB.skips=DB.skips||{};
@@ -1116,7 +1152,6 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#sheet')||e.target.closest('#tabs'))return;
   const t=e.target.closest('button'); if(!t)return;
   const ds=t.dataset, id=t.id;
-  if(ds.overnow){setSlotOver(today(),ds.overnow); render(); toast('Today is now a lift day'); return}
   if(ds.nooffice){if(skipOffice(ds.nooffice)){render(); toast('No office today. A Zone 2 walk instead')} return}
   if(ds.yesoffice){undoSkipOffice(ds.yesoffice); render(); toast('Back to your office day'); return}
   if(ds.jalt){DB.jumpAlt=ds.jalt; save(); render(); return}

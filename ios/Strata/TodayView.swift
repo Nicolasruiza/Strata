@@ -60,11 +60,10 @@ struct TodayView: View {
         } else {
             slotCard(e, slot: slot, date: selDate, isToday: isToday, lp: lp)
             if isToday && slot != "rest" && !e.slotDone(slot, selDate, mon) {
-                HStack(spacing: 22) {
-                    Button(e.db.slotOver?[selDate] != nil ? "Swap again" : "Swap for something else") { model.sheet = .somethingElse }
-                        .buttonStyle(LinkButtonStyle())
-                    Button("Can't train today?") { model.sheet = .cantTrain }.buttonStyle(LinkButtonStyle())
-                }.frame(maxWidth: .infinity).padding(.top, -6)
+                HStack(spacing: 10) {
+                    Button("Swap workout") { model.sheet = .somethingElse }.buttonStyle(StrataButtonStyle(small: true))
+                    Button("Can't train today?") { model.sheet = .cantTrain }.buttonStyle(StrataButtonStyle(small: true))
+                }
             }
             if e.db.active == nil && !(slot == "lift" && lp?.status == "planned") {
                 nextLiftCard(e, isToday: isToday, mon: mon)
@@ -74,20 +73,16 @@ struct TodayView: View {
 
     /// "Next lift in your rotation" (web `nextCardHTML`). When a lift this week was skipped or missed it offers to catch up today.
     private func nextLiftCard(_ e: Engine, isToday: Bool, mon: String) -> some View {
-        let nd = e.nextDay(), owed = e.liftOwed(mon), t = e.today
-        let catchUp = owed && isToday && e.liftedOn(t) == nil
+        let nd = e.nextDay(), t = e.today
         return HStack(spacing: 12) {
             IconView(d: Icon.dumbbell, size: 20, color: Theme.violet, line: 1.9)
             VStack(alignment: .leading, spacing: 2) {
-                Text(owed ? "Missed lift. Catch up today?" : "Next lift in your rotation").labelStyle()
+                Text("Next lift in your rotation").labelStyle()
                 Text(e.plan[nd]?.name ?? "").nameStyle().padding(.top, 2)
                 Text("\(e.requiredItems(nd).count) main lifts · ~\(jsMinutes(e.minutesFor(nd))) min\(e.isLegs(nd) ? " · jumps first" : "")").metaStyle()
             }
             Spacer(minLength: 0)
-            Button(catchUp ? "Do it today" : (e.liftedOn(t) != nil ? "Preview" : "Open")) {
-                if catchUp { model.mutate { $0.setSlotOver(t, "lift"); return "Today is now a lift day" }; model.selDay = nil }
-                else { model.go(.preview(day: nd)) }
-            }.buttonStyle(StrataButtonStyle(small: true, hPad: 16)).fixedSize()
+            Button(e.liftedOn(t) != nil ? "Preview" : "Open") { model.go(.preview(day: nd)) }.buttonStyle(StrataButtonStyle(small: true, hPad: 16)).fixedSize()
         }.padding(.horizontal, 14).padding(.vertical, 12).card()
     }
 
@@ -114,8 +109,10 @@ struct TodayView: View {
                     let req = e.requiredItems(d), legs = e.isLegs(d)
                     let g = isToday ? e.gate(view: d) : nil
                     VStack(alignment: .leading, spacing: 0) {
-                        Text("\(w) · Muscle\(legs ? " + Bone" : "")").labelStyle(Theme.violet)
+                        let cu = isToday && e.isCatchUp()
+                        Text("\(w) · \(cu ? "Catch-up · " : "")Muscle\(legs ? " + Bone" : "")").labelStyle(Theme.violet)
                         Text(e.plan[d]?.name ?? "").title2Style().padding(.top, 4).padding(.bottom, 2)
+                        if cu { Text("You missed a lift earlier this week, so this is today's suggestion. Prefer \(e.catalog.slotName[e.planSlot(e.today)] ?? "your plan")? Tap Swap workout.").bodyStyle().padding(.bottom, 4) }
                         Text("\(req.count) main lifts · ~\(jsMinutes(e.minutesFor(d))) min\(legs ? " · jumps first" : "")").metaStyle()
                         // Photos share the full card width in equal squares (at least 4 slots, so
                         // two exercises don't blow up into huge pictures).
@@ -205,14 +202,8 @@ struct TodayView: View {
                             .buttonStyle(LinkButtonStyle()).padding(.top, 10)
                     }
                     Button("Start") { model.navigate(.pickCardio) }.buttonStyle(StrataButtonStyle(kind: .coral)).padding(.top, 14)
-                    Text("Already did it? Log the minutes:").smallStyle().padding(.top, 10)
-                    HStack(spacing: 10) {
-                        StepField(title: nil, text: minutesBinding(default: slot == "z2" ? "50" : "60"), keyboard: .numberPad, big: true, alignRight: false)
-                        Button("Log \(slot == "z2" ? "Zone 2" : "walk")") {
-                            let v = Double(minutes.isEmpty ? (slot == "z2" ? "50" : "60") : minutes) ?? 0
-                            model.mutate { $0.logMinutes(slot: slot, min: v) }
-                        }.buttonStyle(StrataButtonStyle(kind: .coral, hPad: 22, height: 44)).fixedSize()
-                    }.padding(.top, 14)
+                    Button("Already did it? Log it") { model.sheet = .walk }
+                        .buttonStyle(LinkButtonStyle()).frame(maxWidth: .infinity).padding(.top, 10)
                 }
             }.card()
         default:

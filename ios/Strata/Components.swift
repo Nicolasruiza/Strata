@@ -235,6 +235,8 @@ struct OptRow<Trailing: View>: View {
     let title: String
     var meta: String?
     var on = false
+    var accent: Color = Theme.violet
+    var dim = false
     @ViewBuilder var trailing: () -> Trailing
     var body: some View {
         HStack(spacing: 12) {
@@ -246,8 +248,9 @@ struct OptRow<Trailing: View>: View {
             trailing()
         }
         .padding(10).frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 18).fill(on ? Theme.violet.opacity(0.1) : Theme.glass))
-        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(on ? Theme.violet : Theme.line))
+        .background(RoundedRectangle(cornerRadius: 18).fill(on ? accent.opacity(0.12) : Theme.glass))
+        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(on ? accent : Theme.line))
+        .opacity(dim ? 0.78 : 1)
         .contentShape(Rectangle())
     }
 }

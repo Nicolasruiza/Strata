@@ -9,24 +9,20 @@ final class SlotOverrideTests: XCTestCase {
         return Engine(profile: profile, db: AppData.fresh(), nowMs: now, tz: TimeZone(secondsFromGMT: 0)!)
     }
 
-    func testPickingSomethingElseReplacesTodaysSlotOnlyForThatDate() {
+    func testAMissedLiftIsSuggestedTodayInsteadOfThePlannedSlot() {
         var e = engine()
         let mon = Dates.mondayOf(e.today)
-        XCTAssertEqual(e.weekPlan(mon)[0], "walk")
-        e.setSlotOver(e.today, "lift")
+        XCTAssertEqual(e.planSlot(e.today), "walk")
+        XCTAssertTrue(e.isCatchUp())
         XCTAssertEqual(e.weekPlan(mon)[0], "lift")
-        XCTAssertEqual(e.weekPlan(mon)[1], "lift")           // Monday untouched
         XCTAssertEqual(e.liftSlots(mon)[0]?.status, "planned")
-        e.clearSlotOver(e.today)
+        e.setSlotOver(e.today, "walk")                       // "keep the plan"
+        XCTAssertFalse(e.isCatchUp())
         XCTAssertEqual(e.weekPlan(mon)[0], "walk")
-        XCTAssertNil(e.db.slotOver)
-    }
-
-    func testPickingTheBaseSlotClearsTheOverride() {
-        var e = engine()
+        XCTAssertEqual(e.weekPlan(mon)[1], "lift")           // Monday untouched
         e.setSlotOver(e.today, "z2")
-        XCTAssertNotNil(e.db.slotOver)
-        e.setSlotOver(e.today, "walk")
+        XCTAssertEqual(e.weekPlan(mon)[0], "z2")
+        e.clearSlotOver(e.today)
         XCTAssertNil(e.db.slotOver)
     }
 

@@ -221,3 +221,7 @@ Inside an exercise the dock is **Reset exercise** (confirm, clears sets, extra s
 
 ## Today actions and "Can't train" (revised)
 Under the day's card: accept the suggestion, **Swap for something else** (per-date `slotOver`), or **Can't train today?**. The reasons are now **No time** (`time`), **Pain or injury** (`pain`) and **I need to go to the office**. No time / Pain mark the day skipped (grey "Skip" in the week strip) and the card suggests a walk with a "Log a walk" button; the lift stays next in the rotation. `away` and `sick` are no longer offered but old records still render (home session / Recover first).
+
+## Swap workout + catch-up suggestion
+- `weekPlan` suggests a missed lift for today (`catchUpToday`) unless today has its own pick, skip or cardio done; `isCatchUp`, `planSlot` expose it. `setSlotOver` always stores (so "Keep the plan" sticks); `clearSlotOver` removes.
+- Today: "Swap workout" and "Can't train today?" are buttons. The swap sheet is Strength / Cardio / Walk, then options with the recommendation in colour. The manual minutes box on walk cards became "Already did it? Log it" (walk sheet). The "Missed lift. Catch up today?" card is gone.
