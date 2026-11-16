@@ -52,7 +52,7 @@ extension Engine {
 
     /// `weekPlan(mon)`: weekday (0 = Sun) → slot, for the week starting `mon` (this week when nil).
     /// An office day marked "not going" turns into a Zone 2 walk for that date's week.
-    public func weekPlan(_ mon: String? = nil) -> [Int: String] {
+    public func planNoCatch(_ mon: String? = nil) -> [Int: String] {
         var w = basePlan()
         for d in Dates.weekDates(mon ?? Dates.mondayOf(today)) {
             let wd = Dates.weekday(d)
@@ -62,11 +62,38 @@ extension Engine {
         return w
     }
 
-    /// `setSlotOver`: today's slot is the user's pick. The rotation and the ring goals are untouched.
+    /// A lift missed earlier this week while the muscle ring is open: today suggests it, unless today already has its own pick, a skip, or its cardio done.
+    public func catchUpToday(_ mon: String, _ w: [Int: String]) -> Bool {
+        let t = today
+        guard mon == Dates.mondayOf(t), let s = w[Dates.weekday(t)], s != "lift", s != "rest", s != "office" else { return false }
+        if db.slotOver?[t] != nil || liftedOn(t) != nil || skipOn(t) != nil { return false }
+        if cardioOn(t, catalog.ctype[s] ?? s) != nil { return false }
+        guard weekStats(mon).m < Config.RingGoals.muscle else { return false }
+        return Dates.weekDates(mon).contains { $0 < t && w[Dates.weekday($0)] == "lift" && liftedOn($0) == nil }
+    }
+
+    public func weekPlan(_ mon: String? = nil) -> [Int: String] {
+        let m = mon ?? Dates.mondayOf(today)
+        var w = planNoCatch(m)
+        if catchUpToday(m, w) { w[Dates.weekday(today)] = "lift" }
+        return w
+    }
+
+    public func isCatchUp() -> Bool {
+        let m = Dates.mondayOf(today)
+        return catchUpToday(m, planNoCatch(m))
+    }
+
+    /// The weekday's plan before any catch-up suggestion.
+    public func planSlot(_ date: String) -> String {
+        planNoCatch(Dates.mondayOf(date))[Dates.weekday(date)] ?? "rest"
+    }
+
+    /// `setSlotOver`: today's slot is the user's pick (also "keep the plan"). The rotation and the ring goals are untouched.
     public mutating func setSlotOver(_ date: String, _ slot: String) {
         var o = db.slotOver ?? [:]
-        if slot == basePlan()[Dates.weekday(date)] { o[date] = nil } else { o[date] = slot }
-        db.slotOver = o.isEmpty ? nil : o
+        o[date] = slot
+        db.slotOver = o
     }
     public mutating func clearSlotOver(_ date: String) {
         var o = db.slotOver ?? [:]

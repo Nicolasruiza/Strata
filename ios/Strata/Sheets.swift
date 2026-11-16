@@ -23,44 +23,77 @@ struct CantTrainSheet: View {
     }
 }
 
-/// "I want something else" (web `elseSheet()`): today's own pick replaces the weekday's plan.
+/// "Swap workout" (web `elseSheet(step)`): category first (Strength / Cardio / Walk), then the options, with the recommendation in colour.
 struct SomethingElseSheet: View {
     @EnvironmentObject var model: AppModel
+    @State private var step: String?
     var body: some View {
         if let e = model.engine { content(e) } else { Color.clear }
     }
-    @ViewBuilder private func content(_ e: Engine) -> some View {
-        let t = e.today, mon = Dates.mondayOf(t), cur = e.weekPlan(mon)[Dates.weekday(t)] ?? "rest"
-        let nd = e.nextDay(), owed = e.liftOwed(mon)
-        var opts: [(String, String, String)] = []
-        let _ = {
-            if cur != "lift" && e.liftedOn(t) == nil {
-                opts.append(("lift", "Lift: \(e.plan[nd]?.name ?? "")",
-                             "\(owed ? "Missed earlier this week · " : "")\(e.requiredItems(nd).count) main lifts · ~\(jsMinutes(e.minutesFor(nd))) min\(e.isLegs(nd) ? " · jumps first" : "")"))
+
+    private func pick(_ slot: String, toast: String, preview: Int? = nil, then: (() -> Void)? = nil) {
+        let t = model.engine?.today ?? ""
+        model.mutate { $0.setSlotOver(t, slot); return toast }
+        model.selDay = nil; model.sheet = nil
+        if let p = preview { model.go(.preview(day: p)) }
+        then?()
+    }
+
+    private func row(_ title: String, _ meta: String, rec: Bool, accent: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            OptRow(title: title + (rec ? "  ·  Recommended" : ""), meta: meta, on: rec, accent: accent, dim: !rec) {
+                IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4)
             }
-            if cur != "z2" { opts.append(("z2", "Zone 2 walk", "45–60 min, conversational. Treadmill at incline works great.")) }
-            if cur != "vo2" && !e.slotDone("vo2", t, mon) { opts.append(("vo2", "4×4 intervals", "4 minutes hard, 3 easy, repeated.")) }
-            if cur != "walk" { opts.append(("walk", "Long walk", "Easy pace outside, 45–90 min.")) }
-        }()
+        }.buttonStyle(.plain).padding(.top, 8)
+    }
+
+    @ViewBuilder private func content(_ e: Engine) -> some View {
+        let t = e.today, mon = Dates.mondayOf(t), nd = e.nextDay()
+        let owed = e.liftOwed(mon) && e.liftedOn(t) == nil, plan = e.planSlot(t)
+        let rec = owed ? "lift" : plan
+        let cat = rec == "lift" ? "strength" : rec == "walk" ? "walk" : "cardio"
         SheetChrome {
             Text("Today").labelStyle()
-            Text("What do you feel like?").title2Style(20).padding(.top, 4)
-            Text("Your pick replaces today's plan. Nothing is lost: the rotation and your weekly goals stay as they are.").bodyStyle().padding(.top, 4)
-            ForEach(opts, id: \.0) { o in
-                Button {
-                    model.mutate { $0.setSlotOver(t, o.0); return ["lift": "Today is a lift day", "z2": "Zone 2 today. Treadmill incline works", "vo2": "4×4 today", "walk": "Long walk today"][o.0] }
-                    model.selDay = nil; model.sheet = nil
-                } label: {
-                    OptRow(title: o.1, meta: o.2) { IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4) }
-                }.buttonStyle(.plain).padding(.top, 8)
+            switch step {
+            case "strength":
+                Text("Which lift?").title2Style(20).padding(.top, 4)
+                Text("Your pick today. The rotation keeps going from the recommended one.").bodyStyle().padding(.top, 4)
+                ForEach(e.days, id: \.self) { d in
+                    let last = e.db.history.filter { $0.day == d }.map(\.date).max()
+                    row(e.plan[d]?.name ?? "", "\(last.map { "Last done " + Dates.fmtD($0, .init(weekday: .long)) } ?? "Not done yet") · \(e.requiredItems(d).count) main lifts · ~\(jsMinutes(e.minutesFor(d))) min\(e.isLegs(d) ? " · jumps first" : "")",
+                        rec: d == nd, accent: Theme.violet) {
+                        pick("lift", toast: "Today is a lift day", preview: d == nd ? nil : d)
+                    }
+                }
+            case "cardio":
+                Text("Which cardio?").title2Style(20).padding(.top, 4)
+                Text("Pick the kind of session. You choose the machine next.").bodyStyle().padding(.top, 4)
+                if !e.slotDone("vo2", t, mon) {
+                    row("4×4 intervals", "4 minutes hard, 3 easy, repeated.", rec: rec == "vo2", accent: Theme.coral) { pick("vo2", toast: "4×4 today") }
+                }
+                row("Zone 2 walk", "45–60 min, conversational. Treadmill incline works great.", rec: rec == "z2" || rec == "office", accent: Theme.coral) { pick("z2", toast: "Zone 2 today. Treadmill incline works") }
+                row("Run, bike, swim, row…", "Any cardio. Pick the activity on the next screen.", rec: false, accent: Theme.coral) {
+                    model.sheet = nil; model.pickAct = nil; model.navigate(.pickCardio)
+                }
+            case "walk":
+                Text("Walk").title2Style(20).padding(.top, 4)
+                Text("Easy movement still counts for your heart.").bodyStyle().padding(.top, 4)
+                row("Long walk", "Easy pace outside, 45–90 min.", rec: rec == "walk", accent: Theme.coral) { pick("walk", toast: "Long walk today") }
+                row("I already walked", "Log the minutes.", rec: false, accent: Theme.coral) { model.sheet = .walk }
+            default:
+                Text("What do you feel like?").title2Style(20).padding(.top, 4)
+                Text("Your pick replaces today's plan. Nothing is lost: your weekly goals stay as they are.").bodyStyle().padding(.top, 4)
+                row("Strength", owed ? "You missed a lift earlier this week." : "Upper and lower body lifts.", rec: cat == "strength", accent: Theme.violet) { step = "strength" }
+                row("Cardio", "4×4, Zone 2, run, bike, swim…", rec: cat == "cardio", accent: Theme.coral) { step = "cardio" }
+                row("Walk", "Easy walk, or log one you already did.", rec: cat == "walk", accent: Theme.coral) { step = "walk" }
             }
-            if e.db.slotOver?[t] != nil {
-                Button {
-                    model.mutate { $0.clearSlotOver(t); return "Back to the plan" }
-                    model.selDay = nil; model.sheet = nil
-                } label: {
-                    OptRow(title: "Back to the plan", meta: e.catalog.slotName[e.basePlan()[Dates.weekday(t)] ?? "rest"]) { IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4) }
-                }.buttonStyle(.plain).padding(.top, 8)
+            if step != nil {
+                Button("Back") { step = nil }.buttonStyle(LinkButtonStyle()).frame(maxWidth: .infinity).padding(.top, 12)
+            }
+            if e.db.slotOver?[t] != nil || e.isCatchUp() {
+                Button("Keep the plan: \(e.catalog.slotName[plan] ?? plan)") {
+                    pick(plan, toast: "Keeping the plan")
+                }.buttonStyle(LinkButtonStyle()).frame(maxWidth: .infinity).padding(.top, step == nil ? 12 : 4)
             }
         }
     }

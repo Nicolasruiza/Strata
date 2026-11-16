@@ -14,7 +14,7 @@ final class OfficeSkipTests: XCTestCase {
         var e = engine()
         XCTAssertEqual(e.weekPlan()[4], "office")
         XCTAssertNotNil(e.skipOffice("2026-11-12"))
-        XCTAssertEqual(e.weekPlan()[4], "z2")
+        XCTAssertEqual(e.planNoCatch()[4], "z2")           // (weekPlan itself would suggest the missed Wednesday lift)
         XCTAssertEqual(e.weekPlan()[2], "office")                                  // Tuesday untouched
         XCTAssertEqual(e.weekPlan(Dates.addDays(Dates.mondayOf(e.today), 7))[4], "office")   // next Thursday untouched
         XCTAssertTrue(e.officeSkipped("2026-11-12"))
