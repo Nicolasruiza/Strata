@@ -35,6 +35,17 @@ final class SlotOverrideTests: XCTestCase {
         XCTAssertEqual(try! JSONDecoder().decode(AppData.self, from: data).slotOver?[e.today], "lift")
     }
 
+    func testChangeActivityCanPickASpecificLiftForToday() {
+        var e = engine()
+        let mon = Dates.mondayOf(e.today)
+        e.setLiftDay(e.today, 3)
+        XCTAssertEqual(e.weekPlan(mon)[0], "lift")
+        XCTAssertEqual(e.liftSlots(mon)[0]?.day, 3)
+        e.setLiftDay(e.today, nil)
+        XCTAssertNil(e.db.dayOver)
+        XCTAssertEqual(e.liftSlots(mon)[0]?.day, e.nextDay())
+    }
+
     func testSwapOptionsHideTheSameExerciseUnderAnotherName() {
         let e = engine()
         for (id, hidden) in Engine.altSame {

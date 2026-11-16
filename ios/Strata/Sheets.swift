@@ -23,79 +23,151 @@ struct CantTrainSheet: View {
     }
 }
 
-/// "Swap workout" (web `elseSheet(step)`): category first (Strength / Cardio / Walk), then the options, with the recommendation in colour.
+/// "Change activity" (web `elseSheet()`): Strength / Cardio / Mobility tabs, pick one, then "Use … today".
 struct SomethingElseSheet: View {
     @EnvironmentObject var model: AppModel
-    @State private var step: String?
+    /// "Add activity": today's plan is done (or a rest day). Same picker, but it starts something extra instead of replacing the plan.
+    var add = false
+    @State private var tab: String?
+    @State private var sel: String?
+
+    private struct Opt { let key: String, name: String, meta: String, img: String?, icon: String, badge: String? }
+
     var body: some View {
         if let e = model.engine { content(e) } else { Color.clear }
     }
 
-    private func pick(_ slot: String, toast: String, preview: Int? = nil, then: (() -> Void)? = nil) {
-        let t = model.engine?.today ?? ""
-        model.mutate { $0.setSlotOver(t, slot); return toast }
-        model.selDay = nil; model.sheet = nil
-        if let p = preview { model.go(.preview(day: p)) }
-        then?()
-    }
+    private func thumbName(_ path: String?) -> String? { path.map { (($0 as NSString).lastPathComponent as NSString).deletingPathExtension } }
 
-    private func row(_ title: String, _ meta: String, rec: Bool, accent: Color, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            OptRow(title: title + (rec ? "  ·  Recommended" : ""), meta: meta, on: rec, accent: accent, dim: !rec) {
-                IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4)
+    private func options(_ e: Engine, tab: String, rotation: Int, plan: String) -> [Opt] {
+        let t = e.today, mon = Dates.mondayOf(t)
+        switch tab {
+        case "strength":
+            return e.days.map { d in
+                Opt(key: "lift:\(d)", name: e.plan[d]?.name ?? "",
+                    meta: "\(e.requiredItems(d).count) exercises · ~\(jsMinutes(e.minutesFor(d))) min",
+                    img: thumbName(e.requiredItems(d).lazy.compactMap { e.catalog.imageName(of: $0.id) }.first),
+                    icon: Icon.dumbbell, badge: d == rotation ? "Next in rotation" : nil)
             }
-        }.buttonStyle(.plain).padding(.top, 8)
+        case "mobility":
+            return Config.Mobility.sessions.map { s in
+                Opt(key: "mob:\(s.id)", name: s.label, meta: "\(Config.Mobility.exercises.count) moves · a bonus, any day",
+                    img: "mob_glide_start", icon: Icon.walk, badge: nil)
+            }
+        default:
+            var o: [Opt] = []
+            if !e.slotDone("vo2", t, mon) {
+                o.append(Opt(key: "vo2", name: "4×4 intervals", meta: "4 min hard, 3 easy · ~40 min", img: "treadmill", icon: Icon.heart, badge: plan == "vo2" ? "Planned today" : nil))
+            }
+            o.append(Opt(key: "z2", name: "Zone 2 walk", meta: "Conversational · 45–60 min", img: "treadmill", icon: Icon.heart, badge: plan == "z2" || plan == "office" ? "Planned today" : nil))
+            o.append(Opt(key: "walk", name: "Long walk", meta: "Easy pace outside · 45–90 min", img: nil, icon: Icon.walk, badge: plan == "walk" ? "Planned today" : nil))
+            o.append(Opt(key: "other", name: "Run, bike, swim, row…", meta: "Pick the activity next", img: nil, icon: Icon.heart, badge: nil))
+            return o
+        }
     }
 
     @ViewBuilder private func content(_ e: Engine) -> some View {
-        let t = e.today, mon = Dates.mondayOf(t), nd = e.nextDay()
-        let owed = e.liftOwed(mon) && e.liftedOn(t) == nil, plan = e.planSlot(t)
-        let rec = owed ? "lift" : plan
-        let cat = rec == "lift" ? "strength" : rec == "walk" ? "walk" : "cardio"
+        let t = e.today, mon = Dates.mondayOf(t)
+        let n = e.days.count
+        let rotation = e.db.active.map { ($0.day % n) + 1 } ?? e.nextDay()
+        let plan = e.planSlot(t)
+        let cur = e.weekPlan(mon)[Dates.weekday(t)] ?? "rest"
+        let curDay = e.liftSlots(mon)[Dates.weekday(t)]?.day
+        let defTab = add ? (e.liftedOn(t) == nil ? "strength" : "cardio") : (cur == "lift" || (e.liftOwed(mon) && e.liftedOn(t) == nil) ? "strength" : "cardio")
+        let tb = tab ?? defTab
+        let opts = options(e, tab: tb, rotation: rotation, plan: plan)
+        let defSel = tb == "strength" ? "lift:\(cur == "lift" && !add ? (curDay ?? rotation) : rotation)"
+            : tb == "cardio" ? (opts.first { $0.key == cur }?.key ?? opts.first { $0.badge != nil }?.key ?? opts.first?.key ?? "")
+            : opts.first?.key ?? ""
+        let s = sel ?? defSel
+        let accent = tb == "strength" ? Theme.violet : tb == "mobility" ? Theme.mint : Theme.coral
+        let chosen = opts.first { $0.key == s }
         SheetChrome {
-            Text("Today").labelStyle()
-            switch step {
-            case "strength":
-                Text("Which lift?").title2Style(20).padding(.top, 4)
-                Text("Your pick today. The rotation keeps going from the recommended one.").bodyStyle().padding(.top, 4)
-                ForEach(e.days, id: \.self) { d in
-                    let last = e.db.history.filter { $0.day == d }.map(\.date).max()
-                    row(e.plan[d]?.name ?? "", "\(last.map { "Last done " + Dates.fmtD($0, .init(weekday: .long)) } ?? "Not done yet") · \(e.requiredItems(d).count) main lifts · ~\(jsMinutes(e.minutesFor(d))) min\(e.isLegs(d) ? " · jumps first" : "")",
-                        rec: d == nd, accent: Theme.violet) {
-                        pick("lift", toast: "Today is a lift day", preview: d == nd ? nil : d)
-                    }
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(add ? "Add activity" : "Change activity").title2Style(24)
+                    Text(add ? "Something extra today. Your plan stays as it is." : "Choose what you want to do today.").bodyStyle()
                 }
-            case "cardio":
-                Text("Which cardio?").title2Style(20).padding(.top, 4)
-                Text("Pick the kind of session. You choose the machine next.").bodyStyle().padding(.top, 4)
-                if !e.slotDone("vo2", t, mon) {
-                    row("4×4 intervals", "4 minutes hard, 3 easy, repeated.", rec: rec == "vo2", accent: Theme.coral) { pick("vo2", toast: "4×4 today") }
+                Spacer(minLength: 0)
+                Button { model.sheet = nil } label: { IconView(d: Icon.close, size: 20, color: .white, line: 2.2).frame(width: 36, height: 36) }
+                    .accessibilityLabel("Close")
+            }
+            HStack(spacing: 8) {
+                ForEach([("strength", "Strength"), ("cardio", "Cardio"), ("mobility", "Mobility")], id: \.0) { k, l in
+                    Button { tab = k; sel = nil } label: {
+                        Text(l).font(.inter(size: 14, weight: .bold)).foregroundStyle(.white)
+                            .frame(maxWidth: .infinity, minHeight: 40)
+                            .background(Capsule().fill(tb == k ? AnyShapeStyle(LinearGradient(colors: [Color(hex: "#AC9EFF"), Color(hex: "#7C6CF0")], startPoint: .topLeading, endPoint: .bottomTrailing)) : AnyShapeStyle(Color.clear)))
+                            .overlay(Capsule().strokeBorder(tb == k ? Color.clear : Color.white.opacity(0.22)))
+                    }.buttonStyle(.plain)
                 }
-                row("Zone 2 walk", "45–60 min, conversational. Treadmill incline works great.", rec: rec == "z2" || rec == "office", accent: Theme.coral) { pick("z2", toast: "Zone 2 today. Treadmill incline works") }
-                row("Run, bike, swim, row…", "Any cardio. Pick the activity on the next screen.", rec: false, accent: Theme.coral) {
-                    model.sheet = nil; model.pickAct = nil; model.navigate(.pickCardio)
+            }.padding(.top, 16)
+            VStack(spacing: 8) {
+                ForEach(opts, id: \.key) { o in
+                    let on = o.key == s
+                    Button { sel = o.key } label: {
+                        HStack(spacing: 12) {
+                            Group {
+                                if let img = o.img { BundleImage(name: img) }
+                                else { ZStack { accent.opacity(0.14); IconView(d: o.icon, size: 24, color: accent, line: 1.9) } }
+                            }.frame(width: 64, height: 56).clipShape(RoundedRectangle(cornerRadius: 12))
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(o.name).nameStyle()
+                                Text(o.meta).metaStyle()
+                                if let b = o.badge {
+                                    Text(b.uppercased()).font(.inter(size: 10, weight: .bold)).tracking(0.8).foregroundStyle(accent)
+                                        .padding(.horizontal, 6).padding(.vertical, 2)
+                                        .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(accent.opacity(0.7)))
+                                        .padding(.top, 2)
+                                }
+                            }
+                            Spacer(minLength: 0)
+                            ZStack {
+                                Circle().strokeBorder(on ? accent : Color.white.opacity(0.4), lineWidth: 1.5)
+                                if on { Circle().fill(accent).padding(5) }
+                            }.frame(width: 22, height: 22)
+                        }
+                        .padding(8)
+                        .background(RoundedRectangle(cornerRadius: 18).fill(on ? accent.opacity(0.12) : Theme.glass))
+                        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(on ? accent : Theme.line, lineWidth: on ? 1.5 : 1))
+                        .contentShape(Rectangle())
+                    }.buttonStyle(.plain)
                 }
-            case "walk":
-                Text("Walk").title2Style(20).padding(.top, 4)
-                Text("Easy movement still counts for your heart.").bodyStyle().padding(.top, 4)
-                row("Long walk", "Easy pace outside, 45–90 min.", rec: rec == "walk", accent: Theme.coral) { pick("walk", toast: "Long walk today") }
-                row("I already walked", "Log the minutes.", rec: false, accent: Theme.coral) { model.sheet = .walk }
-            default:
-                Text("What do you feel like?").title2Style(20).padding(.top, 4)
-                Text("Your pick replaces today's plan. Nothing is lost: your weekly goals stay as they are.").bodyStyle().padding(.top, 4)
-                row("Strength", owed ? "You missed a lift earlier this week." : "Upper and lower body lifts.", rec: cat == "strength", accent: Theme.violet) { step = "strength" }
-                row("Cardio", "4×4, Zone 2, run, bike, swim…", rec: cat == "cardio", accent: Theme.coral) { step = "cardio" }
-                row("Walk", "Easy walk, or log one you already did.", rec: cat == "walk", accent: Theme.coral) { step = "walk" }
+            }.padding(.top, 14)
+            if tb == "cardio" {
+                Button("Already did it? Log a walk") { model.sheet = .walk }
+                    .buttonStyle(LinkButtonStyle(underline: false)).frame(maxWidth: .infinity).padding(.top, 2)
             }
-            if step != nil {
-                Button("Back") { step = nil }.buttonStyle(LinkButtonStyle()).frame(maxWidth: .infinity).padding(.top, 12)
-            }
-            if e.db.slotOver?[t] != nil || e.isCatchUp() {
-                Button("Keep the plan: \(e.catalog.slotName[plan] ?? plan)") {
-                    pick(plan, toast: "Keeping the plan")
-                }.buttonStyle(LinkButtonStyle()).frame(maxWidth: .infinity).padding(.top, step == nil ? 12 : 4)
-            }
+            Button(useLabel(s, chosen)) { use(e, s, rotation: rotation, name: chosen?.name ?? "") }
+                .buttonStyle(StrataButtonStyle(kind: tb == "strength" ? .violet : tb == "mobility" ? .mint : .coral))
+                .padding(.top, tb == "cardio" ? 6 : 16)
         }
+    }
+
+    private func useLabel(_ key: String, _ o: Opt?) -> String {
+        if key == "other" { return "Choose the activity" }
+        if key.hasPrefix("mob:") { return "Start mobility" }
+        return add ? "Start \(o?.name ?? "")" : "Use \(o?.name ?? "this") today"
+    }
+
+    private func use(_ e: Engine, _ key: String, rotation: Int, name: String) {
+        let t = e.today
+        if add && !key.hasPrefix("mob:") {
+            model.sheet = nil; model.selDay = nil
+            if key.hasPrefix("lift:"), let d = Int(key.dropFirst(5)) { model.go(.preview(day: d)) }
+            else { model.pickAct = nil; model.navigate(.pickCardio) }
+            return
+        }
+        if key.hasPrefix("lift:"), let d = Int(key.dropFirst(5)) {
+            model.mutate { $0.setLiftDay(t, d == rotation ? nil : d); return "\(name) today" }
+        } else if key.hasPrefix("mob:") {
+            model.sheet = nil; model.go(.mobility(session: String(key.dropFirst(4)))); return
+        } else if key == "other" {
+            model.sheet = nil; model.pickAct = nil; model.navigate(.pickCardio); return
+        } else {
+            model.mutate { $0.setSlotOver(t, key); return "\(name) today" }
+        }
+        model.selDay = nil; model.sheet = nil
     }
 }
 

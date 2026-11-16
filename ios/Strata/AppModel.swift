@@ -44,9 +44,9 @@ final class AppModel: ObservableObject {
     @Published var confirmDelete: (date: String, type: String)?
 
     enum Sheet: Identifiable {
-        case cantTrain, somethingElse, walk, editCardio(date: String, type: String)
+        case cantTrain, somethingElse, addActivity, walk, editCardio(date: String, type: String)
         var id: String {
-            switch self { case .cantTrain: return "cant"; case .somethingElse: return "else"; case .walk: return "walk"; case .editCardio(let d, let t): return "edit-\(d)-\(t)" }
+            switch self { case .cantTrain: return "cant"; case .somethingElse: return "else"; case .addActivity: return "add"; case .walk: return "walk"; case .editCardio(let d, let t): return "edit-\(d)-\(t)" }
         }
     }
 

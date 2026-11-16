@@ -95,6 +95,13 @@ extension Engine {
         o[date] = slot
         db.slotOver = o
     }
+    /// "Change activity" → Strength: a specific lift today. The rotation continues from whatever gets logged.
+    public mutating func setLiftDay(_ date: String, _ day: Int?) {
+        setSlotOver(date, "lift")
+        var o = db.dayOver ?? [:]
+        o[date] = day
+        db.dayOver = o.isEmpty ? nil : o
+    }
     public mutating func clearSlotOver(_ date: String) {
         var o = db.slotOver ?? [:]
         o[date] = nil
@@ -233,6 +240,7 @@ extension Engine {
             if skipOn(d) != nil { out[w] = LiftSlot(day: nil, status: "skipped"); continue }
             if d < t { out[w] = LiftSlot(day: nil, status: "missed"); continue }
             if d == t, let a = db.active { out[w] = LiftSlot(day: a.day, status: "live"); next = (a.day % n) + 1; continue }
+            if d == t, let o = db.dayOver?[t], plan[o] != nil { out[w] = LiftSlot(day: o, status: "planned"); next = (o % n) + 1; continue }
             out[w] = LiftSlot(day: next, status: "planned")
             next = (next % n) + 1
         }

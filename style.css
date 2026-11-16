@@ -255,3 +255,24 @@ h1{margin:6px 0 4px;font-size:34px;font-weight:800;letter-spacing:-.02em;line-he
 
 .wedit{background:none;border:0;border-bottom:2px dashed rgba(255,255,255,.2);border-radius:0;color:inherit;font-family:inherit;letter-spacing:inherit;line-height:1;padding:0;margin:0;outline:0;min-width:0;box-sizing:content-box}
 .wedit:focus{border-bottom-color:var(--violet)}
+/* Today hero + Change activity */
+.hero-card{position:relative;overflow:hidden;padding:18px}
+.hc-img{position:absolute;top:0;right:0;width:62%;height:250px;background-size:cover;background-position:center top;-webkit-mask-image:linear-gradient(90deg,transparent,#000 50%),linear-gradient(180deg,#000 55%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 50%),linear-gradient(180deg,#000 55%,transparent);mask-composite:intersect;pointer-events:none}
+.hc-top{position:relative}.hc-top.has-img{min-height:196px}
+.hc-title{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:4px 0 4px;max-width:230px}
+.btn.outline{background:transparent;border:1px solid rgba(255,255,255,.75)}
+.link.plain{text-decoration:none}
+.next-row{display:flex;align-items:center;gap:14px;width:100%;color:#fff;text-align:left}
+.ca-tabs{display:flex;gap:8px;margin:16px 0 6px}
+.ca-tabs button{flex:1;height:40px;border-radius:20px;border:1px solid rgba(255,255,255,.22);background:transparent;color:#fff;font-weight:700;font-size:14px}
+.ca-tabs button.on{background:linear-gradient(160deg,#AC9EFF,#7C6CF0);border-color:transparent}
+.ca-row{display:flex;align-items:center;gap:12px;width:100%;padding:8px;margin-top:8px;border-radius:18px;border:1px solid var(--line);background:var(--glass);color:#fff;text-align:left}
+.ca-row img,.ca-ic{width:64px;height:56px;border-radius:12px;object-fit:cover;flex:none}
+.ca-ic{display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06)}
+.ca-badge{display:inline-block;margin-top:4px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid currentColor;border-radius:5px;padding:1px 6px}
+.ca-radio{width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,.4);flex:none;margin-right:4px}
+.ca-row.on.violet{border-color:var(--violet);background:rgba(156,140,255,.12)}
+.ca-row.on.coral{border-color:var(--coral);background:rgba(255,107,74,.12)}
+.ca-row.on.violet .ca-radio{border-color:var(--violet);background:radial-gradient(circle,var(--violet) 0 45%,transparent 50%)}
+.ca-row.on.coral .ca-radio{border-color:var(--coral);background:radial-gradient(circle,var(--coral) 0 45%,transparent 50%)}
+.ca-ic svg,.next-row svg{width:24px;height:24px}

@@ -128,6 +128,8 @@ enum Icon {
     static let walk = "M10 21l2.5-6 2.5 2v4M8 12l2-4.5 3.5 1.5 2 3.5 2.5 1M11 8.5l-1.5 6.5"
     static let check = "M5 12.5l4.5 4.5L19 7.5"
     static let chev = "M9 5l7 7-7 7"
+    static let plus = "M12 5v14M5 12h14"
+    static let swap = "M4 8h15l-4-4M20 16H5l4 4"
     static let home = "M4 11l8-6.5 8 6.5V20h-5.5v-5.5h-5V20H4z"
 
     // workout.js `WIC` (circles and rects written out as path data)

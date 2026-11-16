@@ -24,7 +24,6 @@ struct TodayView: View {
                     InsightCard(insights: e.insights(health: healthSignals(today: t)))
                     mainCard(e, slot: slot, selDate: selDate, isToday: isToday, lp: slots[sel], st: st, mon: mon)
                     if isToday && e.db.active == nil { MobilityCard(e: e) }
-                    if isToday && e.db.active == nil { otherOptions(slot) }
                     if isToday { todayLog(e, t: t) }
                     weekCard(e)
                 }
@@ -36,6 +35,7 @@ struct TodayView: View {
             switch s {
             case .cantTrain: CantTrainSheet()
             case .somethingElse: SomethingElseSheet()
+            case .addActivity: SomethingElseSheet(add: true)
             case .walk: WalkSheet()
             case .editCardio(let d, let ty): EditCardioSheet(date: d, type: ty)
             }
@@ -58,32 +58,113 @@ struct TodayView: View {
         } else if e.skipOn(selDate) != nil && !e.slotDone(slot, selDate, mon) {
             homeCard(e, date: selDate, isToday: isToday)
         } else {
-            slotCard(e, slot: slot, date: selDate, isToday: isToday, lp: lp)
-            if isToday && slot != "rest" && !e.slotDone(slot, selDate, mon) {
-                HStack(spacing: 10) {
-                    Button("Swap workout") { model.sheet = .somethingElse }.buttonStyle(StrataButtonStyle(small: true))
-                    Button("Can't train today?") { model.sheet = .cantTrain }.buttonStyle(StrataButtonStyle(small: true))
+            let open = isToday && slot != "rest" && !e.slotDone(slot, selDate, mon)
+            let planned = slot == "lift" && lp?.status == "planned" ? lp?.day : nil
+            if open, let h = hero(e, slot: slot, day: planned) {
+                heroCard(h)
+            } else {
+                slotCard(e, slot: slot, date: selDate, isToday: isToday, lp: lp)
+                if open { changeButtons.padding(.top, -2) }
+                else if isToday {
+                    Button { model.sheet = .addActivity } label: {
+                        HStack(spacing: 10) { IconView(d: Icon.plus, size: 18, color: .white, line: 2.2); Text("Add activity") }
+                    }.buttonStyle(StrataButtonStyle(kind: .outline))
                 }
             }
-            if e.db.active == nil && !(slot == "lift" && lp?.status == "planned") {
-                nextLiftCard(e, isToday: isToday, mon: mon)
-            }
+            if isToday { nextLiftRow(e, todayLift: planned) }
         }
     }
 
-    /// "Next lift in your rotation" (web `nextCardHTML`). When a lift this week was skipped or missed it offers to catch up today.
-    private func nextLiftCard(_ e: Engine, isToday: Bool, mon: String) -> some View {
-        let nd = e.nextDay(), t = e.today
-        return HStack(spacing: 12) {
-            IconView(d: Icon.dumbbell, size: 20, color: Theme.violet, line: 1.9)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Next lift in your rotation").labelStyle()
-                Text(e.plan[nd]?.name ?? "").nameStyle().padding(.top, 2)
-                Text("\(e.requiredItems(nd).count) main lifts · ~\(jsMinutes(e.minutesFor(nd))) min\(e.isLegs(nd) ? " · jumps first" : "")").metaStyle()
+    // MARK: today's hero card (photo, start, change activity)
+
+    private struct TodayHero {
+        let label: String, title: String, meta: String, img: String?, note: String?, warn: String?
+        let accent: Color, kind: BtnKind, start: String, action: () -> Void
+    }
+
+    private func hero(_ e: Engine, slot: String, day: Int?) -> TodayHero? {
+        let catchUp = e.isCatchUp()
+        let base = catchUp ? "Today · Catch-up" : "Today"
+        switch slot {
+        case "lift":
+            guard let d = day else { return nil }
+            let req = e.requiredItems(d), name = e.plan[d]?.name ?? ""
+            let img = req.lazy.compactMap { e.catalog.imageName(of: $0.id) }.first
+            let g = e.gate(view: d)
+            return TodayHero(label: base, title: name,
+                        meta: "\(req.count) exercises · ~\(jsMinutes(e.minutesFor(d))) min\(e.isLegs(d) ? " · jumps first" : "")",
+                        img: img.map { (($0 as NSString).lastPathComponent as NSString).deletingPathExtension },
+                        note: catchUp ? "You missed a lift earlier this week. Prefer \(e.catalog.slotName[e.planSlot(e.today)] ?? "your plan")? Change activity." : nil,
+                        warn: g.ok ? nil : g.msg, accent: Theme.violet, kind: .violet, start: "Start \(name)") { model.go(.preview(day: d)) }
+        case "vo2":
+            return TodayHero(label: base, title: "4×4 intervals", meta: "Heart · ~40 min", img: "treadmill", note: nil, warn: nil,
+                        accent: Theme.coral, kind: .coral, start: "Start 4×4") { model.navigate(.pickCardio) }
+        case "z2":
+            return TodayHero(label: base, title: "Zone 2 walk", meta: "Heart · 45–60 min", img: "treadmill", note: nil, warn: nil,
+                        accent: Theme.coral, kind: .coral, start: "Start Zone 2") { model.navigate(.pickCardio) }
+        case "walk":
+            return TodayHero(label: base, title: "Long walk", meta: "Heart · 45–90 min, easy pace", img: nil, note: nil, warn: nil,
+                        accent: Theme.coral, kind: .coral, start: "Start walk") { model.navigate(.pickCardio) }
+        default:
+            return nil
+        }
+    }
+
+    private func heroCard(_ h: TodayHero) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(h.label).labelStyle(h.accent)
+                Text(h.title).font(.inter(size: 30, weight: .heavy)).tracking(-0.6)
+                    .frame(maxWidth: h.img == nil ? .infinity : 220, alignment: .leading).fixedSize(horizontal: false, vertical: true)
+                Text(h.meta).metaStyle()
+                if let n = h.note {
+                    Text(n).font(.inter(size: 13)).foregroundStyle(Theme.muted).frame(maxWidth: 190, alignment: .leading).padding(.top, 6)
+                }
             }
-            Spacer(minLength: 0)
-            Button(e.liftedOn(t) != nil ? "Preview" : "Open") { model.go(.preview(day: nd)) }.buttonStyle(StrataButtonStyle(small: true, hPad: 16)).fixedSize()
-        }.padding(.horizontal, 14).padding(.vertical, 12).card()
+            .frame(maxWidth: .infinity, minHeight: h.img == nil ? 0 : 196, alignment: .topLeading)
+            if let w = h.warn { WarnBox(markdown: w).padding(.top, 10) }
+            Button(h.start, action: h.action).buttonStyle(StrataButtonStyle(kind: h.kind)).padding(.top, 14)
+            changeButtons.padding(.top, 10)
+        }
+        .padding(16)
+        .background(alignment: .topTrailing) {
+            if let img = h.img {
+                BundleImage(name: img).frame(width: 230, height: 250).clipped()
+                    .mask(LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.5)], startPoint: .leading, endPoint: .trailing))
+                    .mask(LinearGradient(stops: [.init(color: .black, location: 0.55), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
+                    .allowsHitTesting(false)
+            }
+        }
+        .card(inset: EdgeInsets())
+        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.card))
+    }
+
+    /// "Change activity" (outlined) and "Can't train today?"
+    private var changeButtons: some View {
+        VStack(spacing: 2) {
+            Button { model.sheet = .somethingElse } label: {
+                HStack(spacing: 10) { IconView(d: Icon.swap, size: 18, color: .white, line: 2); Text("Change activity") }
+            }.buttonStyle(StrataButtonStyle(kind: .outline))
+            Button("Can't train today?") { model.sheet = .cantTrain }
+                .buttonStyle(LinkButtonStyle(underline: false)).frame(maxWidth: .infinity)
+        }
+    }
+
+    /// "Next strength session" / "Next in strength rotation": one compact row that opens the preview.
+    private func nextLiftRow(_ e: Engine, todayLift: Int?) -> some View {
+        let n = e.days.count
+        let nd = todayLift.map { ($0 % n) + 1 } ?? (e.db.active.map { ($0.day % n) + 1 } ?? e.nextDay())
+        return Button { model.go(.preview(day: nd)) } label: {
+            HStack(spacing: 14) {
+                IconView(d: Icon.dumbbell, size: 22, color: Theme.violet, line: 1.9)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(todayLift != nil || e.db.active != nil ? "Next in strength rotation" : "Next strength session").labelStyle()
+                    Text(e.plan[nd]?.name ?? "").nameStyle()
+                }
+                Spacer(minLength: 0)
+                IconView(d: Icon.chev, size: 18, color: Color(hex: "#A9AEBD"), line: 2.4)
+            }.contentShape(Rectangle())
+        }.buttonStyle(.plain).padding(.horizontal, 2).card(tight: true)
     }
 
     private func when(_ e: Engine, _ date: String, _ isToday: Bool) -> String {
@@ -300,22 +381,6 @@ struct TodayView: View {
                 }
             }.card(border: col.opacity(0.33))
             if isToday && (sk.done ?? 0) == 0 { undo }
-        }
-    }
-
-    // MARK: "Next lift in your rotation", "Cardio first", "Log a walk"
-
-    @ViewBuilder
-    private func otherOptions(_ slot: String) -> some View {
-        let showCardio = slot != "vo2" && slot != "z2" && slot != "walk"
-        let showWalk = slot != "office" && slot != "z2" && slot != "walk"
-        if showCardio || showWalk {
-            HStack(spacing: 8) {
-                if showCardio {
-                    Button(slot == "lift" ? "Cardio first" : "Start cardio") { model.navigate(.pickCardio) }.buttonStyle(StrataButtonStyle(small: true))
-                }
-                if showWalk { Button("Log a walk") { model.sheet = .walk }.buttonStyle(StrataButtonStyle(small: true)) }
-            }
         }
     }
 

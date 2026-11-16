@@ -225,3 +225,8 @@ Under the day's card: accept the suggestion, **Swap for something else** (per-da
 ## Swap workout + catch-up suggestion
 - `weekPlan` suggests a missed lift for today (`catchUpToday`) unless today has its own pick, skip or cardio done; `isCatchUp`, `planSlot` expose it. `setSlotOver` always stores (so "Keep the plan" sticks); `clearSlotOver` removes.
 - Today: "Swap workout" and "Can't train today?" are buttons. The swap sheet is Strength / Cardio / Walk, then options with the recommendation in colour. The manual minutes box on walk cards became "Already did it? Log it" (walk sheet). The "Missed lift. Catch up today?" card is gone.
+
+## Today hero + Change activity
+- Today's open slot (lift planned, 4×4, Zone 2, long walk) is a hero card: photo on the right, "Start …", an outlined "Change activity" button and a plain "Can't train today?" link. Below it one compact row: "Next strength session" / "Next in strength rotation". "Cardio first" / "Log a walk" buttons are gone (Change activity → Cardio covers them).
+- Change activity sheet: tabs Strength / Cardio (/ Mobility on iOS; the web has no mobility screens), rows with photo, badge ("Next in rotation" / "Planned today") and a radio, then "Use … today". Picking a lift that isn't next stores `dayOver[date]`; `liftSlots` uses it for today.
+- When today's plan is done (or it's a rest day), the card is followed by an outlined "Add activity" button. It opens the same sheet titled "Add activity": "Start …" opens the lift preview or the cardio picker (or mobility on iOS) and leaves the plan untouched.

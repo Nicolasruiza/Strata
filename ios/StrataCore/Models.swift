@@ -308,10 +308,12 @@ public struct AppData: Codable, Equatable {
     public var maxDb: Double?
     /// "I want something else": a date's own slot, replacing the weekday's plan. Web keeps the same `slotOver`.
     public var slotOver: [String: String]?
+    /// "Change activity" → a specific lift for that date instead of the next in the rotation. Web keeps the same `dayOver`.
+    public var dayOver: [String: Int]?
 
     enum CodingKeys: String, CodingKey {
         case next, history, active, holds, cycleStarts, focus, injuries, cycleAnchor, cardio, age
-        case officeDays, rcOffice, waist, skips, live, mobility, steps, jumpAlt, officeOff, maxDb, slotOver
+        case officeDays, rcOffice, waist, skips, live, mobility, steps, jumpAlt, officeOff, maxDb, slotOver, dayOver
     }
 
     public init() {}
@@ -349,6 +351,7 @@ public struct AppData: Codable, Equatable {
         officeOff = try c.decodeIfPresent([String].self, forKey: .officeOff)
         maxDb = try c.decodeIfPresent(Double.self, forKey: .maxDb)
         slotOver = try c.decodeIfPresent([String: String].self, forKey: .slotOver)
+        dayOver = try c.decodeIfPresent([String: Int].self, forKey: .dayOver)
         // `demoSensors` is a web testing switch: read nothing, write nothing.
     }
 }
