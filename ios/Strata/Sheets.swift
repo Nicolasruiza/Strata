@@ -26,6 +26,8 @@ struct CantTrainSheet: View {
 /// "Change activity" (web `elseSheet()`): Strength / Cardio / Mobility tabs, pick one, then "Use … today".
 struct SomethingElseSheet: View {
     @EnvironmentObject var model: AppModel
+    /// "Add activity": today's plan is done (or a rest day). Same picker, but it starts something extra instead of replacing the plan.
+    var add = false
     @State private var tab: String?
     @State private var sel: String?
 
@@ -71,10 +73,10 @@ struct SomethingElseSheet: View {
         let plan = e.planSlot(t)
         let cur = e.weekPlan(mon)[Dates.weekday(t)] ?? "rest"
         let curDay = e.liftSlots(mon)[Dates.weekday(t)]?.day
-        let defTab = cur == "lift" || (e.liftOwed(mon) && e.liftedOn(t) == nil) ? "strength" : "cardio"
+        let defTab = add ? (e.liftedOn(t) == nil ? "strength" : "cardio") : (cur == "lift" || (e.liftOwed(mon) && e.liftedOn(t) == nil) ? "strength" : "cardio")
         let tb = tab ?? defTab
         let opts = options(e, tab: tb, rotation: rotation, plan: plan)
-        let defSel = tb == "strength" ? "lift:\(cur == "lift" ? (curDay ?? rotation) : rotation)"
+        let defSel = tb == "strength" ? "lift:\(cur == "lift" && !add ? (curDay ?? rotation) : rotation)"
             : tb == "cardio" ? (opts.first { $0.key == cur }?.key ?? opts.first { $0.badge != nil }?.key ?? opts.first?.key ?? "")
             : opts.first?.key ?? ""
         let s = sel ?? defSel
@@ -83,8 +85,8 @@ struct SomethingElseSheet: View {
         SheetChrome {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Change activity").title2Style(24)
-                    Text("Choose what you want to do today.").bodyStyle()
+                    Text(add ? "Add activity" : "Change activity").title2Style(24)
+                    Text(add ? "Something extra today. Your plan stays as it is." : "Choose what you want to do today.").bodyStyle()
                 }
                 Spacer(minLength: 0)
                 Button { model.sheet = nil } label: { IconView(d: Icon.close, size: 20, color: .white, line: 2.2).frame(width: 36, height: 36) }
@@ -145,11 +147,17 @@ struct SomethingElseSheet: View {
     private func useLabel(_ key: String, _ o: Opt?) -> String {
         if key == "other" { return "Choose the activity" }
         if key.hasPrefix("mob:") { return "Start mobility" }
-        return "Use \(o?.name ?? "this") today"
+        return add ? "Start \(o?.name ?? "")" : "Use \(o?.name ?? "this") today"
     }
 
     private func use(_ e: Engine, _ key: String, rotation: Int, name: String) {
         let t = e.today
+        if add && !key.hasPrefix("mob:") {
+            model.sheet = nil; model.selDay = nil
+            if key.hasPrefix("lift:"), let d = Int(key.dropFirst(5)) { model.go(.preview(day: d)) }
+            else { model.pickAct = nil; model.navigate(.pickCardio) }
+            return
+        }
         if key.hasPrefix("lift:"), let d = Int(key.dropFirst(5)) {
             model.mutate { $0.setLiftDay(t, d == rotation ? nil : d); return "\(name) today" }
         } else if key.hasPrefix("mob:") {

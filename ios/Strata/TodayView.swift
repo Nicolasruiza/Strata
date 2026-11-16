@@ -35,6 +35,7 @@ struct TodayView: View {
             switch s {
             case .cantTrain: CantTrainSheet()
             case .somethingElse: SomethingElseSheet()
+            case .addActivity: SomethingElseSheet(add: true)
             case .walk: WalkSheet()
             case .editCardio(let d, let ty): EditCardioSheet(date: d, type: ty)
             }
@@ -64,6 +65,11 @@ struct TodayView: View {
             } else {
                 slotCard(e, slot: slot, date: selDate, isToday: isToday, lp: lp)
                 if open { changeButtons.padding(.top, -2) }
+                else if isToday {
+                    Button { model.sheet = .addActivity } label: {
+                        HStack(spacing: 10) { IconView(d: Icon.plus, size: 18, color: .white, line: 2.2); Text("Add activity") }
+                    }.buttonStyle(StrataButtonStyle(kind: .outline))
+                }
             }
             if isToday { nextLiftRow(e, todayLift: planned) }
         }
