@@ -45,7 +45,7 @@ extension View {
 
 // MARK: buttons (.btn and variants)
 
-enum BtnKind { case plain, primary, violet, violetFlat, coral, mint }
+enum BtnKind { case plain, primary, violet, violetFlat, coral, mint, outline }
 
 struct StrataButtonStyle: ButtonStyle {
     var kind: BtnKind = .plain
@@ -74,6 +74,7 @@ struct StrataButtonStyle: ButtonStyle {
         if let c = color { return AnyShapeStyle(c) }
         switch kind {
         case .plain: return AnyShapeStyle(Color.white.opacity(0.08))
+        case .outline: return AnyShapeStyle(Color.clear)
         case .primary: return AnyShapeStyle(Color(hex: "#F4F5F8"))
         case .violet: return AnyShapeStyle(LinearGradient(colors: [Color(hex: "#AC9EFF"), Color(hex: "#7C6CF0")], startPoint: .topLeading, endPoint: .bottomTrailing))
         case .violetFlat: return AnyShapeStyle(Color(hex: "#9C8CFF").opacity(0.85))      // `Machine busy`: inline background
@@ -81,7 +82,7 @@ struct StrataButtonStyle: ButtonStyle {
         case .mint: return AnyShapeStyle(LinearGradient(colors: [Color(hex: "#6EE7A0"), Color(hex: "#2FBF68")], startPoint: .topLeading, endPoint: .bottomTrailing))
         }
     }
-    private var border: Color { (kind == .plain && color == nil) ? Color.white.opacity(0.16) : .clear }
+    private var border: Color { kind == .outline ? Color.white.opacity(0.75) : (kind == .plain && color == nil) ? Color.white.opacity(0.16) : .clear }
     private var shadow: Color {
         switch kind { case .violet, .violetFlat: return Color(hex: "#7C6CF0").opacity(0.4); case .coral: return Color(hex: "#F0583A").opacity(0.35); default: return .clear }
     }
@@ -90,9 +91,10 @@ struct StrataButtonStyle: ButtonStyle {
 /// `.link`
 struct LinkButtonStyle: ButtonStyle {
     var color: Color = Theme.muted
+    var underline = true
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.font(.inter(size: 14, weight: .semibold)).foregroundStyle(color)
-            .underline(true).padding(10).opacity(configuration.isPressed ? 0.7 : 1)
+            .underline(underline).padding(10).opacity(configuration.isPressed ? 0.7 : 1)
     }
 }
 
