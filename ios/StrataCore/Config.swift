@@ -43,6 +43,8 @@ public enum Config {
 
     /// core.js `MIN_PER_LIFT`: measured, ~12 minutes per lift including setup and rest.
     public static let minutesPerLift = 12.0
+    /// core.js `CORE_MIN`: a core exercise is two short sets.
+    public static let minutesPerCore = 5.0
     /// Sets in a normal prescription (`ex.sets||3`) and on a lighter day.
     public static let defaultSets = 3
     public static let lighterDaySets = 2

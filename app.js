@@ -222,7 +222,7 @@ function slotDone(slot,date,mon){
   if(slot==='rest')return false;
   const t=CTYPE[slot]; return weekDates(mon).some(d=>!!cardioOn(d,t));
 }
-const minutesFor=day=>Math.round(requiredItems(day).length*MIN_PER_LIFT/5)*5;
+const minutesFor=day=>{const core=PLAN[day].blocks.filter(b=>isCoreBlock(b.t)).flatMap(b=>b.items).length; return Math.round(((requiredItems(day).length-core)*MIN_PER_LIFT+core*CORE_MIN)/5)*5};
 
 /* ---------- rings ---------- */
 function ringSVG(k,done,target,size){
@@ -642,7 +642,7 @@ function logSet(){
   } else if(!wasEdit) startRest(restFor(orig),`Set ${p.reps.length+1} of ${setCount}`);
   save(); render();
 }
-const restFor=ex=>ex.key?120:isOptionalBlock((PLAN[DB.active.day].blocks.find(b=>b.items.includes(ex))||{}).t)?60:90;
+const restFor=ex=>{if(ex.key)return 120; const t=(PLAN[DB.active.day].blocks.find(b=>b.items.includes(ex))||{}).t; return isOptionalBlock(t)||isCoreBlock(t)?60:90};
 function startRest(sec,next,lbl){
   rest={endAt:Date.now()+sec*1000,total:sec,next,lbl:lbl||'Up next',beeped:false};
   ensureLiftTick();

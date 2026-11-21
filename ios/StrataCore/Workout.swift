@@ -115,7 +115,7 @@ extension Engine {
 
     public static func blockKind(_ t: String) -> String {
         func m(_ p: String) -> Bool { t.range(of: p, options: [.regularExpression, .caseInsensitive]) != nil }
-        return m("^warm") ? "Warm-up" : m("^basics") ? "Basics" : m("^compound") ? "Compound" : "Isolation"
+        return m("^warm") ? "Warm-up" : m("^basics") ? "Basics" : m("^compound") ? "Compound" : m("^core") ? "Core" : "Isolation"
     }
 
     /// `woBlocks()`: the overview's groups (the jumps warm-up has its own row).
@@ -146,7 +146,7 @@ extension Engine {
     public func restFor(_ ex: Ex) -> Double {
         if ex.isKey { return Config.Rest.keyLift }
         let t = (plan[db.active!.day]?.blocks.first { $0.items.contains { $0.id == ex.id } })?.t
-        return Engine.isOptionalBlock(t ?? "") ? Config.Rest.optionalBlock : Config.Rest.standard
+        return Engine.isOptionalBlock(t ?? "") || Engine.isCoreBlock(t ?? "") ? Config.Rest.optionalBlock : Config.Rest.standard
     }
 
     public mutating func startRest(_ sec: Double, next: String?, lbl: String? = nil) {

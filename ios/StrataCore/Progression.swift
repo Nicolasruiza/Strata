@@ -78,6 +78,8 @@ extension Engine {
     public static func isOptionalBlock(_ t: String) -> Bool {
         t.range(of: "^(bonus|warm-up|isolation)", options: [.regularExpression, .caseInsensitive]) != nil
     }
+    /// `isCoreBlock`: required, but short (two sets, short rests).
+    public static func isCoreBlock(_ t: String) -> Bool { t.range(of: "^core", options: [.regularExpression, .caseInsensitive]) != nil }
     static func isWarmUp(_ t: String) -> Bool { t.range(of: "^warm-up", options: [.regularExpression, .caseInsensitive]) != nil }
     static func isWarm(_ t: String) -> Bool { t.range(of: "^warm", options: [.regularExpression, .caseInsensitive]) != nil }
 
@@ -89,7 +91,8 @@ extension Engine {
     }
     /// `minutesFor`
     public func minutesFor(_ day: Int) -> Double {
-        jsRound(Double(requiredItems(day).count) * Config.minutesPerLift / 5) * 5
+        let core = Double((plan[day]?.blocks ?? []).filter { Engine.isCoreBlock($0.t) }.flatMap(\.items).count)
+        return jsRound(((Double(requiredItems(day).count) - core) * Config.minutesPerLift + core * Config.minutesPerCore) / 5) * 5
     }
     public func isLegs(_ day: Int) -> Bool {
         (plan[day]?.name ?? "").range(of: "^legs", options: [.regularExpression, .caseInsensitive]) != nil

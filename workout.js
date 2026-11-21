@@ -263,7 +263,7 @@ function cDoneView(){
 }
 
 /* ===================== 4 · STRENGTH: OVERVIEW (full screen) ===================== */
-const blockKind=t=>/^warm/i.test(t)?'Warm-up':/^basics/i.test(t)?'Basics':/^compound/i.test(t)?'Compound':'Isolation';
+const blockKind=t=>/^warm/i.test(t)?'Warm-up':/^basics/i.test(t)?'Basics':/^compound/i.test(t)?'Compound':/^core/i.test(t)?'Core':'Isolation';
 function woBlocks(){
   const A=DB.active, L=liftList();
   return PLAN[A.day].blocks.filter(b=>!/^warm/i.test(b.t)).map(b=>({t:b.t,kind:blockKind(b.t),opt:isOptionalBlock(b.t),items:b.items.filter(x=>L.includes(x))})).filter(b=>b.items.length);
