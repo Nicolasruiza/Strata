@@ -230,3 +230,7 @@ Under the day's card: accept the suggestion, **Swap for something else** (per-da
 - Today's open slot (lift planned, 4×4, Zone 2, long walk) is a hero card: photo on the right, "Start …", an outlined "Change activity" button and a plain "Can't train today?" link. Below it one compact row: "Next strength session" / "Next in strength rotation". "Cardio first" / "Log a walk" buttons are gone (Change activity → Cardio covers them).
 - Change activity sheet: tabs Strength / Cardio (/ Mobility on iOS; the web has no mobility screens), rows with photo, badge ("Next in rotation" / "Planned today") and a radio, then "Use … today". Picking a lift that isn't next stores `dayOver[date]`; `liftSlots` uses it for today.
 - When today's plan is done (or it's a rest day), the card is followed by an outlined "Add activity" button. It opens the same sheet titled "Add activity": "Start …" opens the lift preview or the cardio picker (or mobility on iOS) and leaves the plan untouched.
+
+## Core is required
+- Each day has a "Core" block (required, after Compound): NR Upper A dead bug, Legs A Pallof press, Upper B cable crunch, Legs B side plank; SA Upper A dead bug, Legs A Pallof, Upper B side plank. Two sets each.
+- `isCoreBlock`: counts toward finishing the session and survives low-energy days, but rests like an optional block (60 s) and adds `CORE_MIN` (5) minutes instead of 12. `blockKind` labels it "Core".

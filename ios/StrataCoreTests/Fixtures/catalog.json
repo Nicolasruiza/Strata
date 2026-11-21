@@ -53,6 +53,21 @@
       ]
      },
      {
+      "t": "Core",
+      "items": [
+       {
+        "id": "dead_bug",
+        "n": "Dead bug",
+        "r": 10,
+        "w": 0,
+        "inc": 0,
+        "bw": 1,
+        "frac": 0,
+        "sets": 2
+       }
+      ]
+     },
+     {
       "t": "Bonus · if time",
       "items": [
        {
@@ -71,15 +86,6 @@
         "w": 60,
         "inc": 5,
         "frac": 0.309
-       },
-       {
-        "id": "leg_raise",
-        "n": "Hanging leg raise",
-        "r": 10,
-        "w": 0,
-        "inc": 0,
-        "bw": 1,
-        "frac": 0
        }
       ]
      }
@@ -137,6 +143,20 @@
       ]
      },
      {
+      "t": "Core",
+      "items": [
+       {
+        "id": "pallof",
+        "n": "Pallof press (per side)",
+        "r": 12,
+        "w": 30,
+        "inc": 5,
+        "frac": 0.155,
+        "sets": 2
+       }
+      ]
+     },
+     {
       "t": "Bonus · if time",
       "items": [
        {
@@ -146,14 +166,6 @@
         "w": 70,
         "inc": 10,
         "frac": 0.361
-       },
-       {
-        "id": "pallof",
-        "n": "Pallof press (per side)",
-        "r": 12,
-        "w": 30,
-        "inc": 5,
-        "frac": 0.155
        }
       ]
      }
@@ -211,6 +223,20 @@
       ]
      },
      {
+      "t": "Core",
+      "items": [
+       {
+        "id": "cbl_crunch",
+        "n": "Cable crunch",
+        "r": 15,
+        "w": 50,
+        "inc": 5,
+        "frac": 0.258,
+        "sets": 2
+       }
+      ]
+     },
+     {
       "t": "Bonus · if time",
       "items": [
        {
@@ -230,14 +256,6 @@
         "inc": 5,
         "bar": 25,
         "frac": 0.206
-       },
-       {
-        "id": "cbl_crunch",
-        "n": "Cable crunch",
-        "r": 15,
-        "w": 50,
-        "inc": 5,
-        "frac": 0.258
        }
       ]
      }
@@ -306,6 +324,21 @@
         "inc": 5,
         "each": 1,
         "frac": 0.258
+       }
+      ]
+     },
+     {
+      "t": "Core",
+      "items": [
+       {
+        "id": "side_plank",
+        "n": "Side plank (seconds per side)",
+        "r": 30,
+        "w": 0,
+        "inc": 0,
+        "bw": 1,
+        "frac": 0,
+        "sets": 2
        }
       ]
      },
@@ -674,6 +707,20 @@
       ]
      },
      {
+      "t": "Core",
+      "items": [
+       {
+        "id": "sa_dead_bug",
+        "n": "Dead bug",
+        "r": 10,
+        "w": 0,
+        "inc": 0,
+        "bw": 1,
+        "sets": 2
+       }
+      ]
+     },
+     {
       "t": "Bonus · if time",
       "items": [
        {
@@ -690,14 +737,6 @@
         "r": 12,
         "w": 20,
         "inc": 5
-       },
-       {
-        "id": "sa_dead_bug",
-        "n": "Dead bug",
-        "r": 10,
-        "w": 0,
-        "inc": 0,
-        "bw": 1
        }
       ]
      }
@@ -750,6 +789,19 @@
       ]
      },
      {
+      "t": "Core",
+      "items": [
+       {
+        "id": "sa_pallof",
+        "n": "Pallof press (per side)",
+        "r": 12,
+        "w": 15,
+        "inc": 5,
+        "sets": 2
+       }
+      ]
+     },
+     {
       "t": "Bonus · if time",
       "items": [
        {
@@ -757,13 +809,6 @@
         "n": "Hip abduction",
         "r": 15,
         "w": 40,
-        "inc": 5
-       },
-       {
-        "id": "sa_pallof",
-        "n": "Pallof press (per side)",
-        "r": 12,
-        "w": 15,
         "inc": 5
        }
       ]
@@ -818,6 +863,20 @@
       ]
      },
      {
+      "t": "Core",
+      "items": [
+       {
+        "id": "sa_side_plank",
+        "n": "Side plank (seconds per side)",
+        "r": 20,
+        "w": 0,
+        "inc": 0,
+        "bw": 1,
+        "sets": 2
+       }
+      ]
+     },
+     {
       "t": "Bonus · if time",
       "items": [
        {
@@ -834,14 +893,6 @@
         "r": 15,
         "w": 20,
         "inc": 5
-       },
-       {
-        "id": "sa_side_plank",
-        "n": "Side plank (seconds per side)",
-        "r": 20,
-        "w": 0,
-        "inc": 0,
-        "bw": 1
        }
       ]
      }
@@ -1253,6 +1304,8 @@
    "hammer": "hammer curl proper form",
    "cbl_crunch": "kneeling cable crunch proper form",
    "pallof": "pallof press anti rotation proper form",
+   "dead_bug": "dead bug exercise proper form",
+   "side_plank": "side plank proper form",
    "hip_thrust": "barbell hip thrust proper form",
    "split_squat": "dumbbell split squat proper form",
    "hip_abd": "hip abduction machine glutes form",
@@ -1991,6 +2044,8 @@
   "cbl_crunch": "core_flex",
   "plank": "core_antiext",
   "pallof": "core_antirot",
+  "dead_bug": "core_antiext",
+  "side_plank": "core_antilat",
   "bb_press": "bench",
   "db_incl": "incline",
   "m_fly": "fly",

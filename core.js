@@ -6,10 +6,11 @@ const PLAN_NR={
   {t:"Compound",items:[
    {id:"db_ohp",n:"Dumbbell shoulder press",r:8,w:35,inc:5,each:1,frac:.180},
    {id:"cbl_row",n:"Cable row",r:10,w:70,inc:5,frac:.361}]},
+  {t:"Core",items:[
+   {id:"dead_bug",n:"Dead bug",r:10,w:0,inc:0,bw:1,frac:0,sets:2}]},
   {t:"Bonus · if time",items:[
    {id:"db_curl",n:"Dumbbell bicep curl",r:12,w:30,inc:5,each:1,frac:.155},
-   {id:"cbl_tri",n:"Cable triceps extension",r:12,w:60,inc:5,frac:.309},
-   {id:"leg_raise",n:"Hanging leg raise",r:10,w:0,inc:0,bw:1,frac:0}]}]},
+   {id:"cbl_tri",n:"Cable triceps extension",r:12,w:60,inc:5,frac:.309}]}]},
  2:{name:"Legs A",short:"LEG-A",blocks:[
   {t:"Basics · free weight",items:[
    {id:"gob_squat",n:"Goblet squat",r:8,w:50,inc:5,key:1,frac:.258},
@@ -17,9 +18,10 @@ const PLAN_NR={
   {t:"Compound",items:[
    {id:"split_squat",n:"Dumbbell split squat (per leg)",r:10,w:25,inc:5,each:1,frac:.129},
    {id:"sb_squat",n:"Single-leg box squat (per leg)",r:8,w:0,inc:5,bw:1,frac:0}]},
+  {t:"Core",items:[
+   {id:"pallof",n:"Pallof press (per side)",r:12,w:30,inc:5,frac:.155,sets:2}]},
   {t:"Bonus · if time",items:[
-   {id:"hip_abd",n:"Hip abduction",r:15,w:70,inc:10,frac:.361},
-   {id:"pallof",n:"Pallof press (per side)",r:12,w:30,inc:5,frac:.155}]}]},
+   {id:"hip_abd",n:"Hip abduction",r:15,w:70,inc:10,frac:.361}]}]},
  3:{name:"Upper B",short:"U-B",blocks:[
   {t:"Basics",items:[
    {id:"db_incl",n:"Dumbbell incline bench press",r:8,w:45,inc:5,each:1,key:1,frac:.232},
@@ -27,10 +29,11 @@ const PLAN_NR={
   {t:"Compound",items:[
    {id:"db_row",n:"Dumbbell row",r:8,w:50,inc:5,frac:.258},
    {id:"lat_raise",n:"Lateral raise",r:15,w:15,inc:5,each:1,frac:.077}]},
+  {t:"Core",items:[
+   {id:"cbl_crunch",n:"Cable crunch",r:15,w:50,inc:5,frac:.258,sets:2}]},
   {t:"Bonus · if time",items:[
    {id:"hammer",n:"Hammer curls",r:12,w:25,inc:5,each:1,frac:.129},
-   {id:"skull",n:"Skull crusher",r:12,w:40,inc:5,bar:25,frac:.206},
-   {id:"cbl_crunch",n:"Cable crunch",r:15,w:50,inc:5,frac:.258}]}]},
+   {id:"skull",n:"Skull crusher",r:12,w:40,inc:5,bar:25,frac:.206}]}]},
  4:{name:"Legs B",short:"LEG-B",blocks:[
   {t:"Warm-up · balance",items:[{id:"sl_rdl",n:"Single-leg RDL, bodyweight (per leg)",r:10,w:0,inc:0,bw:1,frac:0}]},
   {t:"Basics · free weight",items:[
@@ -39,6 +42,8 @@ const PLAN_NR={
   {t:"Compound",items:[
    {id:"leg_press",n:"Leg press",r:10,w:180,inc:10,plates:1,frac:.928},
    {id:"farmer",n:"Farmer carry (seconds)",r:40,w:50,inc:5,each:1,frac:.258}]},
+  {t:"Core",items:[
+   {id:"side_plank",n:"Side plank (seconds per side)",r:30,w:0,inc:0,bw:1,frac:0,sets:2}]},
   {t:"Bonus · if time",items:[
    {id:"ham_curl",n:"Lying hamstring curl",r:12,w:80,inc:10,frac:.412}]}]}
 };
@@ -92,10 +97,11 @@ const PLAN_SA={
   {t:"Compound",items:[
    {id:"sa_db_ohp",n:"Dumbbell shoulder press",r:10,w:10,inc:5,each:1},
    {id:"sa_cbl_row",n:"Seated cable row",r:10,w:40,inc:5}]},
+  {t:"Core",items:[
+   {id:"sa_dead_bug",n:"Dead bug",r:10,w:0,inc:0,bw:1,sets:2}]},
   {t:"Bonus · if time",items:[
    {id:"sa_db_curl",n:"Dumbbell bicep curl",r:12,w:10,inc:5,each:1},
-   {id:"sa_cbl_tri",n:"Cable triceps extension",r:12,w:20,inc:5},
-   {id:"sa_dead_bug",n:"Dead bug",r:10,w:0,inc:0,bw:1}]}]},
+   {id:"sa_cbl_tri",n:"Cable triceps extension",r:12,w:20,inc:5}]}]},
  2:{name:"Legs A",short:"LEG-A",blocks:[
   {t:"Basics · free weight",items:[
    {id:"sa_gob_squat",n:"Goblet squat",r:10,w:20,inc:5,key:1},
@@ -103,9 +109,10 @@ const PLAN_SA={
   {t:"Compound",items:[
    {id:"sa_split_squat",n:"Dumbbell split squat (per leg)",r:10,w:10,inc:5,each:1},
    {id:"sa_sb_squat",n:"Single-leg box squat (per leg)",r:8,w:0,inc:5,bw:1}]},
+  {t:"Core",items:[
+   {id:"sa_pallof",n:"Pallof press (per side)",r:12,w:15,inc:5,sets:2}]},
   {t:"Bonus · if time",items:[
-   {id:"sa_hip_abd",n:"Hip abduction",r:15,w:40,inc:5},
-   {id:"sa_pallof",n:"Pallof press (per side)",r:12,w:15,inc:5}]}]},
+   {id:"sa_hip_abd",n:"Hip abduction",r:15,w:40,inc:5}]}]},
  3:{name:"Upper B",short:"U-B",blocks:[
   {t:"Basics",items:[
    {id:"sa_db_incl",n:"Dumbbell incline press",r:10,w:12,inc:5,key:1,each:1},
@@ -113,10 +120,11 @@ const PLAN_SA={
   {t:"Compound",items:[
    {id:"sa_cs_row",n:"Chest-supported row",r:10,w:30,inc:5},
    {id:"sa_lat_raise",n:"Lateral raise",r:15,w:5,inc:5,each:1}]},
+  {t:"Core",items:[
+   {id:"sa_side_plank",n:"Side plank (seconds per side)",r:20,w:0,inc:0,bw:1,sets:2}]},
   {t:"Bonus · if time",items:[
    {id:"sa_hammer",n:"Hammer curls",r:12,w:10,inc:5,each:1},
-   {id:"sa_rope_tri",n:"Rope triceps pushdown",r:15,w:20,inc:5},
-   {id:"sa_side_plank",n:"Side plank (seconds per side)",r:20,w:0,inc:0,bw:1}]}]},
+   {id:"sa_rope_tri",n:"Rope triceps pushdown",r:15,w:20,inc:5}]}]},
  4:{name:"Legs B",short:"LEG-B",blocks:[
   {t:"Warm-up · balance",items:[{id:"sa_sl_rdl",n:"Single-leg RDL, bodyweight (per leg)",r:10,w:0,inc:0,bw:1}]},
   {t:"Basics · free weight",items:[
@@ -187,6 +195,7 @@ const QMAP_NR={bb_press:"barbell bench press proper form",lat_pull:"lat pulldown
  lat_raise:"dumbbell lateral raise proper form",skull:"skull crusher ez bar proper form",
  hammer:"hammer curl proper form",cbl_crunch:"kneeling cable crunch proper form",
  pallof:"pallof press anti rotation proper form",
+ dead_bug:"dead bug exercise proper form",side_plank:"side plank proper form",
  hip_thrust:"barbell hip thrust proper form",split_squat:"dumbbell split squat proper form",
  hip_abd:"hip abduction machine glutes form",step_up:"dumbbell step up proper form",
  farmer:"farmer carry proper form",
@@ -301,6 +310,7 @@ const CONCEPT={
 const CONCEPT_OF={
  /* NR */
  leg_raise:'core_flex', cbl_crunch:'core_flex', plank:'core_antiext', pallof:'core_antirot',
+ dead_bug:'core_antiext', side_plank:'core_antilat',
  bb_press:'bench', db_incl:'incline', m_fly:'fly', db_ohp:'ohp', lat_raise:'side_delt',
  lat_pull:'pulldown', pullup:'pullup', db_row:'row', cbl_row:'row', face_pull:'rear_delt',
  cbl_tri:'tri', skull:'tri', db_curl:'curl', bb_curl:'curl', hammer:'curl',
@@ -636,7 +646,7 @@ function setActivePlan(){
 
 /* Swap choices for a lift: the alternates minus any that are the same exercise under another name
    (audited: the women's plan already plans these as the main lift), and minus identical names. */
-const ALT_SAME={sa_db_bench:['alt_db_bench'],sa_dead_bug:['alt_dead_bug'],sa_cs_row:['alt_cs_row'],sa_rope_tri:['alt_rope_tri'],
+const ALT_SAME={sa_db_bench:['alt_db_bench'],sa_dead_bug:['alt_dead_bug'],dead_bug:['alt_dead_bug'],sa_cs_row:['alt_cs_row'],sa_rope_tri:['alt_rope_tri'],
   sa_rdl:['alt_db_rdl'],pallof:['alt_band_pallof'],sa_pallof:['alt_band_pallof'],sa_pulldown2:['alt_assist_pullup']};
 const swapOptions=orig=>(ALT_OF[orig.id]||[]).filter(a=>!(ALT_SAME[orig.id]||[]).includes(a.id)&&cleanN(a.n).toLowerCase()!==cleanN(orig.n).toLowerCase());
 
@@ -813,8 +823,11 @@ function cycleDayNum(){
 /* "Bonus · if time" and warm-up blocks are optional: they never count against finishing a
    session, and low-energy days drop them (plus any legacy Isolation block). */
 const isOptionalBlock=t=>/^(bonus|warm-up|isolation)/i.test(t||'');
+/* a Core block is required but short: two sets, about 5 minutes, short rests */
+const isCoreBlock=t=>/^core/i.test(t||'');
 const requiredItems=day=>PLAN[day].blocks.filter(b=>!isOptionalBlock(b.t)).flatMap(b=>b.items);
 const MIN_PER_LIFT=12;   // measured: ~12 minutes per lift including setup and rest
+const CORE_MIN=5;        // a core exercise: two short sets
 function sessionItems(day,lowEnergy){
   return PLAN[day].blocks.filter(b=>!(lowEnergy&&isOptionalBlock(b.t))).flatMap(b=>b.items);
 }
